@@ -35,6 +35,7 @@ std::string Token::Literal(token_type type) {
         case RIGHT_CURLY: return "}";
         case SEMICOLON: return ";";
         case SERVER: return "server";
+        case LISTEN: return "listen";
         default: return "ERROR";
     }
 }

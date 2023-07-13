@@ -24,7 +24,9 @@ void    ConfigLexer::scanFile(std::string file_name) {
 void    ConfigLexer::generateToken() {
     if (value.size()) {
         if (value == "server") tokens.push_back(Token(SERVER, line));
-        if (value == "location") tokens.push_back(Token(LOCATION, line));
+        else if (value == "location") tokens.push_back(Token(LOCATION, line));
+        else if (value == "listen") tokens.push_back(Token(LISTEN, line));
+        else if (value == "root") tokens.push_back(Token(ROOT, line));
         else tokens.push_back(Token(value, line));
     }
     value = "";

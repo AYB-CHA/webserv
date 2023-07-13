@@ -90,7 +90,6 @@ Directive  ConfigParser::parseServer() {
 
     if (token != SERVER)
         throw std::runtime_error("Invalid directive.");
-    std::cerr << "here\n";
     consume(LEFT_CURLY);
     while (!check(RIGHT_CURLY)) {
         if (check(LOCATION))
@@ -115,6 +114,6 @@ void    ConfigParser::parse() {
             std::cout << std::endl;
         }
     } catch (std::runtime_error& e) {
-        std::cerr << e.what();
+        std::cerr << e.what() << std::endl;
     }
 }
