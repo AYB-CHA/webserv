@@ -1,0 +1,3 @@
+<server>            := "server" "{" (<directive>)+ "}"
+<blockDirective>    := "{" (<directive>)+ "}"
+<directive>         := IDENTIFIER (PARAMS)+ (";" | <blockDirective>)
