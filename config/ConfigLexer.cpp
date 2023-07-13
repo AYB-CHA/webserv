@@ -22,8 +22,10 @@ void    ConfigLexer::scanFile(std::string file_name) {
 }
 
 void    ConfigLexer::generateToken() {
-    if (value.size())
-        tokens.push_back(Token(value, line));
+    if (value.size()) {
+        if (value == "server") tokens.push_back(Token(SERVER, line));
+        else tokens.push_back(Token(value, line));
+    }
     value = "";
 }
 
@@ -43,6 +45,7 @@ void    ConfigLexer::tokenize() {
                 break;
 
             case '\n': line++;
+            case '\t':
             case ' ': generateToken();
                 break;
 

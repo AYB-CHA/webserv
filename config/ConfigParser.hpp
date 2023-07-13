@@ -13,6 +13,7 @@ private:
     bool              error;
 
     // PARSERS
+    Directive           parseServer();
     Directive           parseDirective();
     std::vector<std::string> parseParameters();
 

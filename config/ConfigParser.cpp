@@ -60,12 +60,26 @@ Directive   ConfigParser::parseDirective() {
     return Directive(name, parameters, block.release());
 }
 
+Directive  ConfigParser::parseServer() {
+    token_type token = consume(SERVER).getType();
+    std::auto_ptr<BlockDirective> block;
+
+    consume(LEFT_CURLY);
+    std::vector<Directive> directives;
+    while (!check(RIGHT_CURLY)) {
+        directives.push_back(parseDirective());
+    }
+    block.reset(new BlockDirective(directives));
+    consume(RIGHT_CURLY);
+    return Directive(token, parameters, block.release());
+}
+
 void    ConfigParser::parse() {
     try {
         for (;;) {
             if (tokens.size() == 0)
                 break;
-            Directive directive = parseDirective();
+            Directive directive = parseServer();
 
             directive.debug();
             std::cout << std::endl;

@@ -6,6 +6,9 @@
 Directive::Directive(std::string name, std::vector<std::string> parameters, BlockDirective *block)
     : name(name), parameters(parameters), block(block) {}
 
+Directive::Directive(token_type token, std::vector<std::string> parameters, BlockDirective *block)
+    : token(token), parameters(parameters), block(block) {}
+
 Directive::Directive(const Directive& o) : name(o.name), parameters(o.parameters) {
     this->block = o.block ? new BlockDirective(*o.block) : NULL;
 }
