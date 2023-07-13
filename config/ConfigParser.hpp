@@ -10,6 +10,7 @@
 class ConfigParser {
 private:
     std::deque<Token> tokens;
+    std::vector<Directive> servers;
     bool              error;
 
     // PARSERS
@@ -26,6 +27,7 @@ public:
     ConfigParser();
     ConfigParser(std::vector<Token> tokens);
     void    parse();
+    std::vector<Directive> getServers();
 };
 
 #endif

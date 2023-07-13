@@ -105,15 +105,18 @@ Directive  ConfigParser::parseServer() {
 
 void    ConfigParser::parse() {
     try {
-        for (;;) {
-            if (tokens.size() == 0)
-                break;
+        while (tokens.size() > 0) {
             Directive directive = parseServer();
 
             directive.debug();
             std::cout << std::endl;
+            servers.push_back(directive);
         }
     } catch (std::runtime_error& e) {
         std::cerr << e.what() << std::endl;
     }
+}
+
+std::vector<Directive> ConfigParser::getServers() {
+    return this->servers;
 }
