@@ -10,13 +10,13 @@ $(NAME): $(OBJFILES)
 	$(CC) $(CFLAGS) $(OBJFILES) -o $(NAME)
 
 %.o : %.cpp
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf *.o
+	$(RM) $(OBJFILES)
 
 fclean: clean
-	rm -rf $(NAME)
+	$(RM) $(NAME)
 
 re: fclean all
 
