@@ -23,17 +23,6 @@ void    Directive::debug() {
         block->debug();
 }
 
-void    Directive::cleanBlock(BlockDirective *block) {
-    if (block) {
-        block->cleanup();
-    }
-    delete block;
-}
-
-void    Directive::cleanup() {
-    cleanBlock(block);
-}
-
 Directive::~Directive() {
     delete block;
 }

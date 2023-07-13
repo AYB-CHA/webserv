@@ -13,7 +13,6 @@ public:
     BlockDirective(const BlockDirective& o);
     BlockDirective(std::vector<Directive>);
     void    debug();
-    void    cleanup();
 };
 
 #endif

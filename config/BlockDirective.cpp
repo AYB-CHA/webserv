@@ -22,9 +22,3 @@ void    BlockDirective::debug() {
     }
     depth--;
 }
-
-void    BlockDirective::cleanup() {
-    for (std::vector<Directive>::iterator it = directives.begin(); it != directives.end(); ++it) {
-        it->cleanup();
-    }
-}
