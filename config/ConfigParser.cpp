@@ -41,8 +41,31 @@ std::vector<std::string> ConfigParser::parseParameters() {
     return result;
 }
 
+token_type  ConfigParser::consumeKeyword() {
+    if (!tokens.size()) throw std::runtime_error("Expected directive.");
+
+    Token token = tokens.front(); tokens.pop_front();
+
+    switch (token.getType()) {
+        case LISTEN:
+        case ROOT:
+        case SERVER:
+        case LOCATION: return token.getType();
+        default: throw std::runtime_error("Invalid directive.");
+    }
+}
+
+Directive   ConfigParser::parseSimpleDirective() {
+    token_type token = consumeKeyword();
+    std::vector<std::string> parameters = parseParameters();
+
+    consume(SEMICOLON);
+
+    return Directive(token, parameters, NULL);
+}
+
 Directive   ConfigParser::parseDirective() {
-    std::string name = consume(WORD).getLiteral();
+    token_type token = consumeKeyword();
     std::vector<std::string> parameters = parseParameters();
     std::auto_ptr<BlockDirective> block;
 
@@ -50,28 +73,35 @@ Directive   ConfigParser::parseDirective() {
         consume(LEFT_CURLY);
         std::vector<Directive> directives;
         while (!check(RIGHT_CURLY)) {
-            directives.push_back(parseDirective());
+            directives.push_back(parseSimpleDirective());
         }
         block.reset(new BlockDirective(directives));
         consume(RIGHT_CURLY);
     } else
         consume(SEMICOLON);
 
-    return Directive(name, parameters, block.release());
+    return Directive(token, parameters, block.release());
 }
 
 Directive  ConfigParser::parseServer() {
-    token_type token = consume(SERVER).getType();
+    token_type token = consumeKeyword();
+    std::vector<Directive> directives;
     std::auto_ptr<BlockDirective> block;
 
+    if (token != SERVER)
+        throw std::runtime_error("Invalid directive.");
+    std::cerr << "here\n";
     consume(LEFT_CURLY);
-    std::vector<Directive> directives;
     while (!check(RIGHT_CURLY)) {
-        directives.push_back(parseDirective());
+        if (check(LOCATION))
+            directives.push_back(parseDirective());
+        else
+            directives.push_back(parseSimpleDirective());
     }
     block.reset(new BlockDirective(directives));
     consume(RIGHT_CURLY);
-    return Directive(token, parameters, block.release());
+
+    return Directive(token, std::vector<std::string>(), block.release());
 }
 
 void    ConfigParser::parse() {

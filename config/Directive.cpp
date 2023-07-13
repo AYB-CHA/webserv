@@ -14,7 +14,10 @@ Directive::Directive(const Directive& o) : name(o.name), parameters(o.parameters
 }
 
 void    Directive::debug() {
-    std::cout << "Directive name: {" << name << "} ";
+    if (this->token == WORD)
+        std::cout << "Directive name: {" << name << "} ";
+    else
+        std::cout << "Directive name: {" << Token::Literal(this->token) << "} ";
     std::cout << "Parameters:";
     for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
         std::cout << "(" << *it << ")";
