@@ -1,7 +1,7 @@
 NAME = webserv
 CPPFILES = main.cpp
 OBJFILES = $(CPPFILES:%.cpp=%.o)
-CFLAGS = -Wall -Wextra -Werror -I./  # -g
+CFLAGS = -Wall -Wextra -Werror  # -g
 CC = c++
 
 all: $(NAME)
