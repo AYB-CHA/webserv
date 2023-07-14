@@ -15,12 +15,14 @@ private:
 
     // PARSERS
     Directive           parseServer();
-    Directive           parseDirective();
+    Directive           parseLocation();
     Directive           parseSimpleDirective();
+    Directive           parseLocDirective();
     std::vector<std::string> parseParameters();
 
     // UTILS
-    token_type      consumeKeyword();
+    token_type      consumeSrvKeyword();
+    token_type      consumeLocKeyword();
     Token           consume(token_type);
     bool            check(token_type type);
 public:

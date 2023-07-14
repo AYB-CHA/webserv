@@ -9,9 +9,15 @@ typedef enum token_type {
     LEFT_CURLY,
     RIGHT_CURLY,
     SERVER,
-    LOCATION,
     LISTEN,
+    INDEX,
+    SERVER_NAME,
+    ACCEPTED_METHODS,
     ROOT,
+    ERROR_PAGE,
+    LOCATION,
+    AUTOINDEX,
+    CGI,
 }   token_type;
 
 class Token {
@@ -20,12 +26,12 @@ private:
     token_type type;
     int         line;
 public:
+    Token(std::string literal, token_type type, int line);
     Token(std::string literal, int line);
     Token(token_type type, int line);
     std::string getLiteral();
     token_type getType();
     std::string getLine();
-    std::string debugLiteral();
     static std::string Literal(token_type type);
     ~Token();
 };
