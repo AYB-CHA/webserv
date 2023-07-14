@@ -1,0 +1,23 @@
+
+server {
+    listen (localhost|x.x.x.x)? :? N?  ;# -> get_port : get_host;
+    root ;# -> get_root
+    server_name ;# -> get_server_names
+    index ;# get_index()
+
+    location  /va {
+        index index.html;
+
+        root /var;
+        cgi .php:/usr/php-cgi;
+        cgi .py:/usr/py-cgi;
+    }
+
+	error_page  500:404.ht/ml;
+
+	redirect /api:/api/2/;
+
+    location / {
+        root: /var/www;
+    }
+}
