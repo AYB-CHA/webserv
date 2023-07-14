@@ -3,10 +3,10 @@
 <directive>         := <serverDirective>
                         | <locationDirective>
 
-<serverDirective>   := <serverKeyword> (WORD)* ";"
 <locationDirective> := "location" (WORD)* <blockDirective>
+<serverDirective>   := <serverKeyword> (WORD)* ";"
 
 <blockDirective>    := "{" (<locationKeyword) (WORD)*)+ "}"
 
-<serverKeyword>     :=  "listen" | "index" | "server_name" | "methods" | "root" | "error_page" | "location"
+<serverKeyword>     :=  "listen" | "index" | "server_name" | "accepted_methods" | "root" | "error_page" | "location"
 <locationKeyword>   :=  "root" | "index" | "autoindex" | "cgi" | "error_page"

@@ -9,9 +9,15 @@ typedef enum token_type {
     LEFT_CURLY,
     RIGHT_CURLY,
     SERVER,
-    LOCATION,
     LISTEN,
+    INDEX,
+    SERVER_NAME,
+    ACCEPTED_METHODS,
     ROOT,
+    ERROR_PAGE,
+    LOCATION,
+    AUTOINDEX,
+    CGI,
 }   token_type;
 
 class Token {

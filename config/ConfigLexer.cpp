@@ -5,11 +5,20 @@
 
 ConfigLexer::ConfigLexer() : line(1) {
     // SERVER KEYWORDS
-    Config::srvkeywords["location"] = LOCATION;
     Config::srvkeywords["listen"] = LISTEN;
+    Config::srvkeywords["index"] = INDEX;
+    Config::srvkeywords["server_name"] = SERVER_NAME;
+    Config::srvkeywords["accepted_methods"] = ACCEPTED_METHODS;
+    Config::srvkeywords["root"] = ROOT;
+    Config::srvkeywords["error_page"] = ERROR_PAGE;
+    Config::srvkeywords["location"] = LOCATION;
 
     // LOCATION KEYWORDS
     Config::lockeywords["root"] = ROOT;
+    Config::lockeywords["index"] = INDEX;
+    Config::lockeywords["autoindex"] = AUTOINDEX;
+    Config::lockeywords["cgi"] = CGI;
+    Config::lockeywords["error_page"] = ERROR_PAGE;
 }
 
 void    ConfigLexer::scanFile(std::string file_name) {
