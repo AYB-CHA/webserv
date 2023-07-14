@@ -36,7 +36,7 @@ std::string Token::getLine() {
 
 std::string Token::Literal(token_type type) {
     switch (type) {
-        case WORD: return "DIR NAME";
+        case WORD: return "<directive>";
         case LEFT_CURLY: return "{";
         case RIGHT_CURLY: return "}";
         case SEMICOLON: return ";";
@@ -44,19 +44,14 @@ std::string Token::Literal(token_type type) {
         case LISTEN: return "listen";
         case LOCATION: return "location";
         case ROOT: return "root";
-        default: return "ERROR";
+        case INDEX: return "index";
+        case SERVER_NAME: return "server_name";
+        case ACCEPTED_METHODS: return "accepted_methods";
+        case ERROR_PAGE: return "error_page";
+        case AUTOINDEX: return "autoindex";
+        case CGI: return "cgi";
     }
-}
-
-std::string Token::debugLiteral() {
-    switch (type) {
-        case WORD: return literal;
-        case LEFT_CURLY: return "{";
-        case RIGHT_CURLY: return "}";
-        case SEMICOLON: return ";";
-        case SERVER: return "server";
-        default: return "ERROR";
-    }
+    return "unknown token";
 }
 
 Token::~Token() {}

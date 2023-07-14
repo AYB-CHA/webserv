@@ -48,8 +48,8 @@ token_type  ConfigParser::consumeSrvKeyword() {
     Token token = tokens.front(); tokens.pop_front();
 
     if (Config::srvkeywords.find(token.getLiteral()) == Config::srvkeywords.end())
-        throw std::runtime_error(std::string("Invalid directive at token: ") + token.getLiteral()
-                                 + " line: " + token.getLine());
+        throw std::runtime_error(std::string("Invalid directive at token: '") + token.getLiteral()
+                                 + "' at line: " + token.getLine());
     return token.getType();
 }
 
@@ -59,8 +59,8 @@ token_type  ConfigParser::consumeLocKeyword() {
     Token token = tokens.front(); tokens.pop_front();
 
     if (Config::lockeywords.find(token.getLiteral()) == Config::lockeywords.end())
-        throw std::runtime_error(std::string("Invalid directive at token: ") + token.getLiteral()
-                                 + " line: " + token.getLine());
+        throw std::runtime_error(std::string("Invalid directive at token: '") + token.getLiteral()
+                                 + "' at line: " + token.getLine());
     return token.getType();
 }
 

@@ -54,15 +54,15 @@ void    ConfigLexer::tokenize() {
     for (int i = 0; contents[i]; i++) {
         switch (contents[i]) {
             case '{': generateToken();
-                tokens.push_back(Token(LEFT_CURLY, line));
+                tokens.push_back(Token("{", LEFT_CURLY, line));
                 break;
 
             case '}': generateToken();
-                tokens.push_back(Token(RIGHT_CURLY, line));
+                tokens.push_back(Token("}", RIGHT_CURLY, line));
                 break;
 
             case ';': generateToken();
-                tokens.push_back(Token(SEMICOLON, line));
+                tokens.push_back(Token(";", SEMICOLON, line));
                 break;
 
             case '\n': line++;

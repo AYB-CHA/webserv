@@ -32,7 +32,6 @@ public:
     std::string getLiteral();
     token_type getType();
     std::string getLine();
-    std::string debugLiteral();
     static std::string Literal(token_type type);
     ~Token();
 };
