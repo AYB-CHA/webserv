@@ -1,3 +1,12 @@
 <server>            := "server" "{" (<directive>)+ "}"
-<blockDirective>    := "{" (<directive>)+ "}"
-<directive>         := IDENTIFIER (PARAMS)+ (";" | <blockDirective>)
+
+<directive>         := <serverDirective>
+                        | <locationDirective>
+
+<serverDirective>   := <serverKeyword> (WORD)* ";"
+<locationDirective> := "location" (WORD)* <blockDirective>
+
+<blockDirective>    := "{" (<locationKeyword) (WORD)*)+ "}"
+
+<serverKeyword>     :=  "listen" | "index" | "server_name" | "methods" | "root" | "error_page" | "location"
+<locationKeyword>   :=  "root" | "index" | "autoindex" | "cgi" | "error_page"
