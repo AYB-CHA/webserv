@@ -24,7 +24,7 @@ Token   ConfigParser::consume(token_type type) {
     }
     std::string errMsg =  "Error: expected '" + Token::Literal(type) + "' token\n";
     if (tokens.size())
-        errMsg += "Got: '" + token.debugLiteral() + "' at line:" + token.getLine() + "\n";
+        errMsg += "Got: '" + token.getLiteral() + "' at line:" + token.getLine() + "\n";
     throw std::runtime_error(errMsg);
 }
 
@@ -48,7 +48,8 @@ token_type  ConfigParser::consumeSrvKeyword() {
     Token token = tokens.front(); tokens.pop_front();
 
     if (Config::srvkeywords.find(token.getLiteral()) == Config::srvkeywords.end())
-        throw std::runtime_error(std::string("Invalid directive at token: ") + token.getLiteral());
+        throw std::runtime_error(std::string("Invalid directive at token: ") + token.getLiteral()
+                                 + " line: " + token.getLine());
     return token.getType();
 }
 
@@ -58,7 +59,8 @@ token_type  ConfigParser::consumeLocKeyword() {
     Token token = tokens.front(); tokens.pop_front();
 
     if (Config::lockeywords.find(token.getLiteral()) == Config::lockeywords.end())
-        throw std::runtime_error(std::string("Invalid directive at token: ") + token.getLiteral());
+        throw std::runtime_error(std::string("Invalid directive at token: ") + token.getLiteral()
+                                 + " line: " + token.getLine());
     return token.getType();
 }
 
@@ -105,7 +107,7 @@ Directive  ConfigParser::parseServer() {
     std::auto_ptr<BlockDirective> block;
 
     if (token != SERVER)
-        throw std::runtime_error("Invalid directive.");
+        throw std::runtime_error("Invalid top level directive.");
     consume(LEFT_CURLY);
     while (!check(RIGHT_CURLY)) {
         if (check(LOCATION))
