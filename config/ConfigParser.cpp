@@ -84,19 +84,17 @@ Directive   ConfigParser::parseLocDirective() {
 
 Directive   ConfigParser::parseLocation() {
     token_type token = consumeSrvKeyword();
+    if (!check(WORD)) consume(WORD);
     std::vector<std::string> parameters = parseParameters();
     std::auto_ptr<BlockDirective> block;
 
-    if (check(LEFT_CURLY)) {
-        consume(LEFT_CURLY);
-        std::vector<Directive> directives;
-        while (!check(RIGHT_CURLY)) {
-            directives.push_back(parseLocDirective());
-        }
-        block.reset(new BlockDirective(directives));
-        consume(RIGHT_CURLY);
-    } else
-        consume(SEMICOLON);
+    consume(LEFT_CURLY);
+    std::vector<Directive> directives;
+    while (!check(RIGHT_CURLY)) {
+        directives.push_back(parseLocDirective());
+    }
+    block.reset(new BlockDirective(directives));
+    consume(RIGHT_CURLY);
 
     return Directive(token, parameters, block.release());
 }
@@ -106,8 +104,6 @@ Directive  ConfigParser::parseServer() {
     std::vector<Directive> directives;
     std::auto_ptr<BlockDirective> block;
 
-    if (token != SERVER)
-        throw std::runtime_error("Invalid top level directive.");
     consume(LEFT_CURLY);
     while (!check(RIGHT_CURLY)) {
         if (check(LOCATION))

@@ -36,7 +36,7 @@ std::string Token::getLine() {
 
 std::string Token::Literal(token_type type) {
     switch (type) {
-        case WORD: return "<directive>";
+        case WORD: return "parameter";
         case LEFT_CURLY: return "{";
         case RIGHT_CURLY: return "}";
         case SEMICOLON: return ";";

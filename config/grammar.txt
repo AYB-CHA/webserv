@@ -3,7 +3,7 @@
 <directive>         := <serverDirective>
                         | <locationDirective>
 
-<locationDirective> := "location" (WORD)* <blockDirective>
+<locationDirective> := "location" (WORD)+ <blockDirective>
 <serverDirective>   := <serverKeyword> (WORD)* ";"
 
 <blockDirective>    := "{" (<locationKeyword) (WORD)*)+ "}"
