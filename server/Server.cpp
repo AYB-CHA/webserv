@@ -39,8 +39,7 @@ void Server::bindAddress() {
   this->host_add.sin_port = htons(this->getPort());
   if (inet_pton(AF_INET, this->getHost().c_str(),
                 &(this->host_add.sin_addr.s_addr)) <= 0) {
-    // todo: throw a proper error.
-    throw std::runtime_error(this->getHost() + " is invalid.");
+    throw std::runtime_error("host " + this->getHost() + " is invalid.");
   }
   this->host_add_len = sizeof(this->host_add);
   if (bind(this->socket_fd, (sockaddr *)&this->host_add, this->host_add_len))
