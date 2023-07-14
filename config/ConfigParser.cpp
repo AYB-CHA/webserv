@@ -84,6 +84,7 @@ Directive   ConfigParser::parseLocDirective() {
 
 Directive   ConfigParser::parseLocation() {
     token_type token = consumeSrvKeyword();
+    if (!check(WORD)) consume(WORD);
     std::vector<std::string> parameters = parseParameters();
     std::auto_ptr<BlockDirective> block;
 
