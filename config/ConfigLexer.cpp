@@ -1,8 +1,14 @@
 #include "ConfigLexer.hpp"
+#include "Config.hpp"
 #include "Token.hpp"
 #include <fstream>
 
-ConfigLexer::ConfigLexer() : line(1) {}
+ConfigLexer::ConfigLexer() : line(1) {
+    Config::keywords["server"] = SERVER;
+    Config::keywords["location"] = LOCATION;
+    Config::keywords["listen"] = LISTEN;
+    Config::keywords["root"] = ROOT;
+}
 
 void    ConfigLexer::scanFile(std::string file_name) {
     std::fstream file(file_name.c_str());
@@ -22,8 +28,11 @@ void    ConfigLexer::scanFile(std::string file_name) {
 }
 
 void    ConfigLexer::generateToken() {
-    if (value.size())
-        tokens.push_back(Token(value, line));
+    if (value.size()) {
+        if (Config::keywords.find(value) != Config::keywords.end())
+            tokens.push_back(Token(Config::keywords[value], line));
+        else tokens.push_back(Token(value, line));
+    }
     value = "";
 }
 
@@ -43,6 +52,7 @@ void    ConfigLexer::tokenize() {
                 break;
 
             case '\n': line++;
+            case '\t':
             case ' ': generateToken();
                 break;
 

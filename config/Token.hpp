@@ -8,6 +8,10 @@ typedef enum token_type {
     SEMICOLON,
     LEFT_CURLY,
     RIGHT_CURLY,
+    SERVER,
+    LOCATION,
+    LISTEN,
+    ROOT,
 }   token_type;
 
 class Token {
