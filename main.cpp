@@ -8,5 +8,8 @@ int main(int ac, char **av) {
     }
     Config config;
     config.init(av[1]);
+
+	std::vector<Directive> servers = config.getServers();
+
   return 0;
 }
