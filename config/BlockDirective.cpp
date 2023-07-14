@@ -12,13 +12,17 @@ BlockDirective::BlockDirective(const BlockDirective& o) {
     directives = std::vector<Directive>(o.directives.begin(), o.directives.end());
 }
 
+std::vector<Directive>  BlockDirective::getDirectives() {
+    return this->directives;
+}
+
 void    BlockDirective::debug() {
     depth++;
     for (std::vector<Directive>::iterator it = directives.begin(); it != directives.end(); ++it) {
         for (int i = 0; i < depth; i++)
             std::cout << "   ";
         it->debug();
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
     depth--;
 }

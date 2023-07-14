@@ -14,6 +14,7 @@ public:
     static std::map<std::string, token_type> srvkeywords;
     Config();
     void    init(std::string file_name);
+    std::vector<Directive> getServers();
 };
 
 #endif

@@ -13,6 +13,22 @@ Directive::Directive(const Directive& o) : token(o.token), name(o.name), paramet
     this->block = o.block ? new BlockDirective(*o.block) : NULL;
 }
 
+token_type  Directive::getType() {
+    return this->token;
+}
+
+std::string Directive::getName() {
+    return this->name;
+}
+
+std::vector<std::string> Directive::getParameters() {
+    return this->parameters;
+}
+
+BlockDirective* Directive::getBlock() {
+    return this->block;
+}
+
 void    Directive::debug() {
     std::cout << "Directive name: {" << Token::Literal(this->token) << "} ";
     std::cout << "Parameters:";

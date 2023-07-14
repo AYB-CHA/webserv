@@ -18,6 +18,12 @@ public:
     Directive(const Directive& o);
     Directive(std::string, std::vector<std::string>, BlockDirective*);
     Directive(token_type, std::vector<std::string>, BlockDirective*);
+
+    token_type getType();
+    std::string getName();
+    std::vector<std::string> getParameters();
+    BlockDirective  *getBlock();
+
     void    debug();
     ~Directive();
 };
