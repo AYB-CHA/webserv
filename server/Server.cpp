@@ -37,7 +37,8 @@ void Server::createSocket() {
 void Server::bindAddress() {
   this->host_add.sin_family = AF_INET;
   this->host_add.sin_port = htons(this->getPort());
-  if (!inet_pton(AF_INET, this->getHost().c_str(), &this->host_add.sin_addr)) {
+  if (inet_pton(AF_INET, this->getHost().c_str(),
+                &(this->host_add.sin_addr.s_addr)) <= 0) {
     // todo: throw a proper error.
     throw std::runtime_error(this->getHost() + " is invalid.");
   }
@@ -45,7 +46,12 @@ void Server::bindAddress() {
   if (bind(this->socket_fd, (sockaddr *)&this->host_add, this->host_add_len))
     throw std::runtime_error("could't bind the socket");
 }
+
 void Server::listen() {
-  if (::listen(socket_fd, SOMAXCONN))
+  if (::listen(this->socket_fd, SOMAXCONN))
     throw std::runtime_error("could't listen to the socket");
 }
+
+int Server::getSocketFd() { return this->socket_fd; }
+struct sockaddr_in &Server::getHostAdd() { return this->host_add; }
+socklen_t &Server::getHostAddLength() { return this->host_add_len; }

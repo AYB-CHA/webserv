@@ -36,4 +36,9 @@ private:
   void createSocket();
   void bindAddress();
   void listen();
+
+public:
+  int getSocketFd();
+  struct sockaddr_in &getHostAdd();
+  socklen_t &getHostAddLength();
 };
