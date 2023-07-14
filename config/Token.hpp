@@ -20,6 +20,7 @@ private:
     token_type type;
     int         line;
 public:
+    Token(std::string literal, token_type type, int line);
     Token(std::string literal, int line);
     Token(token_type type, int line);
     std::string getLiteral();

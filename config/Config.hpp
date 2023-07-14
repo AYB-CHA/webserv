@@ -10,7 +10,8 @@ private:
     ConfigLexer lexer;
     ConfigParser parser;
 public:
-    static std::map<std::string, token_type> keywords;
+    static std::map<std::string, token_type> lockeywords;
+    static std::map<std::string, token_type> srvkeywords;
     Config();
     void    init(std::string file_name);
 };

@@ -7,6 +7,12 @@ Token::Token(std::string literal, int line) {
     this->line = line;
 }
 
+Token::Token(std::string literal, token_type type, int line) {
+    this->literal = literal;
+    this->type = type;
+    this->line = line;
+}
+
 Token::Token(token_type type, int line) {
     this->type = type;
     this->line = line;

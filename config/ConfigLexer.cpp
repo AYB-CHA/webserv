@@ -4,10 +4,12 @@
 #include <fstream>
 
 ConfigLexer::ConfigLexer() : line(1) {
-    Config::keywords["server"] = SERVER;
-    Config::keywords["location"] = LOCATION;
-    Config::keywords["listen"] = LISTEN;
-    Config::keywords["root"] = ROOT;
+    // SERVER KEYWORDS
+    Config::srvkeywords["location"] = LOCATION;
+    Config::srvkeywords["listen"] = LISTEN;
+
+    // LOCATION KEYWORDS
+    Config::lockeywords["root"] = ROOT;
 }
 
 void    ConfigLexer::scanFile(std::string file_name) {
@@ -29,8 +31,11 @@ void    ConfigLexer::scanFile(std::string file_name) {
 
 void    ConfigLexer::generateToken() {
     if (value.size()) {
-        if (Config::keywords.find(value) != Config::keywords.end())
-            tokens.push_back(Token(Config::keywords[value], line));
+        if (value == "server") tokens.push_back(Token(SERVER, line));
+        else if (Config::srvkeywords.find(value) != Config::srvkeywords.end())
+            tokens.push_back(Token(value, Config::srvkeywords[value], line));
+        else if (Config::lockeywords.find(value) != Config::lockeywords.end())
+            tokens.push_back(Token(value, Config::lockeywords[value], line));
         else tokens.push_back(Token(value, line));
     }
     value = "";
