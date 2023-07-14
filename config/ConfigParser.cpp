@@ -104,8 +104,6 @@ Directive  ConfigParser::parseServer() {
     std::vector<Directive> directives;
     std::auto_ptr<BlockDirective> block;
 
-    if (token != SERVER)
-        throw std::runtime_error("Invalid top level directive.");
     consume(LEFT_CURLY);
     while (!check(RIGHT_CURLY)) {
         if (check(LOCATION))
