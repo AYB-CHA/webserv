@@ -12,3 +12,7 @@ void    Config::init(std::string file_name) {
     parser = ConfigParser(lexer.getTokens());
     parser.parse();
 }
+
+std::vector<Directive>  Config::getServers() {
+    return parser.getServers();
+}

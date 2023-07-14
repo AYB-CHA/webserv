@@ -122,8 +122,8 @@ void    ConfigParser::parse() {
         while (tokens.size() > 0) {
             Directive directive = parseServer();
 
-            directive.debug();
-            std::cout << std::endl;
+            // directive.debug();
+            // std::cout << std::endl;
             servers.push_back(directive);
         }
     } catch (std::runtime_error& e) {

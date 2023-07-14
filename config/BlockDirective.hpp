@@ -12,6 +12,8 @@ public:
     BlockDirective();
     BlockDirective(const BlockDirective& o);
     BlockDirective(std::vector<Directive>);
+    std::vector<Directive> getDirectives();
+
     void    debug();
 };
 
