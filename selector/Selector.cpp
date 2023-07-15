@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <sys/select.h>
+#include <sys/types.h>
 
 Selector::Selector() {
     FD_ZERO(&master_set);
@@ -19,4 +20,27 @@ void Selector::popFd(int fd) {
         throw std::runtime_error("Fd is not in the set.");
     }
     FD_CLR(fd, &master_set);
+}
+
+int Selector::poll() {
+    fd_pointer = fds.begin();
+
+    std::memcpy(&working_set, &master_set, sizeof(fd_set));
+    return select(highest_fd + 1, &working_set, NULL, NULL, &timeout);
+}
+
+int Selector::getReadyFd() {
+    while (fd_pointer != fds.end() && FD_ISSET(*fd_pointer, &working_set) == false)
+        ++fd_pointer;
+    if (fd_pointer == fds.end())
+        return -1;
+
+    int fd = *fd_pointer;
+    ++fd_pointer;
+    return fd;
+}
+
+void Selector::setTimeout(time_t sec, suseconds_t usec) {
+    timeout.tv_sec = sec;
+    timeout.tv_usec = usec;
 }

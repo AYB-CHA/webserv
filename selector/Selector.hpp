@@ -1,9 +1,13 @@
 #pragma once
 
 #include <bits/types/struct_timeval.h>
+#include <bits/types/time_t.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <sys/types.h>
+#include <sys/time.h>
 #include <vector>
+#include <cstring>
 
 class Selector {
 private:
@@ -18,6 +22,6 @@ public:
     int poll();
     void pushFd(int fd);
     void popFd(int fd);
-    void    setTimeout();
+    void    setTimeout(time_t sec, suseconds_t usec);
     int getReadyFd();
 };
