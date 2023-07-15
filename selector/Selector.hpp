@@ -11,12 +11,12 @@
 
 class Selector {
 private:
-    typedef std::vector<int>::iterator seliter;
+    typedef std::vector<int>::iterator selIter;
     fd_set  master_set;
     fd_set  working_set;
     int     highest_fd;
     std::vector<int>    fds;
-    seliter fd_pointer;
+    selIter fd_pointer;
     timeval timeout;
 public:
     Selector();

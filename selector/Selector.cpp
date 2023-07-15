@@ -15,7 +15,7 @@ void Selector::pushFd(int fd) {
 }
 
 void Selector::popFd(int fd) {
-    seliter it = std::find(fds.begin(), fds.end(), fd);
+    selIter it = std::find(fds.begin(), fds.end(), fd);
     if (it == fds.end()) {
         throw std::runtime_error("Fd is not in the set.");
     }
