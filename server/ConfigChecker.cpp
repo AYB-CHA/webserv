@@ -10,19 +10,19 @@
 void root_check(std::vector<std::string> params, ABase &base) {
     if (params.size() != 1)
         throw std::runtime_error("params error");
-    for (std::vector<std::string>::iterator it = params.begin();
-         it != params.end(); ++it) {
-        base.setRoot(*it);
-    }
+    base.setRoot(params.front());
 }
 
-void upload_path_check(std::vector<std::string> params, ABase &base) {
-    base.setUploadPath(params[0]);
+void upload_path_check(std::vector<std::string> params, ABase& base) {
+    if (params.size() != 1)
+        throw std::runtime_error("params error");
+    base.setUploadPath(params.front());
 }
 
-void accepted_methods_check(std::vector<std::string> params, ABase &base) {
-    for (std::vector<std::string>::iterator it = params.begin();
-         it != params.end(); ++it) {
+void accepted_methods_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        if (*it != "GET" && *it != "POST" && *it != "DELETE")
+            throw std::runtime_error("params error");
         base.setAllowedMethods(*it);
     }
 }
@@ -38,33 +38,52 @@ void error_page_check(std::vector<std::string> params, ABase &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
         std::vector<std::string> s = utils::split(*it, ":");
-        if (s.size() != 2)
+        if (s.size() != 2 || utils::toInt(s[0]) < 0)
             throw std::runtime_error("params erro");
-        else {
+        else
             base.setErrorPage(utils::toInt(s[0]), s[1]);
-        }
     }
 }
-void clinet_max_body_size_check(std::vector<std::string> params, ABase &base) {
-    base.setClientMaxBodySize(params[0]);
+
+bool valid_size(std::string str) {
+    if (str.back() != 'M' && str.back() != 'K' &&str.back() != 'G' && str.back() != 'B')
+        return false;
+    for (size_t i = 0; i < str.size() - 1; ++i) {
+        if (!isdigit(str[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
-void listen_check(std::vector<std::string> params, ABase &base) {
-    for (std::vector<std::string>::iterator it = params.begin();
-         it != params.end(); ++it) {
+void client_max_body_size_check(std::vector<std::string> params, ABase& base) {
+    if (params.size() != 1 || !valid_size(params.front()))
+        throw std::runtime_error("params error");
+    base.setClientMaxBodySize(params.front());
+}
+
+bool valid_ip_addr(std::string str) {
+    std::vector<std::string> s = utils::split(str, ".");
+    if(s.size() != 4)
+        return false;
+    if(utils::toInt(s[0]) > 255 || utils::toInt(s[0]) < 0
+        || utils::toInt(s[1]) > 255 || utils::toInt(s[1]) < 0
+        || utils::toInt(s[2]) > 255 || utils::toInt(s[2]) < 0
+        || utils::toInt(s[3]) > 255 || utils::toInt(s[3]) < 0)
+        return false;
+    return true;
+}
+
+void listen_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
         std::vector<std::string> s = utils::split(*it, ":");
         if (s.size() == 1) {
-            (dynamic_cast<Server &>(base)).setPort(utils::toInt(s[0]));
-        } else if (s.size() == 2) {
-            // port
-            (dynamic_cast<Server &>(base)).setPort(utils::toInt(s[0]));
-            //  TODO: ip add
-            utils::strTrim(s[1]);
-            (dynamic_cast<Server &>(base)).setHost(s[1]);
-            // ...
+            (dynamic_cast<Server&>(base)).setPort(utils::toInt(s.front()));
+        } else if (s.size() == 2 && valid_ip_addr(s.front())) {
+            (dynamic_cast<Server&>(base)).setPort(utils::toInt(s[1])); // port
+            (dynamic_cast<Server&>(base)).setHost(s.front()); // ip addr
         } else {
             throw std::runtime_error("params erro");
-            ;
         }
     }
 }
@@ -80,14 +99,15 @@ void redirect_check(std::vector<std::string> params, ABase &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
         std::vector<std::string> s = utils::split(*it, ":");
-        (dynamic_cast<Server &>(base)).setRedirect(s[0], s[1]);
+        if (s.size() != 2)
+            throw std::runtime_error("params erro");
+        (dynamic_cast<Server&>(base)).setRedirect(s[0], s[1]);
     }
 }
 
 void autoindex_check(std::vector<std::string> params, ABase &base) {
     if (params.size() != 1 && (params[0] != "true" || params[0] != "false"))
         throw std::runtime_error("params erro");
-    ;
     if (params[0] == "true")
         (dynamic_cast<Location &>(base)).setAutoindex(true);
     else
@@ -100,49 +120,25 @@ void cgi_check(std::vector<std::string> params, ABase &base) {
         std::vector<std::string> s = utils::split(*it, ":");
         if (s.size() != 2)
             throw std::runtime_error("params erro");
-        ;
-        (dynamic_cast<Location &>(base)).setCgiPath(s[0], s[1]);
+        (dynamic_cast<Location&>(base)).setCgiPath(s[0], s[1]);
     }
 }
 
 void match_dir(std::vector<Directive>::iterator &it1, ABase &base) {
     std::vector<std::string> params = it1->getParameters();
     switch (it1->getType()) {
-    case ROOT:
-        root_check(params, base);
-        break;
-    case UPLOAD_PATH:
-        upload_path_check(params, base);
-        break;
-    case ACCEPTED_METHODS:
-        accepted_methods_check(params, base);
-        break;
-    case INDEX:
-        index_check(params, base);
-        break;
-    case ERROR_PAGE:
-        error_page_check(params, base);
-        break;
-    case CLIENT_MAX_BODY_SIZE:
-        clinet_max_body_size_check(params, base);
-        break;
-    case LISTEN:
-        listen_check(params, base);
-        break;
-    case SERVER_NAME:
-        server_name_check(params, base);
-        break;
-    case REDIRECT:
-        redirect_check(params, base);
-        break;
-    case AUTOINDEX:
-        autoindex_check(params, base);
-        break;
-    case CGI:
-        cgi_check(params, base);
-        break;
-    default:
-        break;
+        case ROOT: root_check(params, base); break;
+        case UPLOAD_PATH: upload_path_check(params, base); break;
+        case ACCEPTED_METHODS: accepted_methods_check(params, base); break;
+        case INDEX: index_check(params, base); break;
+        case ERROR_PAGE: error_page_check(params, base); break;
+        case CLIENT_MAX_BODY_SIZE: client_max_body_size_check(params, base); break;
+        case LISTEN: listen_check(params, base); break;
+        case SERVER_NAME: server_name_check(params, base); break;
+        case REDIRECT: redirect_check(params, base); break;
+        case AUTOINDEX: autoindex_check(params, base); break;
+        case CGI: cgi_check(params, base); break;
+        default: break;
     }
 }
 

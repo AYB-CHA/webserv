@@ -8,7 +8,7 @@ int utils::toInt(std::string nb) {
     int num;
     ss >> num;
 
-    if(!ss.eof()) {
+    if(!ss.eof() || ss.fail()) {
         return -1;
     }
     return num;
