@@ -50,6 +50,9 @@ std::string Token::Literal(token_type type) {
         case ERROR_PAGE: return "error_page";
         case AUTOINDEX: return "autoindex";
         case CGI: return "cgi";
+        case REDIRECT: return "redirect";
+        case UPLOAD_PATH: return "upload_path";
+        case CLIENT_MAX_BODY_SIZE: return "client_max_body_size";
     }
     return "unknown token";
 }
