@@ -10,11 +10,12 @@
 class Selector {
 private:
     typedef std::vector<int>::iterator selIter;
-    fd_set  master_set;
-    fd_set  working_set;
+    fd_set  read_set;
+    fd_set  write_set;
     int     highest_fd;
     std::vector<int>    fds;
-    selIter fd_pointer;
+    selIter rfd_pointer;
+    selIter wfd_pointer;
     timeval timeout;
 public:
     Selector();
@@ -22,5 +23,6 @@ public:
     void pushFd(int fd);
     void popFd(int fd);
     void    setTimeout(time_t sec, suseconds_t usec);
-    int getReadyFd();
+    int getWriteFd();
+    int getReadFd();
 };

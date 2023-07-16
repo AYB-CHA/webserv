@@ -5,11 +5,13 @@
 #include <sys/types.h>
 
 Selector::Selector() {
-    FD_ZERO(&master_set);
+    FD_ZERO(&read_set);
+    FD_ZERO(&write_set);
 }
 
 void Selector::pushFd(int fd) {
-    FD_SET(fd, &master_set);
+    FD_SET(fd, &read_set);
+    FD_SET(fd, &write_set);
     fds.push_back(fd);
     highest_fd = *std::max_element(fds.begin(), fds.end());
 }
@@ -20,24 +22,43 @@ void Selector::popFd(int fd) {
         throw std::runtime_error("Fd is not in the set.");
     }
     fds.erase(it);
-    FD_CLR(fd, &master_set);
+    FD_CLR(fd, &read_set);
+    FD_CLR(fd, &write_set);
 }
 
 int Selector::poll() {
-    fd_pointer = fds.begin();
+    rfd_pointer = fds.begin();
+    wfd_pointer = fds.begin();
 
-    std::memcpy(&working_set, &master_set, sizeof(fd_set));
-    return select(highest_fd + 1, &working_set, NULL, NULL, &timeout);
+    FD_ZERO(&read_set);
+    FD_ZERO(&write_set);
+    for (selIter it = fds.begin(); it != fds.end(); ++it) {
+        FD_SET(*it, &read_set);
+        FD_SET(*it, &write_set);
+    }
+
+    return select(highest_fd + 1, &read_set, &write_set, NULL, &timeout);
 }
 
-int Selector::getReadyFd() {
-    while (fd_pointer != fds.end() && FD_ISSET(*fd_pointer, &working_set) == false)
-        ++fd_pointer;
-    if (fd_pointer == fds.end())
+int Selector::getWriteFd() {
+    while (wfd_pointer != fds.end() && FD_ISSET(*wfd_pointer, &write_set) == false)
+        ++wfd_pointer;
+    if (wfd_pointer == fds.end())
         return -1;
 
-    int fd = *fd_pointer;
-    ++fd_pointer;
+    int fd = *wfd_pointer;
+    ++wfd_pointer;
+    return fd;
+}
+
+int Selector::getReadFd() {
+    while (rfd_pointer != fds.end() && FD_ISSET(*rfd_pointer, &read_set) == false)
+        ++rfd_pointer;
+    if (rfd_pointer == fds.end())
+        return -1;
+
+    int fd = *rfd_pointer;
+    ++rfd_pointer;
     return fd;
 }
 
