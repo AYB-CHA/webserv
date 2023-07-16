@@ -1,5 +1,7 @@
 #pragma once
 
 #include "config/Config.hpp"
+#include "core/Core.hpp"
+#include "server/Server.hpp"
 
-void validator(std::vector<Directive> servers);
+std::vector<Server> validator(std::vector<Directive> servers);

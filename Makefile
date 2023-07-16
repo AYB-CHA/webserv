@@ -1,9 +1,11 @@
 NAME = webserv
 HEADERS	= $(wildcard *.hpp) $(wildcard config/*.hpp) $(wildcard server/*.hpp) $(wildcard selector/*.hpp)
+CLIENTFILES = Client.cpp
 SERVERFILES = ABase.cpp ConfigChecker.cpp Location.cpp Server.cpp utils.cpp
 CONFIGFILES	=	Config.cpp ConfigLexer.cpp ConfigParser.cpp Directive.cpp BlockDirective.cpp Token.cpp
 SELECTORFILES	=	Selector.cpp
-CPPFILES = main.cpp $(addprefix config/, $(CONFIGFILES)) $(addprefix server/, $(SERVERFILES)) $(addprefix selector/, $(SELECTORFILES))
+COREFILES = Core.cpp
+CPPFILES = main.cpp $(addprefix config/, $(CONFIGFILES)) $(addprefix server/, $(SERVERFILES)) $(addprefix client/, $(CLIENTFILES)) $(addprefix core/, $(COREFILES)) $(addprefix selector/, $(SELECTORFILES))
 OBJFILES = $(CPPFILES:%.cpp=%.o)
 CFLAGS = -Wall -Wextra -Werror -Wno-implicit-fallthrough -std=c++98  # -g
 CC = c++

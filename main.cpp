@@ -1,8 +1,9 @@
 #include "main.hpp"
+
 #include <cstdlib>
 
 int main(int ac, char **av) {
-  (void) ac;
+    (void)ac;
     if (ac != 2) {
         std::cerr << "Usage: " << av[0] << " <config-file>" << std::endl;
         return 1;
@@ -10,13 +11,16 @@ int main(int ac, char **av) {
     Config config;
     config.init(av[1]);
 
-	std::vector<Directive> servers = config.getServers();
+    std::vector<Directive> server_directives = config.getServers();
+
+    std::vector<Server> servers;
 
     try {
-    	validator(servers);
+        validator(server_directives);
     } catch (std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
     }
 
-  return 0;
+    Core core(servers);
+    return 0;
 }

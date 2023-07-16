@@ -1,36 +1,50 @@
 #pragma once
-# include <string>
-# include <vector>
-# include "Location.hpp"
+#include "Location.hpp"
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <string>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <vector>
 
 class Server : public ABase {
-	private:
-		std::string host;
-		int port;
-		std::vector<std::string> server_names;
-		std::map<std::string, std::string> redirect;
+  private:
+    int port;
+    std::string host;
+    std::vector<std::string> server_names;
+    std::map<std::string, std::string> redirect;
+    std::vector<Location> location;
 
-		std::vector<Location> location;
+    struct sockaddr_in host_add;
+    int socket_fd;
+    socklen_t host_add_len;
 
-		//-------------------------------------------------
+  public:
+    ~Server();
 
-		// map<int, Clinet> clients;
-		// int socket_fd;
+    const std::string &getHost(void) const;
+    int getPort(void) const;
+    const std::vector<std::string> &getServerNames(void) const;
+    const std::map<std::string, std::string> &getRedirect(void) const;
+    const std::vector<Location> &getLocation(void) const;
 
-	public:
+    void setHost(std::string host);
+    void setPort(int port);
+    void setServerName(std::string server_name);
+    void setRedirect(std::string form, std::string to);
+    void setLocation(Location loc);
 
-		~Server();
+    void setUp();
 
-		const std::string &getHost(void) const;
-		int getPort(void) const;
-		const std::vector<std::string> &getServerNames(void) const;
-		const std::map<std::string,std::string> &getRedirect(void) const;
-		const std::vector<Location> &getLocation(void) const;
+  private:
+    void createSocket();
+    void bindAddress();
+    void listen();
 
-		void setHost(std::string host);
-		void setPort(int port);
-		void setServerName(std::string server_name);
-		void setRedirect(std::string form, std::string to);
-		void setLocation(Location loc);
+  public:
+    int getSocketFd();
+    struct sockaddr_in &getHostAdd();
+    socklen_t &getHostAddLength();
 };
-
