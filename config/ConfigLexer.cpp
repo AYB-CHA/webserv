@@ -22,7 +22,6 @@ ConfigLexer::ConfigLexer() : line(1) {
     Config::lockeywords["autoindex"] = AUTOINDEX;
     Config::lockeywords["cgi"] = CGI;
     Config::lockeywords["error_page"] = ERROR_PAGE;
-    Config::lockeywords["prefix"] = PREFIX;
     Config::lockeywords["upload_path"] = UPLOAD_PATH;
     Config::lockeywords["client_max_body_size"] = CLIENT_MAX_BODY_SIZE;
 }
@@ -31,7 +30,7 @@ void    ConfigLexer::scanFile(std::string file_name) {
     std::fstream file(file_name.c_str());
 
     if (!file) {
-        std::cout << "Error: couldn't open file." << std::endl;
+        std::cout << "Error: couldn't open file '" << file_name << "'." << std::endl;
         return;
     }
 
