@@ -8,143 +8,86 @@
 #include "../server/Location.hpp"
 
 
-typedef enum flag {
-    IN_SERV,
-    IN_LOCATION
-}   flag;
-
-void visite_directive(std::vector<Directive>::iterator &it, Server& serv, flag f);
-void match_location_directive (std::vector<Directive>::iterator &it1, Location &location) {
-    std::vector<std::string> parameters = it1->getParameters();
-
-    if (it1->getType() == ROOT) {
-        // std::cout << "root : " << parameters[0] << std::endl;
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            location.setRoot(*it);
-        }
-    }
-    else if (it1->getType() == ACCEPTED_METHODS) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            location.setAllowedMethods(*it);
-        }
-    }
-    else if (it1->getType() == INDEX) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            location.setIndex(*it);
-        }
-    }
-    else if (it1->getType() == ERROR_PAGE) {
-        // std::cout << "error_page : " << parameters[0] << std::endl;
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            std::vector<std::string> s = utils::split(*it, ":");
-            if (s.size() != 2)
-                throw std::runtime_error("params erro");
-            else {
-                location.setErrorPage(utils::toInt(s[0]), s[1]);
-            }
-        }
-    } // not shared
-    else if (it1->getType() == AUTOINDEX) {
-        if (parameters.size() != 1 && (parameters[0] != "true" || parameters[0] != "false"))
-            throw std::runtime_error("params erro");;
-        if (parameters[0] == "true")
-            location.setAutoindex(true);
-        else
-            location.setAutoindex(false);
-    }
-    else if (it1->getType() == CGI) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            std::vector<std::string> s = utils::split(*it, ":");
-            if (s.size() != 2)
-                throw std::runtime_error("params erro");;
-            location.setCgiPath(s[0], s[1]);
-        }
-    }
-}
-void match_serv_directive(std::vector<Directive>::iterator &it1, Server& serv) {
+void match_dir(std::vector<Directive>::iterator &it1, ABase& base) {
     std::vector<std::string> parameters = it1->getParameters();
 
     if (it1->getType() == LISTEN) {
-        // std::cout << "listen : " << parameters[0] << std::endl;
         for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
             std::vector<std::string> s = utils::split(*it, ":");
             if (s.size() == 1) {
-                serv.setPort(utils::toInt(s[0]));
+               (dynamic_cast<Server&>(base)).setPort(utils::toInt(s[0]));
             } else if (s.size() == 2) {
                 // port
-                serv.setPort(utils::toInt(s[0]));
+                (dynamic_cast<Server&>(base)).setPort(utils::toInt(s[0]));
                 //  TODO: ip add
                 utils::strTrim(s[1]);
-                serv.setHost(s[1]);
+                (dynamic_cast<Server&>(base)).setHost(s[1]);
                 // ...
             } else {
                 throw std::runtime_error("params erro");;
             }
         }
 
-    }
-    else if (it1->getType() == ROOT) {
-        // std::cout << "root : " << parameters[0] << std::endl;
+    } else if (it1->getType() == ROOT) {
         for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            serv.setRoot(*it);
+            base.setRoot(*it);
         }
-    }
-    else if (it1->getType() == ACCEPTED_METHODS) {
+    } else if (it1->getType() == ACCEPTED_METHODS) {
         for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            serv.setAllowedMethods(*it);
+            base.setAllowedMethods(*it);
         }
-    }
-    else if (it1->getType() == INDEX) {
+    } else if (it1->getType() == INDEX) {
         for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            serv.setIndex(*it);
+            base.setIndex(*it);
         }
-    }
-    else if (it1->getType() == ERROR_PAGE) {
-        // std::cout << "error_page : " << parameters[0] << std::endl;
+    } else if (it1->getType() == ERROR_PAGE) {
         for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
             std::vector<std::string> s = utils::split(*it, ":");
             if (s.size() != 2)
                 throw std::runtime_error("params erro");
             else {
-                serv.setErrorPage(utils::toInt(s[0]), s[1]);
+                base.setErrorPage(utils::toInt(s[0]), s[1]);
             }
         }
-    }
-    else if (it1->getType() == SERVER_NAME) {
+    } else if (it1->getType() == SERVER_NAME) {
         for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            serv.setServerName(*it);
+            (dynamic_cast<Server&>(base)).setServerName(*it);
         }
-    }
-    else if (it1->getType() == LOCATION) {
-        // recursive
-        visite_directive(it1, serv, IN_LOCATION);
-        // std::cout << "location : later" << std::endl;
+    } else if (it1->getType() == AUTOINDEX) {
+        if (parameters.size() != 1 && (parameters[0] != "true" || parameters[0] != "false"))
+            throw std::runtime_error("params erro");;
+        if (parameters[0] == "true")
+            (dynamic_cast<Location&>(base)).setAutoindex(true);
+        else
+            (dynamic_cast<Location&>(base)).setAutoindex(false);
+    } else if (it1->getType() == CGI) {
+        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
+            std::vector<std::string> s = utils::split(*it, ":");
+            if (s.size() != 2)
+                throw std::runtime_error("params erro");;
+            (dynamic_cast<Location&>(base)).setCgiPath(s[0], s[1]);
+        }
     }
 
 }
 
-void visite_directive(std::vector<Directive>::iterator &it, Server& serv, flag f) {
+void match_loc(Server& serv, std::vector<Directive>::iterator &it1) {
+    Location loc;
+    std::vector<Directive> directives1 = it1->getBlock()->getDirectives();
+    for (std::vector<Directive>::iterator it2 = directives1.begin(); it2 != directives1.end(); ++it2)
+        match_dir(it2, loc);
+    serv.setLocation(loc);
+}
+
+void visite_directive(std::vector<Directive>::iterator &it, Server& serv) {
     std::vector<Directive> directives = it->getBlock()->getDirectives();
-    Location location;
     for (std::vector<Directive>::iterator it1 = directives.begin(); it1 != directives.end(); ++it1) {
-        if (f == IN_SERV) {
-            match_serv_directive(it1, serv);
-        } else {
-            match_location_directive(it1, location);
+        switch (it1->getType()) {
+            case LOCATION: match_loc(serv, it1); break;
+            default: match_dir(it1, serv); break;
         }
     }
-    if (f == IN_LOCATION)
-        serv.setLocation(location);
 }
-
-// visit_dir(directives:)
-//     loop: directive
-//         switch(token)
-//         case loc: loop
-//                 Location loc
-//                 loop: match_dir(loc)
-//                 push_back(loc)
-//         default: match_dir(serv)
 
 
 void printservs(std::vector<Server> servers) {
@@ -240,13 +183,9 @@ void validator(std::vector<Directive> _servers) {
     std::vector<Server> servers;
     for (std::vector<Directive>::iterator it = _servers.begin(); it != _servers.end(); ++it) {
         Server serv;
-        visite_directive(it, serv, IN_SERV);
+        visite_directive(it, serv);
         servers.push_back(serv);
         std::cout << "++++++++++++++++++++++++ server +++++++++++++++++++++++++++" << std::endl;
     }
     printservs(servers);
 }
-
-// bool listen(std::string listen) {
-
-// }
