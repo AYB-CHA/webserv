@@ -9,7 +9,11 @@ Mediator::Mediator(std::vector<Server>& init) {
     }
 }
 
-void    Mediator::addClient(Client client) {
+void    Mediator::addClient(int fd) {
+    // This line of code will probably need a few modifications, especially when it comes
+    // To how the server is configured an how the client is supposed to receive the response
+    fd_clients[fd] = Client();
+    selector.pushFd(fd);
     // fd_servers[client.getSocketFd()] = client;
     // selector.pushFd(client.getSocketFd());
     throw std::runtime_error("addClient unimplemented!");

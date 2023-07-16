@@ -13,7 +13,7 @@ private:
     Selector                selector;
 public:
     Mediator(std::vector<Server>& initServers);
-    void    addClient(Client client);
+    void    addClient(int fd);
 
     void    getBatch(std::vector<Server>&, std::vector<Client>& read, std::vector<Client>& write);
 };
