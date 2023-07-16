@@ -19,7 +19,6 @@ typedef enum token_type {
     AUTOINDEX,
     CGI,
     REDIRECT,
-    PREFIX,
     UPLOAD_PATH,
     CLIENT_MAX_BODY_SIZE,
 }   token_type;
