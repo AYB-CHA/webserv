@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include <cstdlib>
 
 int main(int ac, char **av) {
   (void) ac;
@@ -10,6 +11,5 @@ int main(int ac, char **av) {
     config.init(av[1]);
 
 	std::vector<Directive> servers = config.getServers();
-
   return 0;
 }
