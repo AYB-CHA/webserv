@@ -30,7 +30,7 @@ void    ConfigLexer::scanFile(std::string file_name) {
     std::fstream file(file_name.c_str());
 
     if (!file) {
-        std::cout << "Error: couldn't open file." << std::endl;
+        std::cout << "Error: couldn't open file '" << file_name << "'." << std::endl;
         return;
     }
 
