@@ -8,7 +8,7 @@ class Server : public ABase {
 		std::string host;
 		int port;
 		std::vector<std::string> server_names;
-		std::map<std::string, std::string> redirect; //*
+		std::map<std::string, std::string> redirect;
 
 		std::vector<Location> location;
 

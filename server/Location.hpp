@@ -4,7 +4,7 @@
 
 class Location : public ABase {
 	private:
-		std::string prefix; //*
+		std::vector<std::string> prefix;
 		bool autoindex;
 		std::map<std::string, std::string> cgi_path;
 
@@ -12,11 +12,11 @@ class Location : public ABase {
 
 		~Location();
 
-		const std::string &getPrefix(void) const;
+		const std::vector<std::string> &getPrefix(void) const;
 		bool getAutoindex(void) const;
 		const std::map<std::string, std::string> &getCgiPath(void) const;
 
-		void setPrefix(std::string prefix);
+		void setPrefix(std::vector<std::string> prefix);
 		void setAutoindex(bool autoindex);
 		void setCgiPath(std::string extension, std::string path);
 };

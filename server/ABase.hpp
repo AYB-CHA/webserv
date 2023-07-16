@@ -6,11 +6,11 @@
 class ABase {
 	private:
 		std::string root;
-		std::string upload_path; //*
+		std::string upload_path;
 		std::map<std::string, bool> allowed_methods;
 		std::vector<std::string> index;
 		std::map<int, std::string> error_page;
-		std::string client_max_body_size; //*
+		std::string client_max_body_size;
 
 	public:
 		virtual ~ABase() = 0;

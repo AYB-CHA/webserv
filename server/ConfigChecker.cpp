@@ -7,72 +7,116 @@
 #include "../server/Server.hpp"
 #include "../server/Location.hpp"
 
+void root_check(std::vector<std::string> params, ABase& base) {
+    if (params.size() != 1)
+        throw std::runtime_error("params error");
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        base.setRoot(*it);
+    }
+}
 
-void match_dir(std::vector<Directive>::iterator &it1, ABase& base) {
-    std::vector<std::string> parameters = it1->getParameters();
+void upload_path_check(std::vector<std::string> params, ABase& base) {
+    base.setUploadPath(params[0]);
+}
 
-    if (it1->getType() == LISTEN) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            std::vector<std::string> s = utils::split(*it, ":");
-            if (s.size() == 1) {
-               (dynamic_cast<Server&>(base)).setPort(utils::toInt(s[0]));
-            } else if (s.size() == 2) {
-                // port
-                (dynamic_cast<Server&>(base)).setPort(utils::toInt(s[0]));
-                //  TODO: ip add
-                utils::strTrim(s[1]);
-                (dynamic_cast<Server&>(base)).setHost(s[1]);
-                // ...
-            } else {
-                throw std::runtime_error("params erro");;
-            }
-        }
+void accepted_methods_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        base.setAllowedMethods(*it);
+    }
+}
 
-    } else if (it1->getType() == ROOT) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            base.setRoot(*it);
-        }
-    } else if (it1->getType() == ACCEPTED_METHODS) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            base.setAllowedMethods(*it);
-        }
-    } else if (it1->getType() == INDEX) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            base.setIndex(*it);
-        }
-    } else if (it1->getType() == ERROR_PAGE) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            std::vector<std::string> s = utils::split(*it, ":");
-            if (s.size() != 2)
-                throw std::runtime_error("params erro");
-            else {
-                base.setErrorPage(utils::toInt(s[0]), s[1]);
-            }
-        }
-    } else if (it1->getType() == SERVER_NAME) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            (dynamic_cast<Server&>(base)).setServerName(*it);
-        }
-    } else if (it1->getType() == AUTOINDEX) {
-        if (parameters.size() != 1 && (parameters[0] != "true" || parameters[0] != "false"))
-            throw std::runtime_error("params erro");;
-        if (parameters[0] == "true")
-            (dynamic_cast<Location&>(base)).setAutoindex(true);
-        else
-            (dynamic_cast<Location&>(base)).setAutoindex(false);
-    } else if (it1->getType() == CGI) {
-        for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
-            std::vector<std::string> s = utils::split(*it, ":");
-            if (s.size() != 2)
-                throw std::runtime_error("params erro");;
-            (dynamic_cast<Location&>(base)).setCgiPath(s[0], s[1]);
+void index_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        base.setIndex(*it);
+    }
+}
+
+void error_page_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        std::vector<std::string> s = utils::split(*it, ":");
+        if (s.size() != 2)
+            throw std::runtime_error("params erro");
+        else {
+            base.setErrorPage(utils::toInt(s[0]), s[1]);
         }
     }
+}
+void clinet_max_body_size_check(std::vector<std::string> params, ABase& base) {
+    base.setClientMaxBodySize(params[0]);
+}
 
+void listen_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        std::vector<std::string> s = utils::split(*it, ":");
+        if (s.size() == 1) {
+            (dynamic_cast<Server&>(base)).setPort(utils::toInt(s[0]));
+        } else if (s.size() == 2) {
+            // port
+            (dynamic_cast<Server&>(base)).setPort(utils::toInt(s[0]));
+            //  TODO: ip add
+            utils::strTrim(s[1]);
+            (dynamic_cast<Server&>(base)).setHost(s[1]);
+            // ...
+        } else {
+            throw std::runtime_error("params erro");;
+        }
+    }
+}
+
+void server_name_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        (dynamic_cast<Server&>(base)).setServerName(*it);
+    }
+}
+
+void redirect_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        std::vector<std::string> s = utils::split(*it, ":");
+        (dynamic_cast<Server&>(base)).setRedirect(s[0], s[1]);
+    }
+}
+
+void autoindex_check(std::vector<std::string> params, ABase& base) {
+    if (params.size() != 1 && (params[0] != "true" || params[0] != "false"))
+        throw std::runtime_error("params erro");;
+    if (params[0] == "true")
+        (dynamic_cast<Location&>(base)).setAutoindex(true);
+    else
+        (dynamic_cast<Location&>(base)).setAutoindex(false);
+}
+
+void cgi_check(std::vector<std::string> params, ABase& base) {
+    for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
+        std::vector<std::string> s = utils::split(*it, ":");
+        if (s.size() != 2)
+            throw std::runtime_error("params erro");;
+        (dynamic_cast<Location&>(base)).setCgiPath(s[0], s[1]);
+    }
+}
+
+
+void match_dir(std::vector<Directive>::iterator &it1, ABase& base) {
+    std::vector<std::string> params = it1->getParameters();
+    switch (it1->getType()) {
+        case ROOT: root_check(params, base); break;
+        case UPLOAD_PATH: upload_path_check(params, base); break;
+        case ACCEPTED_METHODS: accepted_methods_check(params, base); break;
+        case INDEX: index_check(params, base); break;
+        case ERROR_PAGE: error_page_check(params, base); break;
+        case CLIENT_MAX_BODY_SIZE: clinet_max_body_size_check(params, base); break;
+        case LISTEN: listen_check(params, base); break;
+        case SERVER_NAME: server_name_check(params, base); break;
+        case REDIRECT: redirect_check(params, base); break;
+        case AUTOINDEX: autoindex_check(params, base); break;
+        case CGI: cgi_check(params, base); break;
+        default: break;
+    }
 }
 
 void match_loc(Server& serv, std::vector<Directive>::iterator &it1) {
     Location loc;
+
+    loc.setPrefix(it1->getParameters());
     std::vector<Directive> directives1 = it1->getBlock()->getDirectives();
     for (std::vector<Directive>::iterator it2 = directives1.begin(); it2 != directives1.end(); ++it2)
         match_dir(it2, loc);
@@ -137,7 +181,13 @@ void printservs(std::vector<Server> servers) {
         std::vector<Location> location = it->getLocation();
         for (std::vector<Location>::iterator it1 = location.begin(); it1 != location.end(); ++it1) {
             std::cout << "================== not shared loc===================" << std::endl;
-            std::cout << it1->getPrefix() << std::endl;
+
+            std::vector<std::string> prefix = it1->getPrefix();
+            for (std::vector<std::string>::iterator it2 = prefix.begin(); it2 != prefix.end(); ++it2) {
+                std::cout << *it2 << "  ";
+            }
+            std::cout << std::endl;
+
             std::cout << it1->getAutoindex() << std::endl;
 
             std::map<std::string, std::string> cgi = it1->getCgiPath();
@@ -151,20 +201,20 @@ void printservs(std::vector<Server> servers) {
             std::cout << it1->getUploadPath() << std::endl;
 
             std::map<std::string, bool> method = it1->getAllowedMethods();
-            for (std::map<std::string, bool>::iterator it1 = method.begin(); it1 != method.end(); ++it1) {
-                std::cout << it1->first << " -> " << it1->second << " | ";
+            for (std::map<std::string, bool>::iterator it2 = method.begin(); it2 != method.end(); ++it2) {
+                std::cout << it2->first << " -> " << it2->second << " | ";
             }
             std::cout << std::endl;
 
             std::vector<std::string> index = it1->getIndex();
-            for (std::vector<std::string>::iterator it1 = index.begin(); it1 != index.end(); ++it1) {
-                std::cout << *it1 << "  ";
+            for (std::vector<std::string>::iterator it2 = index.begin(); it2!= index.end(); ++it2) {
+                std::cout << *it2 << "  ";
             }
             std::cout << std::endl;
 
             std::map<int, std::string> errorpage = it1->getErrorPage();
-            for (std::map<int, std::string>::iterator it1 = errorpage.begin(); it1 != errorpage.end(); ++it1) {
-                std::cout << it1->first << " -> " << it1->second << " | ";
+            for (std::map<int, std::string>::iterator it2 = errorpage.begin(); it2 != errorpage.end(); ++it2) {
+                std::cout << it2->first << " -> " << it2->second << " | ";
             }
             std::cout << std::endl;
 
