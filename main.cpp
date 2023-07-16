@@ -1,4 +1,7 @@
 #include "main.hpp"
+#include <cstdlib>
+
+void    t() {system("leaks webserv");}
 
 int main(int ac, char **av) {
   (void) ac;
@@ -11,5 +14,6 @@ int main(int ac, char **av) {
 
 	std::vector<Directive> servers = config.getServers();
 
+    atexit(t);
   return 0;
 }
