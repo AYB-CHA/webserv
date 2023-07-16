@@ -11,10 +11,10 @@ int Server::getPort(void) const {
 const std::vector<Location>& Server::getLocation(void) const {
 	return this->location;
 }
-const std::string& Server::getServerName(void) const {
-	return this->server_name;
+const std::vector<std::string>& Server::getServerNames(void) const {
+	return this->server_names;
 }
-const std::string& Server::getRedirect(void) const {
+const std::map<std::string,std::string>& Server::getRedirect(void) const {
 	return this->redirect;
 }
 
@@ -28,8 +28,8 @@ void Server::setLocation(Location loc) {
 	this->location.push_back(loc);
 }
 void Server::setServerName(std::string server_name) {
-	this->server_name = server_name;
+	this->server_names.push_back(server_name);
 }
-void Server::setRedirect(std::string redirect) {
-	this->redirect = redirect;
+void Server::setRedirect(std::string from, std::string to) {
+	this->redirect[from] = to;
 }

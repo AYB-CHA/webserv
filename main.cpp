@@ -11,5 +11,11 @@ int main(int ac, char **av) {
 
 	std::vector<Directive> servers = config.getServers();
 
+    try {
+    	validator(servers);
+    } catch (std::runtime_error &e) {
+        std::cerr << e.what() << std::endl;
+    }
+
   return 0;
 }

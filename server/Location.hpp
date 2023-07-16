@@ -4,7 +4,7 @@
 
 class Location : public ABase {
 	private:
-		std::string prefix;
+		std::string prefix; //*
 		bool autoindex;
 		std::map<std::string, std::string> cgi_path;
 
