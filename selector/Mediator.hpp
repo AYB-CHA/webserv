@@ -4,13 +4,16 @@
 #include "../server/Server.hpp"
 #include "../selector/Selector.hpp"
 #include <map>
+#include <vector>
 
 class Mediator {
 private:
-    std::map<int, Client>   clients;
-    std::map<int, Client>   server;
+    std::map<int, Client>   fd_clients;
+    std::map<int, Server>   fd_servers;
     Selector                selector;
 public:
-    Mediator();
-    void    getBatch(std::vector<Server>& servers, std::vector<Client>& clients);
+    Mediator(std::vector<Server>& initServers);
+    void    addClient(Client client);
+
+    void    getBatch(std::vector<Server>&, std::vector<Client>& read, std::vector<Client>& write);
 };
