@@ -1,5 +1,5 @@
 NAME = webserv
-SERVERFILES = ABase.cpp ConfigChecker.cpp Location.cpp Server.cpp
+SERVERFILES = ABase.cpp ConfigChecker.cpp Location.cpp Server.cpp utils.cpp
 CONFIGFILES	=	Config.cpp ConfigLexer.cpp ConfigParser.cpp Directive.cpp BlockDirective.cpp Token.cpp
 CPPFILES = main.cpp $(addprefix config/, $(CONFIGFILES)) $(addprefix server/, $(SERVERFILES))
 OBJFILES = $(CPPFILES:%.cpp=%.o)

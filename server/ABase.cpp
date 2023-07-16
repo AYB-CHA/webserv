@@ -11,7 +11,7 @@ const std::string& ABase::getUploadPath(void) const {
 const std::map<std::string, bool>&  ABase::getAllowedMethods(void) const {
 	return this->allowed_methods;
 }
-const std::string& ABase::getIndex(void) const {
+const std::vector<std::string> &ABase::getIndex(void) const {
 	return this->index;
 }
 const std::map<int, std::string>& ABase::getErrorPage(void) const {
@@ -31,7 +31,7 @@ void ABase::setAllowedMethods(std::string method) {
 	this->allowed_methods[method] = true;
 }
 void ABase::setIndex(std::string index) {
-	this->index = index;
+	this->index.push_back(index);
 }
 void ABase::setErrorPage(int status_code, std::string path) {
 	this->error_page[status_code] = path;

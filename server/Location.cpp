@@ -2,7 +2,7 @@
 
 Location::~Location() {}
 
-const std::string& Location::getPrefix(void) const {
+const std::vector<std::string>& Location::getPrefix(void) const {
 	return this->prefix;
 }
 bool Location::getAutoindex(void) const {
@@ -12,7 +12,7 @@ const std::map<std::string, std::string>& Location::getCgiPath(void) const {
 	return this->cgi_path;
 }
 
-void Location::setPrefix(std::string prefix) {
+void Location::setPrefix(std::vector<std::string> prefix) {
 	this->prefix = prefix;
 }
 void Location::setAutoindex(bool autoindex) {
