@@ -1,8 +1,6 @@
 #include "main.hpp"
 #include <cstdlib>
 
-void    t() {system("leaks webserv");}
-
 int main(int ac, char **av) {
   (void) ac;
     if (ac != 2) {
@@ -13,7 +11,5 @@ int main(int ac, char **av) {
     config.init(av[1]);
 
 	std::vector<Directive> servers = config.getServers();
-
-    atexit(t);
   return 0;
 }
