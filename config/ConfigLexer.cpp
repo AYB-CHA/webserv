@@ -78,6 +78,7 @@ void    ConfigLexer::tokenize() {
             case '#': generateToken();
                 while (contents[i] && contents[i] != '\n')
                     i++;
+                line++;
                 break;
             default: value += contents[i];
         }
