@@ -1,15 +1,20 @@
 #pragma once
-#include "../main.hpp"
 #include "Location.hpp"
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <string>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #include <vector>
 
 class Server : public ABase {
   private:
     int port;
     std::string host;
-    std::string server_name;
-    std::string redirect;
+    std::vector<std::string> server_names;
+    std::map<std::string, std::string> redirect;
     std::vector<Location> location;
 
     struct sockaddr_in host_add;
@@ -21,14 +26,14 @@ class Server : public ABase {
 
     const std::string &getHost(void) const;
     int getPort(void) const;
-    const std::string &getServerName(void) const;
-    const std::string &getRedirect(void) const;
+    const std::vector<std::string> &getServerNames(void) const;
+    const std::map<std::string, std::string> &getRedirect(void) const;
     const std::vector<Location> &getLocation(void) const;
 
     void setHost(std::string host);
     void setPort(int port);
-    void setServerName(std::string root);
-    void setRedirect(std::string redirect);
+    void setServerName(std::string server_name);
+    void setRedirect(std::string form, std::string to);
     void setLocation(Location loc);
 
     void setUp();

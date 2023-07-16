@@ -1,5 +1,7 @@
 #include "main.hpp"
 
+#include <cstdlib>
+
 int main(int ac, char **av) {
     (void)ac;
     if (ac != 2) {
@@ -9,19 +11,16 @@ int main(int ac, char **av) {
     Config config;
     config.init(av[1]);
 
-    std::vector<Directive> servers_directives = config.getServers();
+    std::vector<Directive> server_directives = config.getServers();
 
     std::vector<Server> servers;
-    Server server;
-    server.setHost("127.0.0.1");
-    server.setPort(9000);
-
-    servers.push_back(server);
 
     try {
-        Core core(servers);
+        validator(server_directives);
     } catch (std::runtime_error &e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
     }
+
+    Core core(servers);
     return 0;
 }

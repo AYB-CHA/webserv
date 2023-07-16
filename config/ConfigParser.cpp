@@ -35,6 +35,7 @@ bool    ConfigParser::check(token_type type) {
 std::vector<std::string> ConfigParser::parseParameters() {
     std::vector<std::string> result;
 
+    if (!check(WORD)) consume(WORD);
     while (check(WORD)) {
         result.push_back(consume(WORD).getLiteral());
     }
@@ -84,25 +85,21 @@ Directive   ConfigParser::parseLocDirective() {
 
 Directive   ConfigParser::parseLocation() {
     token_type token = consumeSrvKeyword();
-    if (!check(WORD)) consume(WORD);
     std::vector<std::string> parameters = parseParameters();
-    std::auto_ptr<BlockDirective> block;
 
     consume(LEFT_CURLY);
     std::vector<Directive> directives;
     while (!check(RIGHT_CURLY)) {
         directives.push_back(parseLocDirective());
     }
-    block.reset(new BlockDirective(directives));
     consume(RIGHT_CURLY);
 
-    return Directive(token, parameters, block.release());
+    return Directive(token, parameters, new BlockDirective(directives));
 }
 
 Directive  ConfigParser::parseServer() {
     token_type token = consume(SERVER).getType();
     std::vector<Directive> directives;
-    std::auto_ptr<BlockDirective> block;
 
     consume(LEFT_CURLY);
     while (!check(RIGHT_CURLY)) {
@@ -111,10 +108,9 @@ Directive  ConfigParser::parseServer() {
         else
             directives.push_back(parseSimpleDirective());
     }
-    block.reset(new BlockDirective(directives));
     consume(RIGHT_CURLY);
 
-    return Directive(token, std::vector<std::string>(), block.release());
+    return Directive(token, std::vector<std::string>(), new BlockDirective(directives));
 }
 
 void    ConfigParser::parse() {

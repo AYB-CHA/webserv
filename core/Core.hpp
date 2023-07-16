@@ -1,5 +1,6 @@
 #pragma once
-#include "../main.hpp"
+#include "../server/Server.hpp"
+
 #include <vector>
 
 class Core {

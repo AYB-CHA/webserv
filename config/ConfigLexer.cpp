@@ -12,6 +12,9 @@ ConfigLexer::ConfigLexer() : line(1) {
     Config::srvkeywords["root"] = ROOT;
     Config::srvkeywords["error_page"] = ERROR_PAGE;
     Config::srvkeywords["location"] = LOCATION;
+    Config::srvkeywords["redirect"] = REDIRECT;
+    Config::srvkeywords["upload_path"] = UPLOAD_PATH;
+    Config::srvkeywords["client_max_body_size"] = CLIENT_MAX_BODY_SIZE;
 
     // LOCATION KEYWORDS
     Config::lockeywords["root"] = ROOT;
@@ -19,6 +22,9 @@ ConfigLexer::ConfigLexer() : line(1) {
     Config::lockeywords["autoindex"] = AUTOINDEX;
     Config::lockeywords["cgi"] = CGI;
     Config::lockeywords["error_page"] = ERROR_PAGE;
+    Config::lockeywords["prefix"] = PREFIX;
+    Config::lockeywords["upload_path"] = UPLOAD_PATH;
+    Config::lockeywords["client_max_body_size"] = CLIENT_MAX_BODY_SIZE;
 }
 
 void    ConfigLexer::scanFile(std::string file_name) {
