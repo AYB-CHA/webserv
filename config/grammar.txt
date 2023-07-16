@@ -4,9 +4,9 @@
                         | <locationDirective>
 
 <locationDirective> := "location" (WORD)+ <blockDirective>
-<serverDirective>   := <serverKeyword> (WORD)* ";"
+<serverDirective>   := <serverKeyword> (WORD)+ ";"
 
-<blockDirective>    := "{" (<locationKeyword) (WORD)*)+ "}"
+<blockDirective>    := "{" (<locationKeyword) (WORD)+)+ "}"
 
 <serverKeyword>     :=  "listen" | "index" | "server_name" | "accepted_methods" | "root" | "error_page" | "location"
 <locationKeyword>   :=  "root" | "index" | "autoindex" | "cgi" | "error_page"

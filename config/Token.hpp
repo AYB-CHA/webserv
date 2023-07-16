@@ -18,6 +18,10 @@ typedef enum token_type {
     LOCATION,
     AUTOINDEX,
     CGI,
+    REDIRECT,
+    PREFIX,
+    UPLOAD_PATH,
+    CLIENT_MAX_BODY_SIZE,
 }   token_type;
 
 class Token {
