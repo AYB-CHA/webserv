@@ -1,7 +1,5 @@
 #pragma once
 
-#include <bits/types/struct_timeval.h>
-#include <bits/types/time_t.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <sys/types.h>
