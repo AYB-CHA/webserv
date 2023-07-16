@@ -27,11 +27,7 @@ std::string Token::getLiteral() {
 }
 
 std::string Token::getLine() {
-    std::stringstream ss;
-    std::string line;
-    ss << this->line;
-    ss >> line;
-    return line;
+    return utils::toString(this->line);
 }
 
 std::string Token::Literal(token_type type) {
