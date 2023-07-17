@@ -37,6 +37,9 @@ void Multiplexer::run() {
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
             // std::string buffer = it->read(); //reads from its socket
+            //
+            // if it->read() returns EOF we close the connection (and tell the mediator to remove
+            // the fd as well);
             // HttpRequest request;
             // try {
             //     HttpRequestParser parser(request, buffer);
