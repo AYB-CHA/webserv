@@ -25,6 +25,8 @@ bool    Client::readRequest() {
         // This means the buffer is "full" and we can pass this buffer to the request
         // parser.
     }
+    // Else, you keep reading and appending to the buffer (ofc check if read returns end of file then
+    // you return true as well. Otherwise you return false)
     return true;
 }
 
