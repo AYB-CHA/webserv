@@ -14,6 +14,16 @@ int utils::toInt(std::string nb) {
     return num;
 }
 
+std::string utils::toString(long nb) {
+    std::stringstream ss;
+    std::string str;
+
+    ss << nb;
+    ss >> str;
+
+    return str;
+}
+
 void utils::strTrim(std::string& str) {
     std::string result = str;
     result.erase(0, result.find_first_not_of(" \t\n\r"));
