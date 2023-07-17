@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include "../server/Server.hpp"
 #include "../client/Client.hpp"
 #include "Mediator.hpp"

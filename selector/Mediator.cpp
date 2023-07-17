@@ -9,9 +9,9 @@ Mediator::Mediator(std::vector<Server>& init) {
     }
 }
 
-void    Mediator::addClient(int fd) {
+void    Mediator::addClient(int fd, const Server* server) {
     // This is better done when receiving the fd, because accept returns a file descriptor.
-    fd_clients[fd] = Client();
+    fd_clients[fd] = Client(server);
     selector.pushFd(fd);
 }
 

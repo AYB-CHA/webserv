@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <unistd.h>
 
-Client::Client(const Server& server) : server(server) {}
+Client::Client(const Server* server) : server(server) {}
 
 int Client::getSocketFd() const {
     return this->socketFd;
@@ -20,8 +20,8 @@ bool    Client::writeChunk() {
 }
 
 bool    Client::readRequest() {
-    server.getHost();
-    if (readBuffer.find("\r\n\r\n") == std::string::npos || readBuffer.size() > 8190) {
+    server->getHost();
+    if (readBuffer.find("\r\n\r\n") != std::string::npos || readBuffer.size() > 8190) {
         // This means the buffer is "full" and we can pass this buffer to the request
         // parser.
     }
@@ -38,6 +38,14 @@ bool    Client::readRequest() {
 //     // "\r\n\r\n"
 //     // return true;
 // }
+
+std::string Client::getRequest() {
+    return this->readBuffer;
+}
+
+const   Server& Client::getServer() {
+    return *this->server;
+}
 
 void    Client::storeResponse(const std::string& response) {
     this->writeBuffer = response;

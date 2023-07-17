@@ -23,30 +23,32 @@ void Multiplexer::run() {
                 }
                 break;
             }
-            mediator.addClient(fd);
+            mediator.addClient(fd, &*it);
         }
 
         for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
-            // bool bufferisEmpty = it->writeChunk();
-            // if (!bufferisEmpty) {
-            //     CIter client = std::find(it->getSocketFd(), read_clients.begin(), read_clients.end());
-            //     if (client != read_clients.end())
-            //         read_clients.erase(client);
-            // }
+            bool bufferisEmpty = it->writeChunk();
+            if (!bufferisEmpty) {
+                CIter client = std::find(read_clients.begin(), read_clients.end(), it->getSocketFd());
+                if (client != read_clients.end())
+                    read_clients.erase(client);
+            }
         }
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
-            // std::string buffer = it->read(); //reads from its socket
-            //
-            // if it->read() returns EOF we close the connection (and tell the mediator to remove
+            bool doneReading = it->readRequest(); //reads from its socket
+            if (doneReading == false) continue;
+
+            std::string buffer = it->getRequest();
+            // if it->readRequest() throws an exception we close the connection (and tell the mediator to remove
             // the fd as well);
-            // HttpRequest request;
-            // try {
-            //     HttpRequestParser parser(request, buffer);
-            // } catch (HttpResponseException& e) {
-            //     it->storeResponse(e.build());
-            //     continue;
-            // }
+            HttpRequest request;
+            try {
+                HttpRequestParser parser(request, buffer);
+            } catch (HttpResponseException& e) {
+                it->storeResponse(e.build());
+                continue;
+            }
 
             // RequestHandler handler(request, it->getServer());
             // it->storeResponse(handler.build());
