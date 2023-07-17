@@ -19,4 +19,26 @@ bool    Client::writeChunk() {
     return false;
 }
 
+bool    Client::readRequest() {
+    server.getHost();
+    if (readBuffer.find("\r\n\r\n") == std::string::npos || readBuffer.size() > 8190) {
+        // This means the buffer is "full" and we can pass this buffer to the request
+        // parser.
+    }
+    return true;
+}
+
+// bool    Client::readChunk() {
+//     int maxBodySize = server.getClientMaxBodySize(); // Subject to change
+//     int maxHeaderSize = 8190;                        // Subject to change
+//     // read;
+//     // return false;
+//     // "\r\n\r\n"
+//     // return true;
+// }
+
+void    Client::storeResponse(const std::string& response) {
+    this->writeBuffer = response;
+}
+
 Client::~Client() {}
