@@ -1,11 +1,17 @@
 NAME = webserv
 HEADERS	= $(wildcard *.hpp) $(wildcard config/*.hpp) $(wildcard server/*.hpp) $(wildcard selector/*.hpp)
 CLIENTFILES = Client.cpp
+REQUESTFILES = HttpRequest.cpp HttpRequestParser.cpp
+RESPONSEFILES = HttpResponseBuilder.cpp HttpResponseException.cpp
+UTILSFILES = string.cpp file.cpp
 SERVERFILES = ABase.cpp ConfigChecker.cpp Location.cpp Server.cpp utils.cpp
 CONFIGFILES	=	Config.cpp ConfigLexer.cpp ConfigParser.cpp Directive.cpp BlockDirective.cpp Token.cpp
 SELECTORFILES	=	Selector.cpp
 COREFILES = Core.cpp
-CPPFILES = main.cpp $(addprefix config/, $(CONFIGFILES)) $(addprefix server/, $(SERVERFILES)) $(addprefix client/, $(CLIENTFILES)) $(addprefix core/, $(COREFILES)) $(addprefix selector/, $(SELECTORFILES))
+CPPFILES = main.cpp $(addprefix config/, $(CONFIGFILES)) $(addprefix server/, $(SERVERFILES)) $(addprefix client/, $(CLIENTFILES)) \
+			$(addprefix core/, $(COREFILES)) $(addprefix selector/, $(SELECTORFILES)) $(addprefix request/, $(REQUESTFILES)) $(addprefix response/, $(RESPONSEFILES)) \
+			$(addprefix utils/, $(UTILSFILES))
+
 OBJFILES = $(CPPFILES:%.cpp=%.o)
 CFLAGS = -Wall -Wextra -Werror -Wno-implicit-fallthrough -std=c++98  # -g
 CC = c++
