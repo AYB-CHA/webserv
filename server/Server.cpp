@@ -1,9 +1,17 @@
 #include "./Server.hpp"
 
+Server::Server() {
+    this->port = 80;
+    this->host = "127.0.0.1";
+
+    this->root = "index.html";
+    this->upload_path = "/upload/clientFile/";
+    this->client_max_body_size = pow(2, 30);
+}
+
 Server::~Server() {}
 
 const std::string &Server::getHost(void) const { return this->host; }
-
 int Server::getPort(void) const { return this->port; }
 const std::vector<Location> &Server::getLocation(void) const {
     return this->location;
@@ -14,13 +22,19 @@ const std::vector<std::string> &Server::getServerNames(void) const {
 const std::map<std::string, std::string> &Server::getRedirect(void) const {
     return this->redirect;
 }
+int Server::getSocketFd() { return this->socket_fd; }
+struct sockaddr_in &Server::getHostAdd() { return this->host_add; }
+socklen_t &Server::getHostAddLength() { return this->host_add_len; }
 
 void Server::setHost(std::string host) { this->host = host; }
-
 void Server::setPort(int port) { this->port = port; }
-
 void Server::setLocation(Location loc) { this->location.push_back(loc); }
-
+void Server::setServerName(std::string server_name) {
+    this->server_names.push_back(server_name);
+}
+void Server::setRedirect(std::string from, std::string to) {
+    this->redirect[from] = to;
+}
 void Server::setUp() {
     this->createSocket();
     this->bindAddress();
@@ -51,14 +65,3 @@ void Server::listen() {
     if (::listen(this->socket_fd, SOMAXCONN))
         throw std::runtime_error("could't listen to the socket");
 }
-
-void Server::setServerName(std::string server_name) {
-    this->server_names.push_back(server_name);
-}
-void Server::setRedirect(std::string from, std::string to) {
-    this->redirect[from] = to;
-}
-
-int Server::getSocketFd() { return this->socket_fd; }
-struct sockaddr_in &Server::getHostAdd() { return this->host_add; }
-socklen_t &Server::getHostAddLength() { return this->host_add_len; }

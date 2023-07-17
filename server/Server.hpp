@@ -21,7 +21,12 @@ class Server : public ABase {
     int socket_fd;
     socklen_t host_add_len;
 
+    void createSocket();
+    void bindAddress();
+    void listen();
+
   public:
+    Server();
     ~Server();
 
     const std::string &getHost(void) const;
@@ -35,16 +40,10 @@ class Server : public ABase {
     void setServerName(std::string server_name);
     void setRedirect(std::string form, std::string to);
     void setLocation(Location loc);
+    struct sockaddr_in &getHostAdd();
+    socklen_t &getHostAddLength();
+    int getSocketFd();
 
     void setUp();
 
-  private:
-    void createSocket();
-    void bindAddress();
-    void listen();
-
-  public:
-    int getSocketFd();
-    struct sockaddr_in &getHostAdd();
-    socklen_t &getHostAddLength();
 };
