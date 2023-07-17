@@ -6,7 +6,7 @@ Server::Server() {
 
     this->root = "index.html";
     this->upload_path = "/upload/clientFile/";
-    this->client_max_body_size = 1000000000;
+    this->client_max_body_size = pow(2, 30);
 }
 
 Server::~Server() {}

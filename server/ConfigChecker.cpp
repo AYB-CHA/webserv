@@ -65,9 +65,9 @@ void client_max_body_size_check(std::vector<std::string> params, ABase& base) {
     if (errno == ERANGE || size == 0)
         throw std::runtime_error("params error");
     switch (*(params.front().rbegin())) {
-        case 'G': size*=1000000000; break;
-        case 'M': size*=1000000; break;
-        case 'K': size*=1000; break;
+        case 'G': size*=pow(2, 30); break;
+        case 'M': size*=pow(2, 20); break;
+        case 'K': size*=pow(2, 10); break;
         default: break;
     }
     base.setClientMaxBodySize(size);
