@@ -4,6 +4,9 @@
 #include <stdexcept>
 #include <sys/errno.h>
 #include <sys/socket.h>
+#include "../request/HttpRequest.hpp"
+#include "../request/HttpRequestParser.hpp"
+#include "../response/HttpResponseException.hpp"
 
 Multiplexer::Multiplexer(std::vector<Server> servers) : mediator(servers) {}
 
@@ -33,12 +36,13 @@ void Multiplexer::run() {
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
             // std::string buffer = it->read();
-            // HttpRequest request;
-            // try {
-            //     HttpRequestParser parser(request, buffer);
-            // } catch () {
-            // 
-            // }
+            HttpRequest request;
+            try {
+                // HttpRequestParser parser(request, buffer);
+            } catch (HttpResponseException& e) {
+                // it->storeResponse(e.build());
+                continue;
+            }
         }
 
     }
