@@ -1,5 +1,13 @@
 #include "Location.hpp"
 
+Location::Location() {
+    this->autoindex = true;
+
+    this->root = "index.html";
+    this->upload_path = "/upload/clientFile/";
+    this->client_max_body_size = 1000000000;
+}
+
 Location::~Location() {}
 
 const std::vector<std::string>& Location::getPrefix(void) const {

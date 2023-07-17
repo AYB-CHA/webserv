@@ -46,7 +46,8 @@ void error_page_check(std::vector<std::string> params, ABase &base) {
 }
 
 bool valid_size(std::string str) {
-    if (str.back() != 'M' && str.back() != 'K' &&str.back() != 'G' && str.back() != 'B')
+    char last_char = *(str.rbegin());
+    if (last_char != 'M' && last_char != 'K' &&last_char != 'G' && last_char != 'B')
         return false;
     for (size_t i = 0; i < str.size() - 1; ++i) {
         if (!isdigit(str[i])) {
@@ -59,7 +60,17 @@ bool valid_size(std::string str) {
 void client_max_body_size_check(std::vector<std::string> params, ABase& base) {
     if (params.size() != 1 || !valid_size(params.front()))
         throw std::runtime_error("params error");
-    base.setClientMaxBodySize(params.front());
+    char *end_ptr;
+    long size = std::strtol(params.front().c_str(), &end_ptr, 10);
+    if (errno == ERANGE || size == 0)
+        throw std::runtime_error("params error");
+    switch (*(params.front().rbegin())) {
+        case 'G': size*=1000000000; break;
+        case 'M': size*=1000000; break;
+        case 'K': size*=1000; break;
+        default: break;
+    }
+    base.setClientMaxBodySize(size);
 }
 
 bool valid_ip_addr(std::string str) {
@@ -78,9 +89,15 @@ void listen_check(std::vector<std::string> params, ABase& base) {
     for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
         std::vector<std::string> s = utils::split(*it, ":");
         if (s.size() == 1) {
-            (dynamic_cast<Server&>(base)).setPort(utils::toInt(s.front()));
+            int port = utils::toInt(s.front());
+            if (port > 65535 || port < 0)
+                throw std::runtime_error("params erro");
+            (dynamic_cast<Server&>(base)).setPort(port);
         } else if (s.size() == 2 && valid_ip_addr(s.front())) {
-            (dynamic_cast<Server&>(base)).setPort(utils::toInt(s[1])); // port
+            int port = utils::toInt(s[1]);
+            if (port > 65535 || port < 0)
+                throw std::runtime_error("params erro");
+            (dynamic_cast<Server&>(base)).setPort(port); // port
             (dynamic_cast<Server&>(base)).setHost(s.front()); // ip addr
         } else {
             throw std::runtime_error("params erro");
@@ -191,8 +208,7 @@ void printservs(std::vector<Server> servers) {
         }
         std::cout << std::endl;
 
-        std::cout << "================= shared serv ================="
-                  << std::endl;
+        std::cout << "================= shared serv =================" << std::endl;
         std::cout << it->getRoot() << std::endl;
         std::cout << it->getUploadPath() << std::endl;
 
@@ -282,11 +298,8 @@ std::vector<Server> validator(std::vector<Directive> _servers) {
         Server serv;
         visite_directive(it, serv);
         servers.push_back(serv);
-        // std::cout
-        //     // << "++++++++++++++++++++++++ server
-        //     +++++++++++++++++++++++++++"
-        //     << std::endl;
+        std::cout << "++++++++++++++++++++++++ server +++++++++++++++++++++++++++" << std::endl;
     }
-    // printservs(servers);
+    printservs(servers);
     return servers;
 }

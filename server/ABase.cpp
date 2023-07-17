@@ -17,7 +17,7 @@ const std::vector<std::string> &ABase::getIndex(void) const {
 const std::map<int, std::string>& ABase::getErrorPage(void) const {
 	return this->error_page;
 }
-const std::string& ABase::getClientMaxBodySize(void) const {
+const long& ABase::getClientMaxBodySize(void) const {
 	return this->client_max_body_size;
 }
 
@@ -36,6 +36,6 @@ void ABase::setIndex(std::string index) {
 void ABase::setErrorPage(int status_code, std::string path) {
 	this->error_page[status_code] = path;
 }
-void ABase::setClientMaxBodySize(std::string max_body_size) {
+void ABase::setClientMaxBodySize(long max_body_size) {
 	this->client_max_body_size = max_body_size;
 }
