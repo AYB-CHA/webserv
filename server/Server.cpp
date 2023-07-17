@@ -19,9 +19,11 @@ const std::vector<Location> &Server::getLocation(void) const {
 const std::vector<std::string> &Server::getServerNames(void) const {
     return this->server_names;
 }
+
 const std::map<std::string, std::string> &Server::getRedirect(void) const {
     return this->redirect;
 }
+
 int Server::getSocketFd() { return this->socket_fd; }
 struct sockaddr_in &Server::getHostAdd() { return this->host_add; }
 socklen_t &Server::getHostAddLength() { return this->host_add_len; }
@@ -44,7 +46,7 @@ void Server::setUp() {
 void Server::createSocket() {
     this->socket_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (this->socket_fd == -1)
-        throw std::runtime_error("could't create socket");
+        throw std::runtime_error("socket init: could't create socket for");
 }
 void Server::bindAddress() {
     this->host_add.sin_family = AF_INET;
@@ -52,16 +54,16 @@ void Server::bindAddress() {
     int inet_status = inet_pton(AF_INET, this->getHost().c_str(),
                                 &(this->host_add.sin_addr.s_addr));
     if (inet_status == 0)
-        throw std::runtime_error("host " + this->getHost() + " is invalid.");
+        throw std::runtime_error("socket binding: host " + this->getHost() + " is invalid.");
     else if (inet_status == -1)
-        throw std::runtime_error("inet_pton() failed.");
+        throw std::runtime_error("socket binding: inet_pton() failed.");
 
     this->host_add_len = sizeof(this->host_add);
     if (bind(this->socket_fd, (sockaddr *)&this->host_add, this->host_add_len))
-        throw std::runtime_error("could't bind the socket");
+        throw std::runtime_error("socket binding: could't bind the socket");
 }
 
 void Server::listen() {
     if (::listen(this->socket_fd, SOMAXCONN))
-        throw std::runtime_error("could't listen to the socket");
+        throw std::runtime_error("socket init: could't listen to the socket");
 }
