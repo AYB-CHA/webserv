@@ -3,10 +3,9 @@
 #include <sstream>
 
 namespace utils {
-class string {
-public:
-  static bool hasNoSpace(const std::string &string);
-  static int toInt(const std::string &string);
-  static std::string fromInt(int integer);
-};
+namespace string {
+bool hasNoSpace(const std::string &string);
+int toInt(const std::string &string);
+std::string fromInt(int integer);
+} // namespace string
 } // namespace utils
