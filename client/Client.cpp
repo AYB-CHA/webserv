@@ -7,7 +7,7 @@
 
 const int Client::read_buf_size = 8190;
 
-Client::Client(const Server* server) : server(server) {}
+Client::Client(const Server* server) : server(server), hasReadRequest(false) {}
 
 int Client::getSocketFd() const {
     return this->socketFd;

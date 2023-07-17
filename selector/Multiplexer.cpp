@@ -36,15 +36,22 @@ void Multiplexer::run() {
         }
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
-            bool doneReading;
-            try {
-                doneReading = it->readRequest(); //reads from its socket
-            } catch (Client::closeConnectionException& e) {
-                mediator.removeClient(it->getSocketFd());
-                close(it->getSocketFd());
-                continue;
+            if (it->hasReadRequest() == false) {
+                bool doneReading;
+                try {
+                    doneReading = it->readRequest(); //reads from its socket
+                } catch (Client::closeConnectionException& e) {
+                    mediator.removeClient(it->getSocketFd());
+                    close(it->getSocketFd());
+                    continue;
+                }
+                if (doneReading == false) continue;
+                it->setRequestRead(true);
+                // Once it's set to true, the only reason it'd keep going is that we still haven't
+                // started sending the response to the client
+            } else {
+                // it->readChunk(); // This is where you just continue reading the body when necessary
             }
-            if (doneReading == false) continue;
 
             std::string buffer = it->getRequest();
             HttpRequest request;

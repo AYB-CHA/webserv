@@ -8,6 +8,7 @@
 class Client {
 private:
     static const int read_buf_size;
+    bool    requestRead;;
     int     socketFd;
     std::string writeBuffer;
     std::string readBuffer;
@@ -21,6 +22,8 @@ public:
     bool    readRequest(); // Reads request line and headers (no body)
     std::string getRequest();
     const Server&   getServer();
+    bool    hasReadRequest() const;
+    void    setRequestRead(bool);
     // bool    readChunk(); // returns true if it's done reading
     void    storeResponse(const std::string& response);
     class closeConnectionException : public std::exception {};
