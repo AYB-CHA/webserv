@@ -1,5 +1,6 @@
 #pragma once
 #include "Location.hpp"
+#include <fcntl.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -45,5 +46,4 @@ class Server : public ABase {
     int getSocketFd();
 
     void setUp();
-
 };

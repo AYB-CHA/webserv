@@ -44,9 +44,10 @@ void Server::setUp() {
 }
 
 void Server::createSocket() {
-    this->socket_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (this->socket_fd == -1)
         throw std::runtime_error("socket init: could't create socket for");
+    fcntl(this->socket_fd, F_SETFL, O_NONBLOCK);
 }
 void Server::bindAddress() {
     this->host_add.sin_family = AF_INET;
@@ -54,7 +55,8 @@ void Server::bindAddress() {
     int inet_status = inet_pton(AF_INET, this->getHost().c_str(),
                                 &(this->host_add.sin_addr.s_addr));
     if (inet_status == 0)
-        throw std::runtime_error("socket binding: host " + this->getHost() + " is invalid.");
+        throw std::runtime_error("socket binding: host " + this->getHost() +
+                                 " is invalid.");
     else if (inet_status == -1)
         throw std::runtime_error("socket binding: inet_pton() failed.");
 
