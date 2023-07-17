@@ -2,6 +2,7 @@
 #define TOKEN_HPP
 
 #include <string>
+#include "../server/utils.hpp"
 
 typedef enum token_type {
     WORD,

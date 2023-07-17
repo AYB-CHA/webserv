@@ -5,6 +5,7 @@
 namespace utils {
 
 	int toInt(std::string nb);
+    std::string toString(long nb);
 	void strTrim(std::string& str);
 	std::vector<std::string> split(std::string str, std::string delimiter);
 

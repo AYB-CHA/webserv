@@ -4,14 +4,9 @@
 #include <sys/select.h>
 #include <sys/types.h>
 
-Selector::Selector() {
-    FD_ZERO(&read_set);
-    FD_ZERO(&write_set);
-}
+Selector::Selector() {}
 
 void Selector::pushFd(int fd) {
-    FD_SET(fd, &read_set);
-    FD_SET(fd, &write_set);
     fds.push_back(fd);
     highest_fd = *std::max_element(fds.begin(), fds.end());
 }
@@ -22,8 +17,6 @@ void Selector::popFd(int fd) {
         throw std::runtime_error("Fd is not in the set.");
     }
     fds.erase(it);
-    FD_CLR(fd, &read_set);
-    FD_CLR(fd, &write_set);
 }
 
 int Selector::poll() {

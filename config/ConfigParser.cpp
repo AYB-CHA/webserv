@@ -24,7 +24,7 @@ Token   ConfigParser::consume(token_type type) {
     }
     std::string errMsg =  "Error: expected '" + Token::Literal(type) + "' token\n";
     if (tokens.size())
-        errMsg += "Got: '" + token.getLiteral() + "' at line:" + token.getLine() + "\n";
+        errMsg += "Got: '" + token.getLiteral() + "' at line: " + token.getLine() + "\n";
     throw std::runtime_error(errMsg);
 }
 
