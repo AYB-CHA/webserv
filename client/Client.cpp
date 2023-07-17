@@ -1,7 +1,11 @@
 #include "Client.hpp"
+#include <cstddef>
 #include <cstring>
 #include <stdexcept>
+#include <sys/socket.h>
 #include <unistd.h>
+
+const int Client::read_buf_size = 8190;
 
 Client::Client(const Server* server) : server(server) {}
 
@@ -21,13 +25,16 @@ bool    Client::writeChunk() {
 
 bool    Client::readRequest() {
     server->getHost();
-    if (readBuffer.find("\r\n\r\n") != std::string::npos || readBuffer.size() > 8190) {
-        // This means the buffer is "full" and we can pass this buffer to the request
-        // parser.
+    size_t it = readBuffer.find("\r\n\r\n");
+    if (it != std::string::npos || readBuffer.size() > 8190) {
+        bodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
+        readBuffer = readBuffer.substr(0, readBuffer.size() - bodyBuffer.size());
+        return true;
     }
-    // Else, you keep reading and appending to the buffer (ofc check if read returns end of file then
-    // you return true as well. Otherwise you return false)
-    return true;
+    char buffer[Client::read_buf_size];
+    int readlen = recv(this->socketFd, buffer, Client::read_buf_size, 0);
+    readBuffer += std::string(buffer, readlen);
+    return false;
 }
 
 // bool    Client::readChunk() {

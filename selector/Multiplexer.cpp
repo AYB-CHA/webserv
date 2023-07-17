@@ -36,12 +36,17 @@ void Multiplexer::run() {
         }
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
-            bool doneReading = it->readRequest(); //reads from its socket
+            bool doneReading;
+            try {
+                doneReading = it->readRequest(); //reads from its socket
+            } catch (Client::closeConnectionException& e) {
+                mediator.removeClient(it->getSocketFd());
+                close(it->getSocketFd());
+                continue;
+            }
             if (doneReading == false) continue;
 
             std::string buffer = it->getRequest();
-            // if it->readRequest() throws an exception we close the connection (and tell the mediator to remove
-            // the fd as well);
             HttpRequest request;
             try {
                 HttpRequestParser parser(request, buffer);
