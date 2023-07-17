@@ -1,4 +1,6 @@
 #include <string>
+#include <cstdlib>
+#include <cerrno>
 
 #include "../config/BlockDirective.hpp"
 #include "../config/Directive.hpp"

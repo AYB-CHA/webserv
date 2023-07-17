@@ -1,7 +1,7 @@
 #pragma once
 #include "Location.hpp"
 #include <fcntl.h>
-
+#include <stdexcept>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <string>
