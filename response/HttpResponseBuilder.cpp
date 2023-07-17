@@ -45,7 +45,7 @@ std::string HttpResponseBuilder::build() {
                     utils::string::fromInt(this->body.length()));
     std::string response;
     response += this->http_version + " ";
-    response += std::to_string(this->status_code) + " ";
+    response += utils::string::fromInt(this->status_code) + " ";
     response += this->status_code_phrase + "\r\n";
     std::map<std::string, std::string>::iterator it;
 
