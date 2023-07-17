@@ -33,6 +33,8 @@ bool    Client::readRequest() {
     }
     char buffer[Client::read_buf_size];
     int readlen = recv(this->socketFd, buffer, Client::read_buf_size, 0);
+    if (readlen == 0)
+        throw closeConnectionException();
     readBuffer += std::string(buffer, readlen);
     return false;
 }
