@@ -1,4 +1,5 @@
-#include "./Client.hpp"
+#include "Client.hpp"
 
-Client::Client() {}
+Client::Client(const Server& server) : server(server) {}
+
 Client::~Client() {}
