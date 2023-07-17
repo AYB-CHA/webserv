@@ -48,7 +48,7 @@ void Multiplexer::run() {
             //     continue;
             // }
 
-            // RequestHandler handler(request);
+            // RequestHandler handler(request, it->getServer());
             // it->storeResponse(handler.build());
         }
     }
