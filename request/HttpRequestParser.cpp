@@ -1,15 +1,15 @@
 #include "HttpRequestParser.hpp"
-#include "../server/utils.hpp"
 #include "../response/HttpResponseException.hpp"
+#include "../server/utils.hpp"
 #include "../utils/string.hpp"
 
 #include <unistd.h>
 
-HttpRequestParser::HttpRequestParser(HttpRequest &request, std::string request_string)
+HttpRequestParser::HttpRequestParser(HttpRequest &request,
+                                     std::string request_string)
     : request_string(request_string), request(request) {
     std::string line = this->getNextLine();
     this->parseRequestLine(line);
-    return; // temporary
     for (;;) {
         std::string line = this->getNextLine();
         std::cout << "line: " << line << std::endl;
@@ -34,8 +34,10 @@ void HttpRequestParser::parseRequestLine(const std::string &request_line) {
     // std::cout << "Method: " << method << std::endl;
 
     // end point.
-    std::string::size_type second_space = request_line.find(' ', first_space + 1);
-    std::string uri = request_line.substr(first_space + 1, second_space - first_space - 1);
+    std::string::size_type second_space =
+        request_line.find(' ', first_space + 1);
+    std::string uri =
+        request_line.substr(first_space + 1, second_space - first_space - 1);
     this->request.setEndpoint(uri);
     // std::cout << "endpoint: " << this->request.getEndpoint() << std::endl;
 
@@ -65,6 +67,8 @@ bool HttpRequestParser::isValidMethod(std::string &method) {
 
 std::string HttpRequestParser::getNextLine() {
     std::string::size_type rc = this->request_string.find("\r\n");
+    if (rc == std::string::npos)
+        throw HttpResponseException(400);
     std::string line = this->request_string.substr(0, rc);
     this->request_string.erase(0, rc + 2);
     return line;

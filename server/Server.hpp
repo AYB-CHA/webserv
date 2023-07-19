@@ -1,9 +1,9 @@
 #pragma once
 #include "Location.hpp"
-#include <fcntl.h>
-#include <stdexcept>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netinet/in.h>
+#include <stdexcept>
 #include <string>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -41,6 +41,7 @@ class Server : public ABase {
     void setServerName(std::string server_name);
     void setRedirect(std::string form, std::string to);
     void setLocation(Location loc);
+    void setReUseAddressOption();
     struct sockaddr_in &getHostAdd();
     socklen_t &getHostAddLength();
     int getSocketFd();
