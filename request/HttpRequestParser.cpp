@@ -4,8 +4,7 @@
 
 #include <unistd.h>
 
-HttpRequestParser::HttpRequestParser(HttpRequest &request,
-                                     std::string request_string)
+HttpRequestParser::HttpRequestParser(HttpRequest &request, std::string request_string)
     : request_string(request_string), request(request) {
     this->parseRequestLine(this->getNextLine());
     for (;;) {
@@ -30,10 +29,8 @@ void HttpRequestParser::parseRequestLine(const std::string &request_line) {
     this->request.setMethod(method);
 
     // end point.
-    std::string::size_type second_space =
-        request_line.find(' ', first_space + 1);
-    std::string uri =
-        request_line.substr(first_space + 1, second_space - first_space - 1);
+    std::string::size_type second_space = request_line.find(' ', first_space + 1);
+    std::string uri = request_line.substr(first_space + 1, second_space - first_space - 1);
     this->request.setEndpoint(uri);
 
     // version...
