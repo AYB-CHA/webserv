@@ -28,6 +28,7 @@ void Multiplexer::run() {
         }
 
         for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
+            // std::cout << "I'm trying to write to: " << it->getSocketFd() << std::endl;
             bool bufferisEmpty = it->writeChunk();
             if (!bufferisEmpty) {
                 CIter client = std::find(read_clients.begin(), read_clients.end(), *it);
@@ -41,6 +42,7 @@ void Multiplexer::run() {
                 bool doneReading;
                 try {
                     doneReading = it->readRequest(); //reads from its socket
+                    std::cout << "I'm still reading" << std::endl;
                 } catch (Client::closeConnectionException& e) {
                     mediator.removeClient(it->getSocketFd());
                     close(it->getSocketFd());
@@ -55,16 +57,22 @@ void Multiplexer::run() {
             // }
 
             std::string buffer = it->getRequest();
-            HttpRequest request;
+            std::cout << "request: " << buffer <<std::endl;
+            HttpRequest request; 
             try {
                 HttpRequestParser parser(request, buffer);
+                RequestHandler handler(request, it->getServer());
+                it->storeResponse(handler.getResponse());
+                std::cout << handler.getResponse();
             } catch (HttpResponseException& e) {
                 it->storeResponse(e.build());
+                std::cout << "Exception: " << e.what() << std::endl;
                 continue;
             }
 
-            RequestHandler handler(request, it->getServer());
-            it->storeResponse(handler.getResponse());
+            // std::cout << request.getEndpoint() << std::endl;
+
+            // std::cout <<"Hello" <<std::endl;
         }
     }
 }

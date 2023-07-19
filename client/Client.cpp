@@ -18,7 +18,9 @@ bool    Client::writeChunk() {
     int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
     if (len == -1)
         throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
+    std::cout << "Previous buffer:\n" << writeBuffer << std::endl;
     writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
+    std::cout << "New buffer:\n" << writeBuffer << std::endl;
     return false;
 }
 
@@ -30,14 +32,15 @@ bool    Client::readRequest() {
         return true;
     }
     char buffer[Client::read_buf_size];
-    std::cout << "client fd: " << this->socketFd << std::endl;
     int readlen = recv(this->socketFd, buffer, Client::read_buf_size, 0);
     if (readlen == -1)
         throw std::runtime_error(std::string("readlen(): ") + strerror(errno));
     if (readlen == 0)
         throw closeConnectionException();
     readBuffer += std::string(buffer, readlen);
-    return false;
+    // std::cout << "read so far: " << readBuffer << std::endl;
+    // return false;
+    return true;
 }
 
 // bool    Client::readChunk() {
