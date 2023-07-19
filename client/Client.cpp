@@ -7,7 +7,9 @@
 
 const int Client::read_buf_size = 8190;
 
-Client::Client(const Server* server) : requestRead(false), server(server) {}
+Client::Client() : requestRead(false), server(NULL) {}
+
+Client::Client(const Client& client) : requestRead(client.requestRead), server(client.server) {}
 
 bool    Client::writeChunk() {
     if (writeBuffer.empty())
@@ -44,6 +46,10 @@ bool    Client::readRequest() {
 //     // return true;
 // }
 
+bool    Client::operator==(const Client& o) const {
+    return this->socketFd == o.socketFd;
+}
+
 int Client::getSocketFd() const {
     return this->socketFd;
 }
@@ -52,8 +58,16 @@ std::string Client::getRequest() {
     return this->readBuffer;
 }
 
-const   Server& Client::getServer() {
+Server& Client::getServer() {
     return *this->server;
+}
+
+void    Client::setServer(Server *server) {
+    this->server = server;
+}
+
+void    Client::setFd(int fd) {
+    this->socketFd = fd;
 }
 
 void    Client::storeResponse(const std::string& response) {

@@ -30,7 +30,7 @@ void Multiplexer::run() {
         for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
             bool bufferisEmpty = it->writeChunk();
             if (!bufferisEmpty) {
-                CIter client = std::find(read_clients.begin(), read_clients.end(), it->getSocketFd());
+                CIter client = std::find(read_clients.begin(), read_clients.end(), *it);
                 if (client != read_clients.end())
                     read_clients.erase(client);
             }
@@ -63,7 +63,7 @@ void Multiplexer::run() {
                 continue;
             }
 
-            RequestHandler handler(request, const_cast<Server&>((it->getServer())));
+            RequestHandler handler(request, it->getServer());
             it->storeResponse(handler.getResponse());
         }
     }

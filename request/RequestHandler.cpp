@@ -23,7 +23,8 @@ void RequestHandler::handleIt() {
         throw HttpResponseException(403);
 
     std::ifstream srcFile (file, std::ifstream::binary);
-    char* buffer;
+    char* buffer = NULL;
+    std::string str;
     if (srcFile) {
         // get length of file:
         srcFile.seekg (0, srcFile.end);
@@ -38,9 +39,9 @@ void RequestHandler::handleIt() {
             throw HttpResponseException(500);
 
         srcFile.close();
+        str += buffer;
     }
 
-    std::string str(buffer);
     response.pushBody(str);
     delete[] buffer;
 }

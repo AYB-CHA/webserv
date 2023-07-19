@@ -14,7 +14,7 @@ private:
     Selector                selector;
 public:
     Mediator(std::vector<Server>& initServers);
-    void    addClient(int fd, const Server* server);
+    void    addClient(int fd, Server* server);
     void    removeClient(int fd);
 
     void    getBatch(std::vector<Server>&, std::vector<Client>& read, std::vector<Client>& write);

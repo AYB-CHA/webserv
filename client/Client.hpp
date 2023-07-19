@@ -14,16 +14,20 @@ private:
     std::string readBuffer;
     std::string bodyBuffer;
 
-    const Server* server;
+    Server* server;
 public:
-    Client(const Server* server);
+    Client();
+    Client(const Client& o);
     int     getSocketFd() const;
     bool    writeChunk();
     bool    readRequest(); // Reads request line and headers (no body)
+    bool    operator==(const Client& o) const;
     std::string getRequest();
-    const Server&   getServer();
+    Server&   getServer();
     bool    hasReadRequest() const;
     void    setRequestRead(bool);
+    void    setServer(Server *server);
+    void    setFd(int fd);
     // bool    readChunk(); // returns true if it's done reading
     void    storeResponse(const std::string& response);
     class closeConnectionException : public std::exception {};

@@ -9,8 +9,12 @@ Mediator::Mediator(std::vector<Server>& init) {
     }
 }
 
-void    Mediator::addClient(int fd, const Server* server) {
-    fd_clients[fd] = Client(server);
+void    Mediator::addClient(int fd, Server* server) {
+    Client client;
+    client.setFd(fd);
+    client.setServer(server);
+    fd_clients[fd] = client;
+    fd_clients[fd].setServer(server);
     selector.pushFd(fd);
 }
 
