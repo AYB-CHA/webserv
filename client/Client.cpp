@@ -7,11 +7,7 @@
 
 const int Client::read_buf_size = 8190;
 
-Client::Client(const Server* server) : server(server), hasReadRequest(false) {}
-
-int Client::getSocketFd() const {
-    return this->socketFd;
-}
+Client::Client(const Server* server) : requestRead(false), server(server) {}
 
 bool    Client::writeChunk() {
     if (writeBuffer.empty())
@@ -47,6 +43,10 @@ bool    Client::readRequest() {
 //     // "\r\n\r\n"
 //     // return true;
 // }
+
+int Client::getSocketFd() const {
+    return this->socketFd;
+}
 
 std::string Client::getRequest() {
     return this->readBuffer;
