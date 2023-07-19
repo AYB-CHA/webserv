@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Selector.hpp"
 #include <algorithm>
 #include <stdexcept>

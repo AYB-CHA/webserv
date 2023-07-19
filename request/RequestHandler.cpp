@@ -17,13 +17,16 @@ std::string RequestHandler::getResponse() {
 void RequestHandler::handleIt() {
 
     std::string file = request.getEndpoint();
+    file = "." + file;
+    std::cout << file << std::endl;
     if (access(file.c_str(), F_OK) == -1)
         throw HttpResponseException(404);
     if (access(file.c_str(), R_OK == -1))
         throw HttpResponseException(403);
 
     std::ifstream srcFile (file, std::ifstream::binary);
-    char* buffer;
+    char* buffer = NULL;
+    std::string str;
     if (srcFile) {
         // get length of file:
         srcFile.seekg (0, srcFile.end);
@@ -38,9 +41,9 @@ void RequestHandler::handleIt() {
             throw HttpResponseException(500);
 
         srcFile.close();
+        str += buffer;
     }
 
-    std::string str(buffer);
-    response.pushBody(str);
+    response.pushBody(str)->setStatuscode(200);
     delete[] buffer;
 }

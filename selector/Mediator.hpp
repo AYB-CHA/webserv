@@ -5,6 +5,7 @@
 #include "../selector/Selector.hpp"
 #include <map>
 #include <vector>
+#include <iostream>
 
 class Mediator {
 private:
@@ -13,8 +14,9 @@ private:
     Selector                selector;
 public:
     Mediator(std::vector<Server>& initServers);
-    void    addClient(int fd);
+    void    addClient(int fd, Server* server);
     void    removeClient(int fd);
+    void    updateClient(Client client);
 
     void    getBatch(std::vector<Server>&, std::vector<Client>& read, std::vector<Client>& write);
 };

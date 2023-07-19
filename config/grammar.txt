@@ -8,5 +8,7 @@
 
 <blockDirective>    := "{" (<locationKeyword> (WORD)+ ";" )* "}"
 
-<serverKeyword>     :=  "listen" | "index" | "server_name" | "accepted_methods" | "root" | "error_page" | "location"
+<serverKeyword>     :=  "listen" | "index" | "server_name" | "accepted_methods" | "root"
+                        | "error_page" | "location" | "redirect" | "upload_path" | "client_max_body_size"
 <locationKeyword>   :=  "root" | "index" | "autoindex" | "cgi" | "error_page"
+                        | "upload_path" | "client_max_body_size"

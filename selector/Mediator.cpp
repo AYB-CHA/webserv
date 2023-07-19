@@ -1,32 +1,44 @@
 #include "Mediator.hpp"
+#include <cstring>
 #include <stdexcept>
 
 // Maybe set the timeout here
 Mediator::Mediator(std::vector<Server>& init) {
+    selector.setTimeout(30, 0);
     for (std::vector<Server>::iterator it = init.begin(); it != init.end(); ++it) {
         fd_servers[it->getSocketFd()] = *it;
         selector.pushFd(it->getSocketFd());
     }
 }
 
-void    Mediator::addClient(int fd) {
-    // This is better done when receiving the fd, because accept returns a file descriptor.
-    fd_clients[fd] = Client();
+void    Mediator::addClient(int fd, Server* server) {
+    Client client;
+    client.setFd(fd);
+    client.setServer(server);
+    fd_clients[fd] = client;
+    fd_clients[fd].setServer(server);
     selector.pushFd(fd);
 }
 
 void    Mediator::removeClient(int fd) {
     fd_clients.erase(fd);
-    selector.popFd(fd);
+    try {
+        selector.popFd(fd);
+    } catch (std::runtime_error& e) {
+        //log the error for now
+        std::cerr << e.what() << std::endl;
+    }
 }
 
-// When the multiplexer gets the batch, it will go through the servers and accept all connections
-// And then it'll go through each client and handle them accordingly
+void    Mediator::updateClient(Client client) {
+    fd_clients[client.getSocketFd()] = client;
+}
+
 void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rclients, std::vector<Client>& wclients) {
     servers.clear(); rclients.clear(); wclients.clear();
 
     if (selector.poll() == -1)
-        throw std::runtime_error("select() failed.");
+        throw std::runtime_error(std::string("select() failed: ")+ strerror(errno));
 
     while (int fd = selector.getReadFd()) {
         if (fd == -1)

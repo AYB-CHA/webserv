@@ -1,5 +1,6 @@
 #pragma once
 # include <string>
+# include <cmath>
 # include "ABase.hpp"
 
 class Location : public ABase {

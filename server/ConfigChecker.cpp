@@ -1,4 +1,6 @@
 #include <string>
+#include <cstdlib>
+#include <cerrno>
 
 #include "../config/BlockDirective.hpp"
 #include "../config/Directive.hpp"
@@ -300,6 +302,6 @@ std::vector<Server> validator(std::vector<Directive> _servers) {
         servers.push_back(serv);
         std::cout << "++++++++++++++++++++++++ server +++++++++++++++++++++++++++" << std::endl;
     }
-    printservs(servers);
+    // printservs(servers);
     return servers;
 }
