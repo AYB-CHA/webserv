@@ -1,6 +1,7 @@
 #include "Mediator.hpp"
 #include <cstring>
 #include <stdexcept>
+#include <unistd.h>
 
 // Maybe set the timeout here
 Mediator::Mediator(std::vector<Server>& init) {
@@ -12,6 +13,10 @@ Mediator::Mediator(std::vector<Server>& init) {
 }
 
 void    Mediator::addClient(int fd, Server* server) {
+    if (fd_clients.size() > FD_SETSIZE) {
+        close(fd);
+        return;
+    }
     Client client;
     client.setFd(fd);
     client.setServer(server);
