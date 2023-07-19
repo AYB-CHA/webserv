@@ -44,15 +44,6 @@ bool    Client::readRequest() {
     return true;
 }
 
-// bool    Client::readChunk() {
-//     int maxBodySize = server.getClientMaxBodySize(); // Subject to change
-//     int maxHeaderSize = 8190;                        // Subject to change
-//     // read;
-//     // return false;
-//     // "\r\n\r\n"
-//     // return true;
-// }
-
 bool    Client::operator==(const Client& o) const {
     return this->socketFd == o.socketFd;
 }

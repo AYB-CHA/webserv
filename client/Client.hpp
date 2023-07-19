@@ -28,7 +28,6 @@ public:
     void    setRequestRead(bool);
     void    setServer(Server *server);
     void    setFd(int fd);
-    // bool    readChunk(); // returns true if it's done reading
     void    storeResponse(const std::string& response);
     class closeConnectionException : public std::exception {};
     ~Client();
