@@ -13,7 +13,7 @@ Client::Client() : requestRead(false), server(NULL) {}
 Client::Client(const Client& client) : requestRead(client.requestRead), socketFd(client.socketFd), writeBuffer(client.writeBuffer), server(client.server) {}
 
 bool    Client::writeChunk() {
-    if (writeBuffer.empty()) 
+    if (writeBuffer.empty()) // Client.isReadingBody()) 
         return true;
     int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
     if (len == -1)
