@@ -13,7 +13,7 @@ CPPFILES = main.cpp $(addprefix config/, $(CONFIGFILES)) $(addprefix server/, $(
 			$(addprefix utils/, $(UTILSFILES))
 
 OBJFILES = $(CPPFILES:%.cpp=%.o)
-CFLAGS = -Wall -Wextra -Werror -Wno-implicit-fallthrough -std=c++98  # -g
+CFLAGS = -Wall -Wextra -Werror -Wno-implicit-fallthrough -std=c++98  -g
 CC = c++
 
 all: $(NAME)

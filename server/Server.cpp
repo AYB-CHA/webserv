@@ -37,10 +37,12 @@ void Server::setServerName(std::string server_name) {
 void Server::setRedirect(std::string from, std::string to) {
     this->redirect[from] = to;
 }
+// #include <iostream>
 void Server::setUp() {
     this->createSocket();
     this->bindAddress();
     this->listen();
+    // std::cout << "fd : " << this->socket_fd << std::endl;
 }
 
 void Server::createSocket() {

@@ -1,9 +1,11 @@
 #include "./Core.hpp"
 
-Core::Core(std::vector<Server> &servers) : servers(servers) {
+// #include <iostream>
+Core::Core(std::vector<Server> &servers) {
     std::vector<Server>::iterator it;
-    for (it = this->servers.begin(); it != this->servers.end(); it++) {
+    for (it = servers.begin(); it != servers.end(); ++it) {
         it->setUp();
+        // std::cout << it->getSocketFd() << std::endl;
     }
 }
 

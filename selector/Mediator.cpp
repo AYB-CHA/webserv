@@ -1,8 +1,10 @@
 #include "Mediator.hpp"
+#include <cstring>
 #include <stdexcept>
 
 // Maybe set the timeout here
 Mediator::Mediator(std::vector<Server>& init) {
+    selector.setTimeout(30, 0);
     for (std::vector<Server>::iterator it = init.begin(); it != init.end(); ++it) {
         fd_servers[it->getSocketFd()] = *it;
         selector.pushFd(it->getSocketFd());
@@ -32,7 +34,7 @@ void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rc
     servers.clear(); rclients.clear(); wclients.clear();
 
     if (selector.poll() == -1)
-        throw std::runtime_error("select() failed.");
+        throw std::runtime_error(std::string("select() failed: ")+ strerror(errno));
 
     while (int fd = selector.getReadFd()) {
         if (fd == -1)

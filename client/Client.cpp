@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Client.hpp"
 #include <cstddef>
 #include <cstring>
@@ -9,7 +10,7 @@ const int Client::read_buf_size = 8190;
 
 Client::Client() : requestRead(false), server(NULL) {}
 
-Client::Client(const Client& client) : requestRead(client.requestRead), server(client.server) {}
+Client::Client(const Client& client) : requestRead(client.requestRead), socketFd(client.socketFd), server(client.server) {}
 
 bool    Client::writeChunk() {
     if (writeBuffer.empty())
@@ -22,7 +23,6 @@ bool    Client::writeChunk() {
 }
 
 bool    Client::readRequest() {
-    server->getHost();
     size_t it = readBuffer.find("\r\n\r\n");
     if (it != std::string::npos || readBuffer.size() > 8190) { //separate the two conditions, cuz it could be npos
         bodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
@@ -30,7 +30,10 @@ bool    Client::readRequest() {
         return true;
     }
     char buffer[Client::read_buf_size];
+    std::cout << "client fd: " << this->socketFd << std::endl;
     int readlen = recv(this->socketFd, buffer, Client::read_buf_size, 0);
+    if (readlen == -1)
+        throw std::runtime_error(std::string("readlen(): ") + strerror(errno));
     if (readlen == 0)
         throw closeConnectionException();
     readBuffer += std::string(buffer, readlen);

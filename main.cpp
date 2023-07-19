@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include "selector/Multiplexer.hpp"
 
 #include <cstdlib>
 #include <stdexcept>
@@ -21,11 +22,13 @@ int main(int ac, char **av) {
     std::vector<Server> servers;
 
     try {
-        validator(server_directives);
+        servers = validator(server_directives);
+        Core core(servers);
+        Multiplexer multiplexer(servers);
+        multiplexer.run();
     } catch (std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
     }
 
-    Core core(servers);
     return 0;
 }
