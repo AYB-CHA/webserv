@@ -23,6 +23,7 @@ void    Mediator::addClient(int fd, Server* server) {
     fd_clients[fd] = client;
     fd_clients[fd].setServer(server);
     selector.pushFd(fd);
+    std::cout << "Num of clients: " << fd_clients.size() << std::endl;
 }
 
 void    Mediator::removeClient(int fd) {

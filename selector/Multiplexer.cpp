@@ -40,8 +40,18 @@ void Multiplexer::run() {
         }
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
+            // 3 states for each client:
+            // 1 ) we haven't finished reading the request
+            //
+            // 2 ) we read the request but haven't parsed the request yet - (runs only once)
+            //
+            // 3 )
+            // GET =>  - we parsed the request, and keep filling our buffer from the file to the writeBuffer
+            // for the client
+            //
+            // POSt => 
             // if (it->hasReadRequest() == false) {
-                bool doneReading;
+                bool doneReading; // remove this, and set requestRead to true when you finish reading
                 try {
                     doneReading = it->readRequest(); //reads from its socket
                     // std::cout << "I'm still reading" << std::endl;
@@ -52,7 +62,7 @@ void Multiplexer::run() {
                 }
                 if (doneReading == false) continue;
                 std::string buffer = it->getRequest();
-                std::cout << "request: " << buffer <<std::endl;
+                // std::cout << "request: " << buffer <<std::endl;
                 HttpRequest request; 
                 try {
                     HttpRequestParser parser(request, buffer);
