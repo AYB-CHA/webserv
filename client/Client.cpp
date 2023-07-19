@@ -10,17 +10,17 @@ const int Client::read_buf_size = 8190;
 
 Client::Client() : requestRead(false), server(NULL) {}
 
-Client::Client(const Client& client) : requestRead(client.requestRead), socketFd(client.socketFd), server(client.server) {}
+Client::Client(const Client& client) : requestRead(client.requestRead), socketFd(client.socketFd), writeBuffer(client.writeBuffer), server(client.server) {}
 
 bool    Client::writeChunk() {
-    if (writeBuffer.empty())
+    if (writeBuffer.empty()) 
         return true;
     int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
     if (len == -1)
         throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
-    std::cout << "Previous buffer:\n" << writeBuffer << std::endl;
+    // std::cout << "Previous buffer:\n" << writeBuffer << std::endl;
     writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
-    std::cout << "New buffer:\n" << writeBuffer << std::endl;
+    // std::cout << "New buffer:\n" << writeBuffer << std::endl;
     return false;
 }
 
@@ -78,6 +78,7 @@ void    Client::setFd(int fd) {
 
 void    Client::storeResponse(const std::string& response) {
     this->writeBuffer = response;
+    // std::cout << this->writeBuffer;
 }
 
 Client::~Client() {}

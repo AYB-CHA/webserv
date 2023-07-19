@@ -30,6 +30,10 @@ void    Mediator::removeClient(int fd) {
     }
 }
 
+void    Mediator::updateClient(Client client) {
+    fd_clients[client.getSocketFd()] = client;
+}
+
 void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rclients, std::vector<Client>& wclients) {
     servers.clear(); rclients.clear(); wclients.clear();
 

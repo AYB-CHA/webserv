@@ -16,6 +16,7 @@ public:
     Mediator(std::vector<Server>& initServers);
     void    addClient(int fd, Server* server);
     void    removeClient(int fd);
+    void    updateClient(Client client);
 
     void    getBatch(std::vector<Server>&, std::vector<Client>& read, std::vector<Client>& write);
 };
