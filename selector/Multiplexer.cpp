@@ -38,7 +38,7 @@ void Multiplexer::run() {
         }
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
-            if (it->hasReadRequest() == false) {
+            // if (it->hasReadRequest() == false) {
                 bool doneReading;
                 try {
                     doneReading = it->readRequest(); //reads from its socket
@@ -63,15 +63,15 @@ void Multiplexer::run() {
                     std::cout << "Exception: " << e.what() << std::endl;
                     continue;
                 }
-                it->setRequestRead(true);
+                // it->setRequestRead(true);
                 // Once it's set to true, the only reason it'd keep going is that we still haven't
                 // started sending the response to the client
-            } else {
+            // } else {
                 // bufferisReady
             // fileReadComplete //Not really necessary
                 // handler(); //The handler keeps filling the bodyBuffer for the client to write
                 // it->readChunk(); // This is where you just continue reading the body when necessary
-            }
+            // }
 
         }
     }

@@ -25,7 +25,7 @@ public:
     std::string getRequest();
     Server&   getServer();
     bool    hasReadRequest() const;
-    void    setRequestRead(bool);
+    // void    setRequestRead(bool);
     void    setServer(Server *server);
     void    setFd(int fd);
     void    storeResponse(const std::string& response);

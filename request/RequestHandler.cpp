@@ -37,8 +37,10 @@ void RequestHandler::handleIt() {
 
         // read data as a block:
         srcFile.read (buffer,length);
-        if (!srcFile)
+        if (!srcFile) {
+            delete [] buffer;
             throw HttpResponseException(500);
+        }
 
         srcFile.close();
         str += buffer;
