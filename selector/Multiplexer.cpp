@@ -28,7 +28,6 @@ void Multiplexer::run() {
         }
 
         for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
-            // std::cout << "I'm trying to write to: " << it->getSocketFd() << std::endl;
             bool bufferisEmpty = it->writeChunk();
             mediator.updateClient(*it);
             if (!bufferisEmpty) {
@@ -65,16 +64,12 @@ void Multiplexer::run() {
                 RequestHandler handler(request, it->getServer());
                 it->storeResponse(handler.getResponse());
                 mediator.updateClient(*it);
-                // std::cout << handler.getResponse();
             } catch (HttpResponseException& e) {
                 it->storeResponse(e.build());
+                mediator.updateClient(*it);
                 std::cout << "Exception: " << e.what() << std::endl;
                 continue;
             }
-
-            // std::cout << request.getEndpoint() << std::endl;
-
-            // std::cout <<"Hello" <<std::endl;
         }
     }
 }

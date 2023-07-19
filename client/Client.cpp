@@ -26,7 +26,10 @@ bool    Client::writeChunk() {
 
 bool    Client::readRequest() {
     size_t it = readBuffer.find("\r\n\r\n");
-    if (it != std::string::npos || readBuffer.size() > 8190) { //separate the two conditions, cuz it could be npos
+    if (readBuffer.size() >= Client::read_buf_size) {
+        return true;
+    }
+    if (it != std::string::npos) {
         bodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
         readBuffer = readBuffer.substr(0, readBuffer.size() - bodyBuffer.size());
         return true;
@@ -38,8 +41,6 @@ bool    Client::readRequest() {
     if (readlen == 0)
         throw closeConnectionException();
     readBuffer += std::string(buffer, readlen);
-    // std::cout << "read so far: " << readBuffer << std::endl;
-    // return false;
     return true;
 }
 
