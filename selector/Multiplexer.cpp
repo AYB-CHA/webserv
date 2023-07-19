@@ -28,7 +28,7 @@ void Multiplexer::run() {
         }
 
         for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
-            std::cout << "I'm trying to write to: " << it->getSocketFd() << std::endl;
+            // std::cout << "I'm trying to write to: " << it->getSocketFd() << std::endl;
             bool bufferisEmpty = it->writeChunk();
             mediator.updateClient(*it);
             if (!bufferisEmpty) {
