@@ -30,6 +30,7 @@ void Multiplexer::run() {
         for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
             std::cout << "I'm trying to write to: " << it->getSocketFd() << std::endl;
             bool bufferisEmpty = it->writeChunk();
+            mediator.updateClient(*it);
             if (!bufferisEmpty) {
                 CIter client = std::find(read_clients.begin(), read_clients.end(), *it);
                 if (client != read_clients.end())
@@ -42,8 +43,7 @@ void Multiplexer::run() {
                 bool doneReading;
                 try {
                     doneReading = it->readRequest(); //reads from its socket
-                    mediator.updateClient(*it);
-                    std::cout << "I'm still reading" << std::endl;
+                    // std::cout << "I'm still reading" << std::endl;
                 } catch (Client::closeConnectionException& e) {
                     mediator.removeClient(it->getSocketFd());
                     close(it->getSocketFd());
