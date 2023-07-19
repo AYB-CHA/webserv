@@ -10,8 +10,9 @@ class Client {
 private:
     static const int read_buf_size;
     int     socketFd;
+    int     bodyFd;
     std::string writeBuffer;
-    std::string writeBodyBuffer;
+    std::string bodyBuffer;
     std::string readBuffer;
     std::string path;
     // bool    connectionClose; 

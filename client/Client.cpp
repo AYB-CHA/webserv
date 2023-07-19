@@ -13,7 +13,7 @@ Client::Client() : server(NULL) {}
 Client::Client(const Client& client) : socketFd(client.socketFd), writeBuffer(client.writeBuffer), server(client.server) {}
 
 bool    Client::writeChunk() {
-    if (writeBuffer.empty() && writeBodyBuffer.empty()) // Client.isReadingBody()) 
+    if (writeBuffer.empty() && bodyBuffer.empty()) // Client.isReadingBody()) 
         return true;
     if (!writeBuffer.empty()) {
         int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
@@ -21,6 +21,7 @@ bool    Client::writeChunk() {
             throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
         writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
     } else {
+        // if writing from bodyFD returns 0, close it
         //sendfile(2)
     }
     return false;
@@ -32,8 +33,8 @@ bool    Client::readRequest() {
         return true;
     }
     if (it != std::string::npos) {
-        writeBodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
-        readBuffer = readBuffer.substr(0, readBuffer.size() - writeBodyBuffer.size());
+        bodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
+        readBuffer = readBuffer.substr(0, readBuffer.size() - bodyBuffer.size());
         return true;
     }
     char buffer[Client::read_buf_size];
