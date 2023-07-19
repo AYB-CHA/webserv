@@ -10,18 +10,20 @@ Mediator::Mediator(std::vector<Server>& init) {
 }
 
 void    Mediator::addClient(int fd, const Server* server) {
-    // This is better done when receiving the fd, because accept returns a file descriptor.
     fd_clients[fd] = Client(server);
     selector.pushFd(fd);
 }
 
 void    Mediator::removeClient(int fd) {
     fd_clients.erase(fd);
-    selector.popFd(fd);
+    try {
+        selector.popFd(fd);
+    } catch (std::runtime_error& e) {
+        //log the error for now
+        std::cerr << e.what() << std::endl;
+    }
 }
 
-// When the multiplexer gets the batch, it will go through the servers and accept all connections
-// And then it'll go through each client and handle them accordingly
 void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rclients, std::vector<Client>& wclients) {
     servers.clear(); rclients.clear(); wclients.clear();
 

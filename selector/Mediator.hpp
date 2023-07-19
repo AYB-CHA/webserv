@@ -5,6 +5,7 @@
 #include "../selector/Selector.hpp"
 #include <map>
 #include <vector>
+#include <iostream>
 
 class Mediator {
 private:
