@@ -49,7 +49,7 @@ void Multiplexer::run() {
             // GET =>  - we parsed the request, and keep filling our buffer from the file to the writeBuffer
             // for the client
             //
-            // POSt => 
+            // POST => 
             // if (it->hasReadRequest() == false) {
                 bool doneReading; // remove this, and set requestRead to true when you finish reading
                 try {

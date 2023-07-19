@@ -13,6 +13,8 @@ private:
     std::string writeBuffer;
     std::string readBuffer;
     std::string bodyBuffer;
+    //add a timeout attribute to the client, that you check after every poll.
+    //If it exceeds it, we close the connection and remove it from our map of clients
 
     Server* server;
 public:
