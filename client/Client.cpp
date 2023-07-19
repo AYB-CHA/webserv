@@ -8,19 +8,21 @@
 
 const int Client::read_buf_size = 8190;
 
-Client::Client() : requestRead(false), server(NULL) {}
+Client::Client() : server(NULL) {}
 
-Client::Client(const Client& client) : requestRead(client.requestRead), socketFd(client.socketFd), writeBuffer(client.writeBuffer), server(client.server) {}
+Client::Client(const Client& client) : socketFd(client.socketFd), writeBuffer(client.writeBuffer), server(client.server) {}
 
 bool    Client::writeChunk() {
-    if (writeBuffer.empty()) // Client.isReadingBody()) 
+    if (writeBuffer.empty() && writeBodyBuffer.empty()) // Client.isReadingBody()) 
         return true;
-    int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
-    if (len == -1)
-        throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
-    // std::cout << "Previous buffer:\n" << writeBuffer << std::endl;
-    writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
-    // std::cout << "New buffer:\n" << writeBuffer << std::endl;
+    if (!writeBuffer.empty()) {
+        int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
+        if (len == -1)
+            throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
+        writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
+    } else {
+        //sendfile(2)
+    }
     return false;
 }
 
@@ -30,8 +32,8 @@ bool    Client::readRequest() {
         return true;
     }
     if (it != std::string::npos) {
-        bodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
-        readBuffer = readBuffer.substr(0, readBuffer.size() - bodyBuffer.size());
+        writeBodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
+        readBuffer = readBuffer.substr(0, readBuffer.size() - writeBodyBuffer.size());
         return true;
     }
     char buffer[Client::read_buf_size];

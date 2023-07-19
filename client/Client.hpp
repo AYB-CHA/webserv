@@ -11,10 +11,10 @@ private:
     static const int read_buf_size;
     int     socketFd;
     std::string writeBuffer;
+    std::string writeBodyBuffer;
     std::string readBuffer;
-    std::string bodyBuffer;
     std::string path;
-    timeval     lastTimeRW;
+    // timeval     lastTimeRW;
     //add a timeout attribute to the client, that you check after every poll.
     //If it exceeds it, we close the connection and remove it from our map of clients
 
