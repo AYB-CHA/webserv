@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <sys/errno.h>
 #include <sys/socket.h>
+#include "../request/RequestHandler.hpp"
 #include "../request/HttpRequest.hpp"
 #include "../request/HttpRequestParser.hpp"
 #include "../response/HttpResponseException.hpp"
@@ -36,7 +37,7 @@ void Multiplexer::run() {
         }
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
-            if (it->hasReadRequest() == false) {
+            // if (it->hasReadRequest() == false) {
                 bool doneReading;
                 try {
                     doneReading = it->readRequest(); //reads from its socket
@@ -46,12 +47,12 @@ void Multiplexer::run() {
                     continue;
                 }
                 if (doneReading == false) continue;
-                it->setRequestRead(true);
+                // it->setRequestRead(true);
                 // Once it's set to true, the only reason it'd keep going is that we still haven't
                 // started sending the response to the client
-            } else {
-                // it->readChunk(); // This is where you just continue reading the body when necessary
-            }
+             // } else {
+            //     // it->readChunk(); // This is where you just continue reading the body when necessary
+            // }
 
             std::string buffer = it->getRequest();
             HttpRequest request;
@@ -62,8 +63,8 @@ void Multiplexer::run() {
                 continue;
             }
 
-            // RequestHandler handler(request, it->getServer());
-            // it->storeResponse(handler.build());
+            RequestHandler handler(request, const_cast<Server&>((it->getServer())));
+            it->storeResponse(handler.getResponse());
         }
     }
 }

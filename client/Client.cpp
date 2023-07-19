@@ -22,7 +22,7 @@ bool    Client::writeChunk() {
 bool    Client::readRequest() {
     server->getHost();
     size_t it = readBuffer.find("\r\n\r\n");
-    if (it != std::string::npos || readBuffer.size() > 8190) {
+    if (it != std::string::npos || readBuffer.size() > 8190) { //separate the two conditions, cuz it could be npos
         bodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
         readBuffer = readBuffer.substr(0, readBuffer.size() - bodyBuffer.size());
         return true;
