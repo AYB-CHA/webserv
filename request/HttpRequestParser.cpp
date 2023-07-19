@@ -12,7 +12,6 @@ HttpRequestParser::HttpRequestParser(HttpRequest &request,
     this->parseRequestLine(line);
     for (;;) {
         std::string line = this->getNextLine();
-        std::cout << "line: " << line << std::endl;
         if (line == "")
             break;
         this->parseHeaderLine(line);
@@ -31,15 +30,23 @@ void HttpRequestParser::parseRequestLine(const std::string &request_line) {
     if (!this->isValidMethod(method) || request_line[first_space + 1] == ' ')
         throw HttpResponseException(400);
     this->request.setMethod(method);
-    // std::cout << "Method: " << method << std::endl;
 
     // end point.
     std::string::size_type second_space =
         request_line.find(' ', first_space + 1);
     std::string uri =
         request_line.substr(first_space + 1, second_space - first_space - 1);
-    this->request.setEndpoint(uri);
-    // std::cout << "endpoint: " << this->request.getEndpoint() << std::endl;
+    std::string::size_type qm_pos = uri.find('?');
+    // ?: remember to double check for nginx behavior on multiple question mark
+    // ? eg: '/test?????abc=123'
+    if (qm_pos != std::string::npos) {
+        this->request.setEndpoint(uri.substr(0, qm_pos));
+        this->request.setQueries(uri.substr(qm_pos + 1));
+    } else
+        this->request.setEndpoint(uri);
+
+    std::cout << "queries: " << this->request.getQueries() << std::endl;
+    std::cout << "endpoint: " << this->request.getEndpoint() << std::endl;
 
     // version...
     std::string http_version = request_line.substr(second_space + 1);
@@ -48,7 +55,6 @@ void HttpRequestParser::parseRequestLine(const std::string &request_line) {
         throw HttpResponseException(400);
 }
 
-// add support for: Multiple message-header.
 void HttpRequestParser::parseHeaderLine(const std::string &header_line) {
     std::string::size_type column = header_line.find(':');
     if (std::string::npos == column || header_line[column + 1] != ' ')
