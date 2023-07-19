@@ -18,7 +18,7 @@ const std::string HttpRequest::getHeader(const std::string &key) const {
 
 void HttpRequest::setMethod(std::string &method) { this->method = method; }
 
-void HttpRequest::setEndpoint(std::string &endpoint) {
+void HttpRequest::setEndpoint(const std::string &endpoint) {
     this->endpoint = endpoint;
 }
 
@@ -33,3 +33,9 @@ const std::multimap<std::string, std::string> &HttpRequest::getHeaders() const {
 void HttpRequest::pushBody(std::string &content) { this->body += content; }
 
 const std::string &HttpRequest::getBody() { return this->body; }
+
+const std::string &HttpRequest::getQueries() const { return this->queries; }
+
+void HttpRequest::setQueries(const std::string &queries) {
+    this->queries = queries;
+}

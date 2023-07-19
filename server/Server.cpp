@@ -40,9 +40,9 @@ void Server::setRedirect(std::string from, std::string to) {
 // #include <iostream>
 void Server::setUp() {
     this->createSocket();
+    this->setReUseAddressOption();
     this->bindAddress();
     this->listen();
-    // std::cout << "fd : " << this->socket_fd << std::endl;
 }
 
 void Server::createSocket() {
@@ -70,4 +70,11 @@ void Server::bindAddress() {
 void Server::listen() {
     if (::listen(this->socket_fd, SOMAXCONN))
         throw std::runtime_error("socket init: could't listen to the socket");
+}
+
+void Server::setReUseAddressOption() {
+    int value = 1;
+    if (setsockopt(this->getSocketFd(), SOL_SOCKET, SO_REUSEADDR, &value,
+                   sizeof(int)) < 0)
+        throw std::runtime_error("socket init: setsockopt() failed.");
 }

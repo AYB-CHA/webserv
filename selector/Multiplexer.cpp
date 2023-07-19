@@ -1,14 +1,14 @@
 #include "Multiplexer.hpp"
+#include "../request/HttpRequest.hpp"
+#include "../request/HttpRequestParser.hpp"
+#include "../request/RequestHandler.hpp"
+#include "../response/HttpResponseBuilder.hpp"
+#include "../response/HttpResponseException.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <stdexcept>
 #include <sys/errno.h>
 #include <sys/socket.h>
-#include "../request/RequestHandler.hpp"
-#include "../request/HttpRequest.hpp"
-#include "../request/HttpRequestParser.hpp"
-#include "../response/HttpResponseException.hpp"
-#include "../response/HttpResponseBuilder.hpp"
 
 Multiplexer::Multiplexer(std::vector<Server> servers) : mediator(servers) {}
 
@@ -16,7 +16,8 @@ void Multiplexer::run() {
     for (;;) {
         mediator.getBatch(ready_servers, read_clients, write_clients);
 
-        for (SIter it = ready_servers.begin(); it != ready_servers.end(); ++it) {
+        for (SIter it = ready_servers.begin(); it != ready_servers.end();
+             ++it) {
             int fd = accept(it->getSocketFd(), NULL, NULL);
             if (fd == -1) {
                 if (errno != EWOULDBLOCK) {
@@ -31,7 +32,8 @@ void Multiplexer::run() {
             bool bufferisEmpty = it->writeChunk();
             mediator.updateClient(*it);
             if (!bufferisEmpty) {
-                CIter client = std::find(read_clients.begin(), read_clients.end(), *it);
+                CIter client =
+                    std::find(read_clients.begin(), read_clients.end(), *it);
                 if (client != read_clients.end())
                     read_clients.erase(client);
             }
@@ -72,7 +74,6 @@ void Multiplexer::run() {
                 // handler(); //The handler keeps filling the bodyBuffer for the client to write
                 // it->readChunk(); // This is where you just continue reading the body when necessary
             // }
-
         }
     }
 }
