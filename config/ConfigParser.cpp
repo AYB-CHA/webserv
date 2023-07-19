@@ -86,9 +86,9 @@ Directive   ConfigParser::parseLocDirective() {
 Directive   ConfigParser::parseLocation() {
     token_type token = consumeSrvKeyword();
     std::vector<std::string> parameters = parseParameters();
+    std::vector<Directive> directives;
 
     consume(LEFT_CURLY);
-    std::vector<Directive> directives;
     while (!check(RIGHT_CURLY)) {
         directives.push_back(parseLocDirective());
     }
