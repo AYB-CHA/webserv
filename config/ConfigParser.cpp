@@ -22,7 +22,7 @@ Token   ConfigParser::consume(token_type type) {
         if (token.getType() == type)
             return token;
     }
-    std::string errMsg =  "Error: expected '" + Token::Literal(type) + "' token\n";
+    std::string errMsg =  "Expected '" + Token::Literal(type) + "' token\n";
     if (tokens.size())
         errMsg += "Got: '" + token.getLiteral() + "' at line: " + token.getLine() + "\n";
     throw std::runtime_error(errMsg);
@@ -114,16 +114,10 @@ Directive  ConfigParser::parseServer() {
 }
 
 void    ConfigParser::parse() {
-    try {
-        while (tokens.size() > 0) {
-            Directive directive = parseServer();
+    while (tokens.size() > 0) {
+        Directive directive = parseServer();
 
-            // directive.debug();
-            // std::cout << std::endl;
-            servers.push_back(directive);
-        }
-    } catch (std::runtime_error& e) {
-        std::cerr << e.what() << std::endl;
+        servers.push_back(directive);
     }
 }
 
