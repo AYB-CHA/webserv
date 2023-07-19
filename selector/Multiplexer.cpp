@@ -60,7 +60,6 @@ void Multiplexer::run() {
             } catch (HttpResponseException& e) {
                 it->storeResponse(e.build());
                 mediator.updateClient(*it);
-                std::cout << "Exception: " << e.what() << std::endl;
                 continue;
             }
         }
