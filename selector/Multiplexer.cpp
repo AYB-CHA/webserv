@@ -40,50 +40,29 @@ void Multiplexer::run() {
         }
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
-            // 3 states for each client:
-            // 1 ) we haven't finished reading the request
-            //
-            // 2 ) we read the request but haven't parsed the request yet - (runs only once)
-            //
-            // 3 )
-            // GET =>  - we parsed the request, and keep filling our buffer from the file to the writeBuffer
-            // for the client
-            //
-            // POST => 
-            // if (it->hasReadRequest() == false) {
-                bool doneReading; // remove this, and set requestRead to true when you finish reading
-                try {
-                    doneReading = it->readRequest(); //reads from its socket
-                    // std::cout << "I'm still reading" << std::endl;
-                } catch (Client::closeConnectionException& e) {
-                    mediator.removeClient(it->getSocketFd());
-                    close(it->getSocketFd());
-                    continue;
-                }
-                if (doneReading == false) continue;
-                std::string buffer = it->getRequest();
-                // std::cout << "request: " << buffer <<std::endl;
-                HttpRequest request; 
-                try {
-                    HttpRequestParser parser(request, buffer);
-                    RequestHandler handler(request, it->getServer());
-                    it->storeResponse(handler.getResponse());
-                    mediator.updateClient(*it);
-                } catch (HttpResponseException& e) {
-                    it->storeResponse(e.build());
-                    mediator.updateClient(*it);
-                    std::cout << "Exception: " << e.what() << std::endl;
-                    continue;
-                }
-                // it->setRequestRead(true);
-                // Once it's set to true, the only reason it'd keep going is that we still haven't
-                // started sending the response to the client
-            // } else {
-                // bufferisReady
-            // fileReadComplete //Not really necessary
-                // handler(); //The handler keeps filling the bodyBuffer for the client to write
-                // it->readChunk(); // This is where you just continue reading the body when necessary
-            // }
+            bool doneReading;
+            try {
+                doneReading = it->readRequest();
+            } catch (Client::closeConnectionException& e) {
+                mediator.removeClient(it->getSocketFd());
+                close(it->getSocketFd());
+                continue;
+            }
+            if (doneReading == false) continue;
+
+            std::string buffer = it->getRequest();
+            HttpRequest request; 
+            try {
+                HttpRequestParser parser(request, buffer);
+                RequestHandler handler(request, it->getServer());
+                it->storeResponse(handler.getResponse());
+                mediator.updateClient(*it);
+            } catch (HttpResponseException& e) {
+                it->storeResponse(e.build());
+                mediator.updateClient(*it);
+                std::cout << "Exception: " << e.what() << std::endl;
+                continue;
+            }
         }
     }
 }
