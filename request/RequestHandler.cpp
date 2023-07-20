@@ -24,7 +24,7 @@ void RequestHandler::handleIt() {
     if (access(file.c_str(), R_OK == -1))
         throw HttpResponseException(403);
 
-    std::ifstream srcFile (file, std::ifstream::binary);
+    std::ifstream srcFile (file.c_str(), std::ifstream::binary);
     char* buffer = NULL;
     std::string str;
     if (srcFile) {

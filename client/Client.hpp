@@ -4,7 +4,6 @@
 #include <cerrno>
 #include <exception>
 #include <string>
-#include <sys/_types/_timeval.h>
 
 class Client {
 private:
