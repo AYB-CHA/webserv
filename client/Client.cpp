@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 const int Client::read_buf_size = 8190;
+const unsigned int Client::max_timeout = 30;
 
 Client::Client() : connectionClose(false), server(NULL) {}
 
@@ -69,17 +70,17 @@ Server& Client::getServer() {
     return *this->server;
 }
 
-unsigned int Client::timeDifference() {
+unsigned int Client::timeDifference() const {
     timeval current;
-
     gettimeofday(&current, NULL);
+
+    unsigned int difference = (current.tv_sec - lastTimeRW.tv_sec)
+            + (current.tv_usec / 1000000 - lastTimeRW.tv_usec / 1000000);
+    return difference;
 }
 
 bool    Client::shouldBeClosed() const {
-    // In this function, you also check for timeout.
-    // So if the connection times out or the Connection: close
-    // header is set, then we close it
-    return this->connectionClose;
+    return this->connectionClose || (timeDifference() > max_timeout);
 }
 
 void    Client::setServer(Server *server) {

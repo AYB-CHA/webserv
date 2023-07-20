@@ -9,6 +9,7 @@
 class Client {
 private:
     static const int read_buf_size;
+    static const unsigned int max_timeout;
     int     socketFd;
     int     bodyFd;
     std::string writeBuffer;
@@ -19,7 +20,7 @@ private:
     timeval     lastTimeRW;
     Server* server;
 
-    unsigned int timeDifference();
+    unsigned int timeDifference() const;
 public:
     Client();
     Client(const Client& o);
