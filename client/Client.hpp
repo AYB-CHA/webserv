@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../server/Server.hpp"
+#include <sys/sendfile.h>
 #include <sys/time.h>
 #include <cerrno>
 #include <exception>
@@ -10,14 +11,19 @@ class Client {
 private:
     static const int read_buf_size;
     static const unsigned int max_timeout;
+    static const int max_sendfile;
+
     int     socketFd;
     int     bodyFd;
+
     std::string writeBuffer;
     std::string bodyBuffer; // Will be needed later for POST methods
     std::string readBuffer;
     std::string path;
+
+    off_t   file_offset;
     bool    connectionClose; 
-    timeval     lastTimeRW;
+    timeval lastTimeRW;
     Server* server;
 
     unsigned int timeDifference() const;

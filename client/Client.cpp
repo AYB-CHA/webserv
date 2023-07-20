@@ -5,11 +5,13 @@
 #include <cstring>
 #include <stdexcept>
 #include <sys/select.h>
+#include <sys/sendfile.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 const int Client::read_buf_size = 8190;
 const unsigned int Client::max_timeout = 30;
+const int Client::max_sendfile = 2147479552;
 
 Client::Client() : connectionClose(false), server(NULL) {
     bodyFd = -1;
@@ -30,9 +32,12 @@ bool    Client::writeChunk() {
             throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
         writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
     } else {
-        // if writing from bodyFD returns 0, close it (by throwing
-        // a closeConnectionException)
-        //sendfile(2)
+        int bytes_sent = sendfile(bodyFd, socketFd, &file_offset, max_sendfile);
+        // For now throw this exception, after that see if you need to close connection
+        if (bytes_sent == -1)
+            throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
+        if (bytes_sent == 0)
+            return true;
     }
     return false;
 }
