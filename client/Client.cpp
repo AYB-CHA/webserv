@@ -11,7 +11,9 @@
 const int Client::read_buf_size = 8190;
 const unsigned int Client::max_timeout = 30;
 
-Client::Client() : connectionClose(false), server(NULL) {}
+Client::Client() : connectionClose(false), server(NULL) {
+    gettimeofday(&lastTimeRW, NULL);
+}
 
 Client::Client(const Client& client)
     : socketFd(client.socketFd), writeBuffer(client.writeBuffer),
