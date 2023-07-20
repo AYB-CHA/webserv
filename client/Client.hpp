@@ -6,7 +6,6 @@
 #include <cerrno>
 #include <exception>
 #include <string>
-#include <sys/types.h>
 
 class Client {
 private:
