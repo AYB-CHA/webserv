@@ -57,5 +57,6 @@ void Multiplexer::run() {
                 close(it->getSocketFd());
             }
         }
+        mediator.filterClients();
     }
 }

@@ -29,6 +29,7 @@ public:
     int     getSocketFd() const;
     std::string getRequest();
     Server&   getServer();
+    bool    shouldBeClosed() const;
 
     void    setServer(Server *server);
     void    setFd(int fd);

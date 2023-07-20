@@ -9,9 +9,9 @@
 
 const int Client::read_buf_size = 8190;
 
-Client::Client() : server(NULL) {}
+Client::Client() : connectionClose(false), server(NULL) {}
 
-Client::Client(const Client& client) : socketFd(client.socketFd), writeBuffer(client.writeBuffer), server(client.server) {}
+Client::Client(const Client& client) : socketFd(client.socketFd), writeBuffer(client.writeBuffer), connectionClose(client.connectionClose), server(client.server) {}
 
 bool    Client::writeChunk() {
     if (writeBuffer.empty() && bodyBuffer.empty()) // Client.isReadingBody()) 
@@ -65,6 +65,13 @@ Server& Client::getServer() {
     return *this->server;
 }
 
+bool    Client::shouldBeClosed() const {
+    // In this function, you also check for timeout.
+    // So if the connection times out or the Connection: close
+    // header is set, then we close it
+    return this->connectionClose;
+}
+
 void    Client::setServer(Server *server) {
     this->server = server;
 }
@@ -75,7 +82,6 @@ void    Client::setFd(int fd) {
 
 void    Client::storeResponse(const std::string& response) {
     this->writeBuffer = response;
-    // std::cout << this->writeBuffer;
 }
 
 Client::~Client() {}
