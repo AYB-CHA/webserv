@@ -67,6 +67,8 @@ void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rc
     while (int fd = selector.getWriteFd()) {
         if (fd == -1)
             break;
+        if (fd_servers.find(fd) != fd_servers.end())
+            throw std::runtime_error("server socket failed.");
         wclients.push_back(fd_clients[fd]);
     }
 }
