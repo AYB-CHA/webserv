@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../server/Server.hpp"
+#include <sys/time.h>
 #include <cerrno>
 #include <exception>
 #include <string>
@@ -15,12 +16,10 @@ private:
     std::string readBuffer;
     std::string path;
     bool    connectionClose; 
-    // timeval     lastTimeRW;
-    //add a timeout attribute to the client, that you check after every poll.
-    //If it exceeds it, we close the connection and remove it from our map of clients
-    //There's a chance we'll check for it in Mediator
-    
+    timeval     lastTimeRW;
     Server* server;
+
+    unsigned int timeDifference();
 public:
     Client();
     Client(const Client& o);

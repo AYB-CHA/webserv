@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstring>
 #include <stdexcept>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -11,7 +12,10 @@ const int Client::read_buf_size = 8190;
 
 Client::Client() : connectionClose(false), server(NULL) {}
 
-Client::Client(const Client& client) : socketFd(client.socketFd), writeBuffer(client.writeBuffer), connectionClose(client.connectionClose), server(client.server) {}
+Client::Client(const Client& client)
+    : socketFd(client.socketFd), writeBuffer(client.writeBuffer),
+    connectionClose(client.connectionClose), lastTimeRW(client.lastTimeRW),
+    server(client.server) {}
 
 bool    Client::writeChunk() {
     if (writeBuffer.empty() && bodyBuffer.empty()) // Client.isReadingBody()) 
@@ -63,6 +67,12 @@ std::string Client::getRequest() {
 
 Server& Client::getServer() {
     return *this->server;
+}
+
+unsigned int Client::timeDifference() {
+    timeval current;
+
+    gettimeofday(&current, NULL);
 }
 
 bool    Client::shouldBeClosed() const {
