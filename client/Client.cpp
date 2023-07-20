@@ -12,13 +12,14 @@ const int Client::read_buf_size = 8190;
 const unsigned int Client::max_timeout = 30;
 
 Client::Client() : connectionClose(false), server(NULL) {
+    bodyFd = -1;
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(const Client& client)
-    : socketFd(client.socketFd), writeBuffer(client.writeBuffer),
-    connectionClose(client.connectionClose), lastTimeRW(client.lastTimeRW),
-    server(client.server) {}
+    : socketFd(client.socketFd), bodyFd(client.bodyFd),
+    writeBuffer(client.writeBuffer), connectionClose(client.connectionClose),
+    lastTimeRW(client.lastTimeRW), server(client.server) {}
 
 bool    Client::writeChunk() {
     if (writeBuffer.empty() && bodyFd == -1)
@@ -77,9 +78,8 @@ unsigned int Client::timeDifference() const {
     timeval current;
     gettimeofday(&current, NULL);
 
-    unsigned int difference = (current.tv_sec - lastTimeRW.tv_sec)
+    return (current.tv_sec - lastTimeRW.tv_sec)
             + (current.tv_usec / 1000000 - lastTimeRW.tv_usec / 1000000);
-    return difference;
 }
 
 bool    Client::shouldBeClosed() const {

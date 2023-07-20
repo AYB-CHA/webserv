@@ -18,6 +18,7 @@ void Selector::popFd(int fd) {
         throw std::runtime_error("Fd is not in the set.");
     }
     fds.erase(it);
+    highest_fd = *std::max_element(fds.begin(), fds.end());
 }
 
 int Selector::poll() {
