@@ -29,13 +29,18 @@ void Multiplexer::run() {
         }
 
         for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
-            bool bufferisEmpty = it->writeChunk();
-            mediator.updateClient(*it);
-            if (!bufferisEmpty) {
-                CIter client =
-                    std::find(read_clients.begin(), read_clients.end(), *it);
-                if (client != read_clients.end())
-                    read_clients.erase(client);
+            try {
+                bool bufferisEmpty = it->writeChunk();
+                mediator.updateClient(*it);
+                if (!bufferisEmpty) {
+                    CIter client =
+                        std::find(read_clients.begin(), read_clients.end(), *it);
+                    if (client != read_clients.end())
+                        read_clients.erase(client);
+                }
+            } catch (Client::closeConnectionException& e) {
+                mediator.removeClient(it->getSocketFd());
+                close(it->getSocketFd());
             }
         }
 

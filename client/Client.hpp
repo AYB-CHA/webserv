@@ -13,7 +13,7 @@ private:
     int     socketFd;
     int     bodyFd;
     std::string writeBuffer;
-    std::string bodyBuffer;
+    std::string bodyBuffer; // Will be needed later for POST methods
     std::string readBuffer;
     std::string path;
     bool    connectionClose; 
@@ -28,11 +28,12 @@ public:
 
     int     getSocketFd() const;
     std::string getRequest();
-    Server&   getServer();
+    Server& getServer();
     bool    shouldBeClosed() const;
 
     void    setServer(Server *server);
     void    setFd(int fd);
+    void    setConnectionClose(bool close);
 
     bool    writeChunk();
     bool    readRequest();

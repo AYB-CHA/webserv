@@ -21,7 +21,7 @@ Client::Client(const Client& client)
     server(client.server) {}
 
 bool    Client::writeChunk() {
-    if (writeBuffer.empty() && bodyBuffer.empty()) // Client.isReadingBody()) 
+    if (writeBuffer.empty() && bodyFd == -1)
         return true;
     if (!writeBuffer.empty()) {
         int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
@@ -29,7 +29,8 @@ bool    Client::writeChunk() {
             throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
         writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
     } else {
-        // if writing from bodyFD returns 0, close it
+        // if writing from bodyFD returns 0, close it (by throwing
+        // a closeConnectionException)
         //sendfile(2)
     }
     return false;
@@ -91,6 +92,10 @@ void    Client::setServer(Server *server) {
 
 void    Client::setFd(int fd) {
     this->socketFd = fd;
+}
+
+void    Client::setConnectionClose(bool close) {
+    this->connectionClose = close;
 }
 
 void    Client::storeResponse(const std::string& response) {
