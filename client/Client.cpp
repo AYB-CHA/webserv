@@ -1,5 +1,6 @@
-#include <iostream>
 #include "Client.hpp"
+#include "../response/HttpResponseException.hpp"
+#include <iostream>
 #include <cstddef>
 #include <cstring>
 #include <stdexcept>
@@ -30,9 +31,8 @@ bool    Client::writeChunk() {
 bool    Client::readRequest() {
     size_t it = readBuffer.find("\r\n\r\n");
     if (readBuffer.size() >= Client::read_buf_size) {
-        // connectionClose = true;
-        // throw HttpResponseException(494);
-        return true;
+        connectionClose = true;
+        throw HttpResponseException(494);
     }
     if (it != std::string::npos) {
         bodyBuffer = readBuffer.substr(it, readBuffer.size() - it);

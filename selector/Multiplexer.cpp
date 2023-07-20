@@ -41,7 +41,7 @@ void Multiplexer::run() {
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
             try {
-                if(it->readRequest() == false) continue;
+                if (!it->readRequest()) continue;
 
                 std::string buffer = it->getRequest();
                 HttpRequest request; 
