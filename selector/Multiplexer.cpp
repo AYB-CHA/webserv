@@ -40,19 +40,11 @@ void Multiplexer::run() {
         }
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
-            bool doneReading;
             try {
-                doneReading = it->readRequest();
-            } catch (Client::closeConnectionException& e) {
-                mediator.removeClient(it->getSocketFd());
-                close(it->getSocketFd());
-                continue;
-            }
-            if (doneReading == false) continue;
+                if(it->readRequest() == false) continue;
 
-            std::string buffer = it->getRequest();
-            HttpRequest request; 
-            try {
+                std::string buffer = it->getRequest();
+                HttpRequest request; 
                 HttpRequestParser parser(request, buffer);
                 RequestHandler handler(request, it->getServer());
                 it->storeResponse(handler.getResponse());
@@ -60,7 +52,9 @@ void Multiplexer::run() {
             } catch (HttpResponseException& e) {
                 it->storeResponse(e.build());
                 mediator.updateClient(*it);
-                continue;
+            } catch (Client::closeConnectionException& e) {
+                mediator.removeClient(it->getSocketFd());
+                close(it->getSocketFd());
             }
         }
     }
