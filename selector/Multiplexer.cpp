@@ -51,7 +51,7 @@ void Multiplexer::run() {
                 std::string buffer = it->getRequest();
                 HttpRequest request; 
                 HttpRequestParser parser(request, buffer);
-                RequestHandler handler(request, it->getServer());
+                RequestHandler handler(request, it->getServer());// Pass the client
                 it->storeResponse(handler.getResponse());
                 mediator.updateClient(*it);
             } catch (HttpResponseException& e) {

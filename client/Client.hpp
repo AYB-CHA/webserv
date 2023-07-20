@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <exception>
 #include <string>
+#include <sys/types.h>
 
 class Client {
 private:
@@ -21,7 +22,6 @@ private:
     std::string readBuffer;
     std::string path;
 
-    off_t   file_offset;
     bool    connectionClose; 
     timeval lastTimeRW;
     Server* server;
