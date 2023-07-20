@@ -34,10 +34,16 @@ bool    Client::writeChunk() {
     } else {
         int bytes_sent = sendfile(bodyFd, socketFd, &file_offset, max_sendfile);
         // For now throw this exception, after that see if you need to close connection
-        if (bytes_sent == -1)
+        if (bytes_sent == -1) {
+            close(bodyFd);
+            bodyFd = -1;
             throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
-        if (bytes_sent == 0)
+        }
+        if (bytes_sent == 0) {
+            close(bodyFd);
+            bodyFd = -1;
             return true;
+        }
     }
     return false;
 }
