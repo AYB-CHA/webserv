@@ -11,7 +11,10 @@ class Location : public ABase {
 
 	public:
         Location();
+        Location(const Location& o);
 		~Location();
+
+
 
 		const std::vector<std::string> &getPrefix(void) const;
 		bool getAutoindex(void) const;

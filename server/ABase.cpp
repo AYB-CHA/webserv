@@ -1,5 +1,8 @@
 #include "ABase.hpp"
 
+ABase::ABase() {}
+ABase::ABase(const ABase& o) : root(o.root), upload_path(o.upload_path), allowed_methods(o.allowed_methods),
+    index(o.index), error_page(o.error_page), client_max_body_size(o.client_max_body_size) {}
 ABase::~ABase() {}
 
 const std::string& ABase::getRoot(void) const {
