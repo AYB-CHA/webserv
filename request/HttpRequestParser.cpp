@@ -45,8 +45,8 @@ void HttpRequestParser::parseRequestLine(const std::string &request_line) {
     } else
         this->request.setEndpoint(uri);
 
-    std::cout << "queries: " << this->request.getQueries() << std::endl;
-    std::cout << "endpoint: " << this->request.getEndpoint() << std::endl;
+    // std::cout << "queries: " << this->request.getQueries() << std::endl;
+    // std::cout << "endpoint: " << this->request.getEndpoint() << std::endl;
 
     // version...
     std::string http_version = request_line.substr(second_space + 1);

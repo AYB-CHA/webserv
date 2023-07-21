@@ -41,8 +41,8 @@ HttpResponseBuilder *HttpResponseBuilder::pushBody(const std::string &buffer) {
 }
 
 std::string HttpResponseBuilder::build() {
-    this->setHeader("Content-Length",
-                    utils::string::fromInt(this->body.length()));
+    // this->setHeader("Content-Length",
+    //                 utils::string::fromInt(this->body.length()));
     std::string response;
     response += this->http_version + " ";
     response += utils::string::fromInt(this->status_code) + " ";

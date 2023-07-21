@@ -2,21 +2,23 @@
 
 # include "../request/HttpRequest.hpp"
 # include "../server/Server.hpp"
+# include "../client/Client.hpp"
 # include "../response/HttpResponseBuilder.hpp"
 
 class RequestHandler {
     private:
         HttpResponseBuilder response;
         HttpRequest request;
-        Server server;
+        Client client;
+        int fd;
 
         void handleIt();
-
-
     public:
-        RequestHandler(HttpRequest &request, Server &server);
+        RequestHandler(HttpRequest &request, Client& client);
 
         std::string getResponse();
+        int getFd();
 
-        void matchLocation(std::string endpoint);
+
+        Location matchLocation(std::string endpoint, std::vector<Location>& locations);
 };

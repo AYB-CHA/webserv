@@ -1,6 +1,6 @@
 NAME = webserv
-HEADERS	= $(wildcard *.hpp) $(wildcard config/*.hpp) $(wildcard server/*.hpp) $(wildcard selector/*.hpp)
-CLIENTFILES = Client.cpp
+HEADERS	= $(wildcard *.hpp) $(wildcard config/*.hpp) $(wildcard server/*.hpp) $(wildcard selector/*.hpp) $(wildcard client/*.hpp)
+CLIENTFILES = Client.cpp SendFileWrapper.cpp
 REQUESTFILES = HttpRequest.cpp HttpRequestParser.cpp RequestHandler.cpp
 RESPONSEFILES = HttpResponseBuilder.cpp HttpResponseException.cpp
 UTILSFILES = string.cpp

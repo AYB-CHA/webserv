@@ -28,6 +28,7 @@ class Server : public ABase {
 
   public:
     Server();
+    Server(const Server& o);
     ~Server();
 
     const std::string &getHost(void) const;

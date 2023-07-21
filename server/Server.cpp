@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "ABase.hpp"
 
 Server::Server() {
     this->port = 80;
@@ -8,6 +9,10 @@ Server::Server() {
     this->upload_path = "/upload/clientFile/";
     this->client_max_body_size = pow(2, 30);
 }
+
+Server::Server(const Server& o) : ABase(o), port(o.port), host(o.host),
+    server_names(o.server_names), redirect(o.redirect), location(o.location),
+    host_add(o.host_add), socket_fd(o.socket_fd), host_add_len(o.host_add_len) {}
 
 Server::~Server() {}
 
