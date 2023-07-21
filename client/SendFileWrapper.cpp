@@ -13,7 +13,7 @@ int sendFile(int fileFd, int socketFd, off_t *offset, size_t count) {
     off_t len = count;
     int res = sendfile(fileFd, socketFd, *offset, &len, NULL, 0);
     *offset += len;
-    if (res == 0 || res == -1)
+    if (res == -1)
         return res;
     return len;
 #else

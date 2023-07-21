@@ -1,14 +1,18 @@
 #include "RequestHandler.hpp"
+#include <sys/fcntl.h>
+#include <sys/stat.h>
 #include "../response/HttpResponseException.hpp"
+#include "../utils/string.hpp"
 
 #include <unistd.h> // access
 #include <fstream>
 
 #include <vector>
 
-RequestHandler::RequestHandler(HttpRequest &request, Server &server) {
+RequestHandler::RequestHandler(HttpRequest &request, Client &client) {
     this->request = request;
-    this->server = server;
+    this->client = client;
+    fd = -1;
     handleIt();
 }
 
@@ -42,11 +46,10 @@ void validPath() {
 void RequestHandler::handleIt() {
 
     std::string file = request.getEndpoint();
-    file = "." + file;
 
-    Location targetLoc = matchLocation(file, const_cast<std::vector<Location>& >(server.getLocation()));
+    Location targetLoc = matchLocation(file, const_cast<std::vector<Location>& >(client.getServer().getLocation()));
 
-
+    file = "./" + targetLoc.getRoot() + file;
 
     // std::cout << file << std::endl;
     if (access(file.c_str(), F_OK) == -1)
@@ -54,28 +57,18 @@ void RequestHandler::handleIt() {
     if (access(file.c_str(), R_OK == -1))
         throw HttpResponseException(403);
 
-    std::ifstream srcFile (file.c_str(), std::ifstream::binary);
-    char* buffer = NULL;
-    std::string str;
-    if (srcFile) {
-        // get length of file:
-        srcFile.seekg (0, srcFile.end);
-        int length = srcFile.tellg();
-        srcFile.seekg (0, srcFile.beg);
+    struct stat data;
+    stat(file.c_str(), &data);
+    off_t length = data.st_size;
 
-        buffer = new char [length];
+    fd = open(file.c_str(), O_RDONLY);
 
-        // read data as a block:
-        srcFile.read (buffer,length);
-        if (!srcFile) {
-            delete [] buffer;
-            throw HttpResponseException(500);
-        }
+    std::cout << "aaasilen: " << length << std::endl;
+    // std::cout << "fd: " << fd << std::endl;
+    response.setStatuscode(200)
+        ->setHeader("Content-Length", utils::string::fromInt(length));
+}
 
-        srcFile.close();
-        str += buffer;
-    }
-
-    response.pushBody(str)->setStatuscode(200);
-    delete[] buffer;
+int    RequestHandler::getFd() {
+    return this->fd;
 }

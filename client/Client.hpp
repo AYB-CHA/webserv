@@ -39,6 +39,7 @@ public:
 
     void    setServer(Server server);
     void    setFd(int fd);
+    void    setFileFd(int fd);
     void    setConnectionClose(bool close);
 
     bool    writeChunk();

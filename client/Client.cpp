@@ -14,6 +14,7 @@ const unsigned int Client::max_timeout = 5;
 const int Client::max_sendfile = 1024;
 
 Client::Client() : connectionClose(false) {
+    file_offset = 0;
     bodyFd = -1;
     gettimeofday(&lastTimeRW, NULL);
 }
@@ -24,28 +25,33 @@ Client::Client(const Client& client)
     lastTimeRW(client.lastTimeRW), server(client.server) {}
 
 bool    Client::writeChunk() {
-    if (writeBuffer.empty()/*  && bodyFd == -1 */)
+    if (writeBuffer.empty() && bodyFd == -1)
         return true;
-    // if (!writeBuffer.empty()) {
-    int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
-    if (len == -1)
-        throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
-    writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
-    (void)file_offset;
-    // } else {
-    //     int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
-    //     // For now throw this exception, after that see if you need to close connection
-    //     if (bytes_sent == -1) {
-    //         close(bodyFd);
-    //         bodyFd = -1;
-    //         throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
-    //     }
-    //     if (bytes_sent == 0) {
-    //         close(bodyFd);
-    //         bodyFd = -1;
-    //         return true;
-    //     }
-    // }
+    if (!writeBuffer.empty()) {
+        int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
+        if (len == -1)
+            throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
+        // std::cout << writeBuffer << std::endl;
+        // std::cout << "bodyFd : " << bodyFd << std::endl;
+        writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
+        // (void)file_offset;
+    } else {
+        int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
+        std::cout << "bytes sent: " << bytes_sent << std::endl;
+        // For now throw this exception, after that see if you need to close connection
+        if (bytes_sent == -1) {
+            close(bodyFd);
+            bodyFd = -1;
+            file_offset = 0;
+            throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
+        }
+        if (bytes_sent == 0) {
+            close(bodyFd);
+            bodyFd = -1;
+            file_offset = 0;
+            return true;
+        }
+    }
     return false;
 }
 
@@ -106,6 +112,10 @@ void    Client::setServer(Server server) {
 
 void    Client::setFd(int fd) {
     this->socketFd = fd;
+}
+
+void    Client::setFileFd(int fd) {
+    this->bodyFd = fd;
 }
 
 void    Client::setConnectionClose(bool close) {
