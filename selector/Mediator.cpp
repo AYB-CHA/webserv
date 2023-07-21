@@ -17,17 +17,17 @@ void    Mediator::addClient(int fd, Server* server) {
         close(fd);
         return;
     }
-    std::cout << "Client has joined. id: " << fd << std::endl;
+    // std::cout << "Client has joined. id: " << fd << std::endl;
     Client client;
     client.setFd(fd);
     client.setServer(server);
     fd_clients[fd] = client;
     selector.pushFd(fd);
-    std::cout << "Num of clients: " << fd_clients.size() << std::endl;
+    // std::cout << "Num of clients: " << fd_clients.size() << std::endl;
 }
 
 void    Mediator::removeClient(int fd) {
-    std::cout << "Client has left. id: " << fd << std::endl;
+    // std::cout << "Client has left. id: " << fd << std::endl;
     fd_clients.erase(fd);
     try {
         selector.popFd(fd);

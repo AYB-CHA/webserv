@@ -52,7 +52,7 @@ void Multiplexer::run() {
                 }
 
                 std::string buffer = it->getRequest();
-                std::cout << buffer << std::endl;
+                // std::cout << buffer << std::endl;
                 HttpRequest request; 
                 HttpRequestParser parser(request, buffer);
                 RequestHandler handler(request, it->getServer());// Pass the client
