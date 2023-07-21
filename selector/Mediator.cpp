@@ -5,7 +5,7 @@
 
 // Maybe set the timeout here
 Mediator::Mediator(std::vector<Server>& init) {
-    selector.setTimeout(30, 0);
+    selector.setTimeout(5, 0);
     for (std::vector<Server>::iterator it = init.begin(); it != init.end(); ++it) {
         fd_servers[it->getSocketFd()] = *it;
         selector.pushFd(it->getSocketFd());
@@ -17,16 +17,17 @@ void    Mediator::addClient(int fd, Server* server) {
         close(fd);
         return;
     }
+    std::cout << "This fd was added: " << fd << std::endl;
     Client client;
     client.setFd(fd);
     client.setServer(server);
     fd_clients[fd] = client;
-    fd_clients[fd].setServer(server);
     selector.pushFd(fd);
     std::cout << "Num of clients: " << fd_clients.size() << std::endl;
 }
 
 void    Mediator::removeClient(int fd) {
+    std::cout << "fd to remove:" << fd << std::endl;
     fd_clients.erase(fd);
     try {
         selector.popFd(fd);
@@ -41,11 +42,21 @@ void    Mediator::updateClient(Client client) {
 }
 
 void    Mediator::filterClients() {
+    // ok, just store the fds to remove, and then remove them one after one,
+    // without using iterators here
+    std::vector<int> toDelete;
     for (std::map<int, Client>::iterator it = fd_clients.begin(); it != fd_clients.end(); ++it) {
         if (it->second.shouldBeClosed()) {
-            removeClient(it->first);
-            close(it->first);
+            // std::cout << "this fd shouldBeClosed: " << it->second.getSocketFd() << std::endl;
+            toDelete.push_back(it->second.getSocketFd());
+            // removeClient(it->first);
+            // close(it->first);
+            //iterators are invalidated when you erase them 
         }
+    }
+    for (std::vector<int>::iterator it = toDelete.begin(); it != toDelete.end(); ++it) {
+        removeClient(*it);
+        close(*it);
     }
 }
 

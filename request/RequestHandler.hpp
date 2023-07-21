@@ -11,11 +11,10 @@ class RequestHandler {
         Server server;
 
         void handleIt();
-
-
     public:
         RequestHandler(HttpRequest &request, Server &server);
 
         std::string getResponse();
 
+        Location matchLocation(std::string endpoint, std::vector<Location>& locations);
 };

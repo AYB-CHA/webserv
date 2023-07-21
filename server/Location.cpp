@@ -2,12 +2,12 @@
 
 Location::Location() {
     this->autoindex = true;
-
+    // from base class
     this->root = "index.html";
     this->upload_path = "/upload/clientFile/";
     this->client_max_body_size = pow(2, 30);
 }
-
+Location::Location(const Location& o) : ABase(o), autoindex(o.autoindex), prefix(o.prefix), cgi_path(o.cgi_path) {}
 Location::~Location() {}
 
 const std::vector<std::string>& Location::getPrefix(void) const {

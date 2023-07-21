@@ -10,7 +10,7 @@
 int sendFile(int fileFd, int socketFd, off_t *offset, size_t count);
 
 const int Client::read_buf_size = 8190;
-const unsigned int Client::max_timeout = 30;
+const unsigned int Client::max_timeout = 5;
 const int Client::max_sendfile = 1024;
 
 Client::Client() : connectionClose(false), server(NULL) {
@@ -24,27 +24,28 @@ Client::Client(const Client& client)
     lastTimeRW(client.lastTimeRW), server(client.server) {}
 
 bool    Client::writeChunk() {
-    if (writeBuffer.empty() && bodyFd == -1)
+    if (writeBuffer.empty()/*  && bodyFd == -1 */)
         return true;
-    if (!writeBuffer.empty()) {
-        int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
-        if (len == -1)
-            throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
-        writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
-    } else {
-        int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
-        // For now throw this exception, after that see if you need to close connection
-        if (bytes_sent == -1) {
-            close(bodyFd);
-            bodyFd = -1;
-            throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
-        }
-        if (bytes_sent == 0) {
-            close(bodyFd);
-            bodyFd = -1;
-            return true;
-        }
-    }
+    // if (!writeBuffer.empty()) {
+    int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
+    if (len == -1)
+        throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
+    writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
+    (void)file_offset;
+    // } else {
+    //     int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
+    //     // For now throw this exception, after that see if you need to close connection
+    //     if (bytes_sent == -1) {
+    //         close(bodyFd);
+    //         bodyFd = -1;
+    //         throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
+    //     }
+    //     if (bytes_sent == 0) {
+    //         close(bodyFd);
+    //         bodyFd = -1;
+    //         return true;
+    //     }
+    // }
     return false;
 }
 

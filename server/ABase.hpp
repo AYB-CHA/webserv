@@ -13,6 +13,8 @@ class ABase {
     long client_max_body_size;
 
   public:
+    ABase();
+    ABase(const ABase& o);
     virtual ~ABase() = 0;
 
     const std::string &getRoot(void) const;
