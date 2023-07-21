@@ -24,7 +24,7 @@ private:
     off_t   file_offset;
     bool    connectionClose; 
     timeval lastTimeRW;
-    Server* server;
+    Server  server;
 
     unsigned int timeDifference() const;
 public:
@@ -37,7 +37,7 @@ public:
     Server& getServer();
     bool    shouldBeClosed() const;
 
-    void    setServer(Server *server);
+    void    setServer(Server server);
     void    setFd(int fd);
     void    setConnectionClose(bool close);
 

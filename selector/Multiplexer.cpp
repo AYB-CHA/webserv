@@ -25,7 +25,8 @@ void Multiplexer::run() {
                 }
                 break;
             }
-            mediator.addClient(fd, &*it);
+            // std::cout << it->getLocation()[1].getRoot() << std::endl;
+            mediator.addClient(fd, *it);
         }
 
         for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
@@ -54,6 +55,7 @@ void Multiplexer::run() {
                 std::string buffer = it->getRequest();
                 // std::cout << buffer << std::endl;
                 HttpRequest request; 
+                std::cout << it->getServer().getLocation()[1].getRoot() << std::endl;
                 HttpRequestParser parser(request, buffer);
                 RequestHandler handler(request, it->getServer());// Pass the client
                 it->storeResponse(handler.getResponse());

@@ -13,7 +13,7 @@ const int Client::read_buf_size = 1;
 const unsigned int Client::max_timeout = 5;
 const int Client::max_sendfile = 1024;
 
-Client::Client() : connectionClose(false), server(NULL) {
+Client::Client() : connectionClose(false) {
     bodyFd = -1;
     gettimeofday(&lastTimeRW, NULL);
 }
@@ -85,7 +85,7 @@ std::string Client::getRequest() {
 }
 
 Server& Client::getServer() {
-    return *this->server;
+    return this->server;
 }
 
 unsigned int Client::timeDifference() const {
@@ -100,7 +100,7 @@ bool    Client::shouldBeClosed() const {
     return (this->connectionClose && writeBuffer.empty()) || (timeDifference() > max_timeout);
 }
 
-void    Client::setServer(Server *server) {
+void    Client::setServer(Server server) {
     this->server = server;
 }
 

@@ -12,7 +12,7 @@ Mediator::Mediator(std::vector<Server>& init) {
     }
 }
 
-void    Mediator::addClient(int fd, Server* server) {
+void    Mediator::addClient(int fd, Server& server) {
     if (fd_clients.size() > FD_SETSIZE) {
         close(fd);
         return;
