@@ -9,7 +9,7 @@
 #include <unistd.h>
 int sendFile(int fileFd, int socketFd, off_t *offset, size_t count);
 
-const int Client::read_buf_size = 8190;
+const int Client::read_buf_size = 1;
 const unsigned int Client::max_timeout = 5;
 const int Client::max_sendfile = 1024;
 
@@ -20,7 +20,7 @@ Client::Client() : connectionClose(false), server(NULL) {
 
 Client::Client(const Client& client)
     : socketFd(client.socketFd), bodyFd(client.bodyFd),
-    writeBuffer(client.writeBuffer), connectionClose(client.connectionClose),
+    writeBuffer(client.writeBuffer), readBuffer(client.readBuffer), connectionClose(client.connectionClose),
     lastTimeRW(client.lastTimeRW), server(client.server) {}
 
 bool    Client::writeChunk() {
@@ -50,24 +50,23 @@ bool    Client::writeChunk() {
 }
 
 bool    Client::readRequest() {
-    size_t it = readBuffer.find("\r\n\r\n");
-    if (readBuffer.size() >= Client::read_buf_size) {
-        connectionClose = true;
-        throw HttpResponseException(494);
-    }
-    if (it != std::string::npos) {
-        bodyBuffer = readBuffer.substr(it, readBuffer.size() - it);
-        readBuffer = readBuffer.substr(0, readBuffer.size() - bodyBuffer.size());
-        return true;
-    }
     char buffer[Client::read_buf_size];
     int readlen = recv(this->socketFd, buffer, Client::read_buf_size, 0);
+
     if (readlen == -1)
         throw std::runtime_error(std::string("readlen(): ") + strerror(errno));
     if (readlen == 0)
         throw closeConnectionException();
     readBuffer += std::string(buffer, readlen);
-    return true;
+
+    if (readBuffer.size() >= 8190) {
+        connectionClose = true;
+        throw HttpResponseException(494);
+    }
+    if (readBuffer.find("\r\n\r\n") != std::string::npos) {
+        return true;
+    }
+    return false;
 }
 
 bool    Client::operator==(const Client& o) const {
@@ -79,7 +78,10 @@ int Client::getSocketFd() const {
 }
 
 std::string Client::getRequest() {
-    return this->readBuffer;
+    std::string ret = this->readBuffer;
+    this->readBuffer.clear();
+
+    return ret;
 }
 
 Server& Client::getServer() {

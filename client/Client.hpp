@@ -17,7 +17,7 @@ private:
     int     bodyFd;
 
     std::string writeBuffer;
-    std::string bodyBuffer; // Will be needed later for POST methods
+    // std::string bodyBuffer; // Will be needed later for POST methods
     std::string readBuffer;
     std::string path;
 

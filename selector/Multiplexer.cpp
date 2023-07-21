@@ -46,9 +46,13 @@ void Multiplexer::run() {
 
         for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
             try {
-                if (!it->readRequest()) continue;
+                if (!it->readRequest()) {
+                    mediator.updateClient(*it);
+                    continue;
+                }
 
                 std::string buffer = it->getRequest();
+                std::cout << buffer << std::endl;
                 HttpRequest request; 
                 HttpRequestParser parser(request, buffer);
                 RequestHandler handler(request, it->getServer());// Pass the client
