@@ -39,12 +39,12 @@ bool    Client::writeChunk() {
         int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
         std::cout << "bytes sent: " << bytes_sent << std::endl;
         // For now throw this exception, after that see if you need to close connection
-        if (bytes_sent == -1) {
-            close(bodyFd);
-            bodyFd = -1;
-            file_offset = 0;
-            throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
-        }
+        // if (bytes_sent == -1) {
+        //     close(bodyFd);
+        //     bodyFd = -1;
+        //     file_offset = 0;
+        //     throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
+        // }
         if (bytes_sent == 0) {
             close(bodyFd);
             bodyFd = -1;
