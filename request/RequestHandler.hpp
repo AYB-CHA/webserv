@@ -18,4 +18,5 @@ class RequestHandler {
 
         std::string getResponse();
 
+        void matchLocation(std::string endpoint);
 };
