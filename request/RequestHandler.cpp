@@ -66,7 +66,7 @@ void RequestHandler::handleIt() {
     std::cout << "aaasilen: " << length << std::endl;
     // std::cout << "fd: " << fd << std::endl;
     response.setStatuscode(200)
-        ->setHeader("Content-Type", "video/mp4")
+        // ->setHeader("Content-Type", "video/mp4")
         ->setHeader("Content-Length", utils::string::fromInt(length));
 }
 
