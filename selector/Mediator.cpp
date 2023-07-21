@@ -17,7 +17,7 @@ void    Mediator::addClient(int fd, Server* server) {
         close(fd);
         return;
     }
-    std::cout << "This fd was added: " << fd << std::endl;
+    std::cout << "Client has joined. id: " << fd << std::endl;
     Client client;
     client.setFd(fd);
     client.setServer(server);
@@ -27,7 +27,7 @@ void    Mediator::addClient(int fd, Server* server) {
 }
 
 void    Mediator::removeClient(int fd) {
-    std::cout << "fd to remove:" << fd << std::endl;
+    std::cout << "Client has left. id: " << fd << std::endl;
     fd_clients.erase(fd);
     try {
         selector.popFd(fd);
