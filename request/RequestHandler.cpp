@@ -5,6 +5,7 @@
 #include "../utils/string.hpp"
 
 #include <unistd.h> // access
+#include <cstring>
 #include <fstream>
 
 #include <vector>
