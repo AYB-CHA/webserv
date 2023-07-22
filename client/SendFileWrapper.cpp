@@ -8,7 +8,7 @@
 #endif
 int sendFile(int fileFd, int socketFd, off_t *offset, size_t count) {
 #if __linux__
-    return sendfile(fileFd, socketFd, offset, count);
+    return sendfile(socketFd, fileFd, offset, count);
 #elif __APPLE__
     off_t len = count;
     int res = sendfile(fileFd, socketFd, *offset, &len, NULL, 0);
@@ -20,3 +20,4 @@ int sendFile(int fileFd, int socketFd, off_t *offset, size_t count) {
     static_assert(1, "");
 #endif
 }
+
