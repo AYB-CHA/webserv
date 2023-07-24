@@ -10,8 +10,8 @@
 int sendFile(int fileFd, int socketFd, off_t *offset, size_t count);
 
 const int Client::read_buf_size = 1;
-const unsigned int Client::max_timeout = 5;
-const int Client::max_sendfile = 1024;
+const unsigned int Client::max_timeout = 30;
+const int Client::max_sendfile = 1000000;
 
 Client::Client() : connectionClose(false) {
     file_offset = 0;
@@ -31,20 +31,12 @@ bool    Client::writeChunk() {
         int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
         if (len == -1)
             throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
-        // std::cout << writeBuffer << std::endl;
-        // std::cout << "bodyFd : " << bodyFd << std::endl;
         writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
-        // (void)file_offset;
+        updateTimeout();
     } else {
         int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
         std::cout << "bytes sent: " << bytes_sent << std::endl;
-        // For now throw this exception, after that see if you need to close connection
-        // if (bytes_sent == -1) {
-        //     close(bodyFd);
-        //     bodyFd = -1;
-        //     file_offset = 0;
-        //     throw std::runtime_error(std::string("Client sendfile() error:") + strerror(errno));
-        // }
+        updateTimeout();
         if (bytes_sent == 0) {
             close(bodyFd);
             bodyFd = -1;
@@ -64,6 +56,7 @@ bool    Client::readRequest() {
     if (readlen == 0)
         throw closeConnectionException();
     readBuffer += std::string(buffer, readlen);
+    updateTimeout();
 
     if (readBuffer.size() >= 8190) {
         connectionClose = true;
@@ -102,8 +95,14 @@ unsigned int Client::timeDifference() const {
             + (current.tv_usec / 1000000 - lastTimeRW.tv_usec / 1000000);
 }
 
+void    Client::updateTimeout() {
+    if (gettimeofday(&lastTimeRW, NULL) == -1)
+        throw std::runtime_error(std::string("gettimeofday(): ") + strerror(errno));
+}
+
 bool    Client::shouldBeClosed() const {
-    return (this->connectionClose && writeBuffer.empty()) || (timeDifference() > max_timeout);
+    return (this->connectionClose && writeBuffer.empty() && bodyFd == -1)
+        || (timeDifference() > max_timeout);
 }
 
 void    Client::setServer(Server server) {

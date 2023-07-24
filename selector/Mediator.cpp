@@ -42,16 +42,10 @@ void    Mediator::updateClient(Client client) {
 }
 
 void    Mediator::filterClients() {
-    // ok, just store the fds to remove, and then remove them one after one,
-    // without using iterators here
     std::vector<int> toDelete;
     for (std::map<int, Client>::iterator it = fd_clients.begin(); it != fd_clients.end(); ++it) {
         if (it->second.shouldBeClosed()) {
-            // std::cout << "this fd shouldBeClosed: " << it->second.getSocketFd() << std::endl;
             toDelete.push_back(it->second.getSocketFd());
-            // removeClient(it->first);
-            // close(it->first);
-            //iterators are invalidated when you erase them 
         }
     }
     for (std::vector<int>::iterator it = toDelete.begin(); it != toDelete.end(); ++it) {
