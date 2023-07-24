@@ -57,7 +57,7 @@ void Multiplexer::run() {
                 HttpRequest request; 
                 std::cout << it->getServer().getLocation()[1].getRoot() << std::endl;
                 HttpRequestParser parser(request, buffer);
-                RequestHandler handler(request, *it);// Pass the client
+                RequestHandler handler(request, *it);
                 it->storeResponse(handler.getResponse());
                 it->setFileFd(handler.getFd());
                 mediator.updateClient(*it);
