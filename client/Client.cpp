@@ -36,7 +36,8 @@ bool    Client::writeChunk() {
     } else {
         int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
         std::cout << "bytes sent: " << bytes_sent << std::endl;
-        updateTimeout();
+        if (bytes_sent > 0)
+            updateTimeout();
         if (bytes_sent == 0) {
             close(bodyFd);
             bodyFd = -1;
@@ -53,8 +54,10 @@ bool    Client::readRequest() {
 
     if (readlen == -1)
         throw std::runtime_error(std::string("readlen(): ") + strerror(errno));
-    if (readlen == 0)
-        throw closeConnectionException();
+    if (readlen == 0) {
+        connectionClose = true;
+        return false;
+    }
     readBuffer += std::string(buffer, readlen);
     updateTimeout();
 

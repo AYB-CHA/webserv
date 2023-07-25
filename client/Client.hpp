@@ -47,7 +47,5 @@ public:
     void    storeResponse(const std::string& response);
     void    updateTimeout();
 
-    class closeConnectionException : public std::exception {};
-
     ~Client();
 };
