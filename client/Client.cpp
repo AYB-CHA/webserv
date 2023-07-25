@@ -13,15 +13,18 @@ const int Client::read_buf_size = 1;
 const unsigned int Client::max_timeout = 30;
 const int Client::max_sendfile = 1000000;
 
-Client::Client() : connectionClose(false) {
-    file_offset = 0;
-    bodyFd = -1;
+Client::Client()
+    : bodyFd(-1), file_offset(0),
+    connectionClose(false), clientMaxBodySize(1024)
+{
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(const Client& client)
     : socketFd(client.socketFd), bodyFd(client.bodyFd),
-    writeBuffer(client.writeBuffer), readBuffer(client.readBuffer), connectionClose(client.connectionClose),
+    writeBuffer(client.writeBuffer), readBuffer(client.readBuffer),
+    file_offset(client.file_offset),
+    connectionClose(client.connectionClose), clientMaxBodySize(client.clientMaxBodySize),
     lastTimeRW(client.lastTimeRW), server(client.server) {}
 
 bool    Client::writeChunk() {

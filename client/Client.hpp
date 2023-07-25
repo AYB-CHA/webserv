@@ -23,6 +23,7 @@ private:
 
     off_t   file_offset;
     bool    connectionClose; 
+    off_t   clientMaxBodySize;
     timeval lastTimeRW;
     Server  server;
 
