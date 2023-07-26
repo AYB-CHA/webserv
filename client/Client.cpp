@@ -14,16 +14,17 @@ const unsigned int Client::max_timeout = 30;
 const int Client::max_sendfile = 1000000;
 
 Client::Client()
-    : bodyFd(-1), file_offset(0), connectionClose(false),
-      clientMaxBodySize(1024) {
+    : bodyFd(-1), method("GET"), file_offset(0),
+      connectionClose(false), clientMaxBodySize(1024) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(const Client &client)
     : socketFd(client.socketFd), bodyFd(client.bodyFd),
-      writeBuffer(client.writeBuffer), readBuffer(client.readBuffer),
+      writeBuffer(client.writeBuffer), bodyBuffer(client.bodyBuffer),
+      readBuffer(client.readBuffer), method(client.method), tempBuffer(client.tempBuffer),
       file_offset(client.file_offset), connectionClose(client.connectionClose),
-      clientMaxBodySize(client.clientMaxBodySize),
+      clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
       lastTimeRW(client.lastTimeRW), server(client.server) {}
 
 bool Client::writeChunk() {
@@ -51,7 +52,29 @@ bool Client::writeChunk() {
     return false;
 }
 
+bool    Client::readBody() {
+    const size_t previousSize = tempBuffer.size();
+
+    tempBuffer.resize(tempBuffer.size() + contentLength);
+    int len = read(socketFd, tempBuffer.data() + tempBuffer.size(), contentLength);
+    tempBuffer.resize(previousSize + len);
+
+    contentLength -= len;
+    if (contentLength == 0) {
+        bodyBuffer = std::string(tempBuffer.begin(), tempBuffer.end());
+        return true;
+    }
+    if (len <= 0) {
+        connectionClose = true;
+        return false;
+    }
+    return false;
+}
+
 bool Client::readRequest() {
+    if (method == "POST") {
+        return readBody();
+    }
     char buffer[Client::read_buf_size];
     int readlen = recv(this->socketFd, buffer, Client::read_buf_size, 0);
 

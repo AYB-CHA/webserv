@@ -17,13 +17,15 @@ private:
     int     bodyFd;
 
     std::string writeBuffer;
-    // std::string bodyBuffer; // Will be needed later for POST methods
+    std::string bodyBuffer;
     std::string readBuffer;
-    std::string path;
+    std::string method;
+    std::vector<char> tempBuffer;
 
     off_t   file_offset;
     bool    connectionClose; 
     off_t   clientMaxBodySize;
+    off_t   contentLength;
     timeval lastTimeRW;
     Server  server;
 
@@ -45,6 +47,7 @@ public:
 
     bool    writeChunk();
     bool    readRequest();
+    bool    readBody();
     void    storeResponse(const std::string& response);
     void    updateTimeout();
 
