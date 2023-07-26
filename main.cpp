@@ -18,6 +18,7 @@ int main(int ac, char **av) {
     } catch (std::runtime_error& e) {
         std::cerr << "Parse error:" << std::endl;
         std::cerr << e.what() << std::endl;
+        return 1;
     }
 
 

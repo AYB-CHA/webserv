@@ -18,6 +18,7 @@ void    Mediator::addClient(int fd, Server& server) {
         return;
     }
     std::cout << "Client has joined. id: " << fd << std::endl;
+    std::cout << "Server: " << server.getServerNames()[0] << std::endl;
     Client client;
     client.setFd(fd);
     client.setServer(server);
@@ -76,4 +77,8 @@ void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rc
             throw std::runtime_error("server socket failed.");
         wclients.push_back(fd_clients[fd]);
     }
+}
+
+std::map<int, Server>& Mediator::getMapServers() {
+    return this->fd_servers;
 }

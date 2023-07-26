@@ -12,13 +12,16 @@ class RequestHandler {
         Client client;
         int fd;
 
+        std::map<int, Server> servers;
+
         void handleIt();
+
     public:
-        RequestHandler(HttpRequest &request, Client& client);
+        RequestHandler(HttpRequest &request, Client& client, std::map<int, Server> servers);
 
         std::string getResponse();
         int getFd();
 
-
+        Server& validServerName(std::string serverName);
         Location matchLocation(std::string endpoint, std::vector<Location>& locations);
 };
