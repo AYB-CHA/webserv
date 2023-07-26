@@ -1,24 +1,26 @@
 #pragma once
 
-# include "../request/HttpRequest.hpp"
-# include "../server/Server.hpp"
-# include "../client/Client.hpp"
-# include "../response/HttpResponseBuilder.hpp"
+#include "../client/Client.hpp"
+#include "../request/HttpRequest.hpp"
+#include "../response/HttpResponseBuilder.hpp"
+#include "../server/Server.hpp"
 
 class RequestHandler {
-    private:
-        HttpResponseBuilder response;
-        HttpRequest request;
-        Client client;
-        int fd;
+  private:
+    HttpResponseBuilder response;
+    HttpRequest request;
+    Client client;
+    int fd;
 
-        void handleIt();
-    public:
-        RequestHandler(HttpRequest &request, Client& client);
+    void handleIt();
 
-        std::string getResponse();
-        int getFd();
+  public:
+    RequestHandler(HttpRequest &request, Client &client);
 
+    std::string getResponse();
+    int getFd();
 
-        Location matchLocation(std::string endpoint, std::vector<Location>& locations);
+    Location matchLocation(std::string endpoint,
+                           std::vector<Location> &locations);
+    std::string getFileMimeType(const std::string &file_name) const;
 };

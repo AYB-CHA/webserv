@@ -1,8 +1,8 @@
 #include "Client.hpp"
 #include "../response/HttpResponseException.hpp"
-#include <iostream>
 #include <cstddef>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -19,23 +19,26 @@ Client::Client() : connectionClose(false) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
-Client::Client(const Client& client)
+Client::Client(const Client &client)
     : socketFd(client.socketFd), bodyFd(client.bodyFd),
-    writeBuffer(client.writeBuffer), readBuffer(client.readBuffer), connectionClose(client.connectionClose),
-    lastTimeRW(client.lastTimeRW), server(client.server) {}
+      writeBuffer(client.writeBuffer), readBuffer(client.readBuffer),
+      connectionClose(client.connectionClose), lastTimeRW(client.lastTimeRW),
+      server(client.server) {}
 
-bool    Client::writeChunk() {
+bool Client::writeChunk() {
     if (writeBuffer.empty() && bodyFd == -1)
         return true;
     if (!writeBuffer.empty()) {
         int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
         if (len == -1)
-            throw std::runtime_error(std::string("Client write() error:") + strerror(errno));
+            throw std::runtime_error(std::string("Client write() error:") +
+                                     strerror(errno));
         writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
         updateTimeout();
     } else {
         int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
-        std::cout << "bytes sent: " << bytes_sent << std::endl;
+        // todo: check why sendfile fail with -1
+        // std::cout << "bytes sent: " << bytes_sent << std::endl;
         updateTimeout();
         if (bytes_sent == 0) {
             close(bodyFd);
@@ -47,7 +50,7 @@ bool    Client::writeChunk() {
     return false;
 }
 
-bool    Client::readRequest() {
+bool Client::readRequest() {
     char buffer[Client::read_buf_size];
     int readlen = recv(this->socketFd, buffer, Client::read_buf_size, 0);
 
@@ -68,13 +71,11 @@ bool    Client::readRequest() {
     return false;
 }
 
-bool    Client::operator==(const Client& o) const {
+bool Client::operator==(const Client &o) const {
     return this->socketFd == o.socketFd;
 }
 
-int Client::getSocketFd() const {
-    return this->socketFd;
-}
+int Client::getSocketFd() const { return this->socketFd; }
 
 std::string Client::getRequest() {
     std::string ret = this->readBuffer;
@@ -83,45 +84,36 @@ std::string Client::getRequest() {
     return ret;
 }
 
-Server& Client::getServer() {
-    return this->server;
-}
+Server &Client::getServer() { return this->server; }
 
 unsigned int Client::timeDifference() const {
     timeval current;
     gettimeofday(&current, NULL);
 
-    return (current.tv_sec - lastTimeRW.tv_sec)
-            + (current.tv_usec / 1000000 - lastTimeRW.tv_usec / 1000000);
+    return (current.tv_sec - lastTimeRW.tv_sec) +
+           (current.tv_usec / 1000000 - lastTimeRW.tv_usec / 1000000);
 }
 
-void    Client::updateTimeout() {
+void Client::updateTimeout() {
     if (gettimeofday(&lastTimeRW, NULL) == -1)
-        throw std::runtime_error(std::string("gettimeofday(): ") + strerror(errno));
+        throw std::runtime_error(std::string("gettimeofday(): ") +
+                                 strerror(errno));
 }
 
-bool    Client::shouldBeClosed() const {
-    return (this->connectionClose && writeBuffer.empty() && bodyFd == -1)
-        || (timeDifference() > max_timeout);
+bool Client::shouldBeClosed() const {
+    return (this->connectionClose && writeBuffer.empty() && bodyFd == -1) ||
+           (timeDifference() > max_timeout);
 }
 
-void    Client::setServer(Server server) {
-    this->server = server;
-}
+void Client::setServer(Server server) { this->server = server; }
 
-void    Client::setFd(int fd) {
-    this->socketFd = fd;
-}
+void Client::setFd(int fd) { this->socketFd = fd; }
 
-void    Client::setFileFd(int fd) {
-    this->bodyFd = fd;
-}
+void Client::setFileFd(int fd) { this->bodyFd = fd; }
 
-void    Client::setConnectionClose(bool close) {
-    this->connectionClose = close;
-}
+void Client::setConnectionClose(bool close) { this->connectionClose = close; }
 
-void    Client::storeResponse(const std::string& response) {
+void Client::storeResponse(const std::string &response) {
     this->writeBuffer = response;
 }
 
