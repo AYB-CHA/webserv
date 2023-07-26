@@ -44,6 +44,8 @@ public:
     void    setServer(Server server);
     void    setFd(int fd);
     void    setFileFd(int fd);
+    void    setMethod(std::string& method);
+    void    setContentLength(off_t length);
     void    setConnectionClose(bool close);
 
     bool    writeChunk();

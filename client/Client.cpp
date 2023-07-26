@@ -142,6 +142,10 @@ void Client::setFd(int fd) { this->socketFd = fd; }
 
 void Client::setFileFd(int fd) { this->bodyFd = fd; }
 
+void Client::setMethod(std::string& method) { this->method = method; }
+
+void Client::setContentLength(off_t length) { this->contentLength = length; }
+
 void Client::setConnectionClose(bool close) { this->connectionClose = close; }
 
 void Client::storeResponse(const std::string &response) {
