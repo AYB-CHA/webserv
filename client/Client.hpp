@@ -38,6 +38,7 @@ public:
     int     getSocketFd() const;
     std::string getRequest();
     Server& getServer();
+    std::string getPostBody();
     bool    shouldBeClosed() const;
 
     void    setServer(Server server);

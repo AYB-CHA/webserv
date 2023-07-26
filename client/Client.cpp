@@ -62,6 +62,7 @@ bool    Client::readBody() {
     contentLength -= len;
     if (contentLength == 0) {
         bodyBuffer = std::string(tempBuffer.begin(), tempBuffer.end());
+        method = "GET";
         return true;
     }
     if (len <= 0) {
@@ -111,6 +112,10 @@ std::string Client::getRequest() {
 }
 
 Server &Client::getServer() { return this->server; }
+
+std::string Client::getPostBody() {
+    return this->bodyBuffer;
+}
 
 unsigned int Client::timeDifference() const {
     timeval current;
