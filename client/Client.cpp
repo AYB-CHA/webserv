@@ -13,15 +13,18 @@ const int Client::read_buf_size = 1;
 const unsigned int Client::max_timeout = 30;
 const int Client::max_sendfile = 1000000;
 
-Client::Client() : connectionClose(false) {
-    file_offset = 0;
-    bodyFd = -1;
+Client::Client()
+    : bodyFd(-1), file_offset(0),
+    connectionClose(false), clientMaxBodySize(1024)
+{
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(const Client& client)
     : socketFd(client.socketFd), bodyFd(client.bodyFd),
-    writeBuffer(client.writeBuffer), readBuffer(client.readBuffer), connectionClose(client.connectionClose),
+    writeBuffer(client.writeBuffer), readBuffer(client.readBuffer),
+    file_offset(client.file_offset),
+    connectionClose(client.connectionClose), clientMaxBodySize(client.clientMaxBodySize),
     lastTimeRW(client.lastTimeRW), server(client.server) {}
 
 bool    Client::writeChunk() {
@@ -36,7 +39,8 @@ bool    Client::writeChunk() {
     } else {
         int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
         std::cout << "bytes sent: " << bytes_sent << std::endl;
-        updateTimeout();
+        if (bytes_sent > 0)
+            updateTimeout();
         if (bytes_sent == 0) {
             close(bodyFd);
             bodyFd = -1;
@@ -53,8 +57,10 @@ bool    Client::readRequest() {
 
     if (readlen == -1)
         throw std::runtime_error(std::string("readlen(): ") + strerror(errno));
-    if (readlen == 0)
-        throw closeConnectionException();
+    if (readlen == 0) {
+        connectionClose = true;
+        return false;
+    }
     readBuffer += std::string(buffer, readlen);
     updateTimeout();
 

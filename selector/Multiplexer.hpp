@@ -7,15 +7,19 @@
 #include "Mediator.hpp"
 
 class Multiplexer {
-    private:
-        typedef std::vector<Server>::iterator SIter;
-        typedef std::vector<Client>::iterator CIter;
-        std::vector<Server> ready_servers;
-        std::vector<Client> write_clients;
-        std::vector<Client> read_clients;
-        Mediator            mediator;
+private:
+    typedef std::vector<Server>::iterator SIter;
+    typedef std::vector<Client>::iterator CIter;
+    std::vector<Server> ready_servers;
+    std::vector<Client> write_clients;
+    std::vector<Client> read_clients;
+    std::vector<Server> servers;
+    Mediator            mediator;
 
-    public:
-        Multiplexer(std::vector<Server> servers);
-        void    run();
+    void    acceptConnections(std::vector<Server>& ready_servers);
+    void    writeResponses(std::vector<Client>& write_clients, std::vector<Client>& read_clients);
+    void    readRequests(std::vector<Client>& read_clients);
+public:
+    Multiplexer(std::vector<Server> servers);
+    void    run();
 };

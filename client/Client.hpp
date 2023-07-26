@@ -23,6 +23,7 @@ private:
 
     off_t   file_offset;
     bool    connectionClose; 
+    off_t   clientMaxBodySize;
     timeval lastTimeRW;
     Server  server;
 
@@ -46,8 +47,6 @@ public:
     bool    readRequest();
     void    storeResponse(const std::string& response);
     void    updateTimeout();
-
-    class closeConnectionException : public std::exception {};
 
     ~Client();
 };

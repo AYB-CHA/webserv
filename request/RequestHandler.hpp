@@ -12,12 +12,12 @@ class RequestHandler {
         Client client;
         int fd;
 
-        std::map<int, Server> servers;
+        std::vector<Server> servers;
 
         void handleIt();
 
     public:
-        RequestHandler(HttpRequest &request, Client& client, std::map<int, Server> servers);
+        RequestHandler(HttpRequest &request, Client& client, std::vector<Server> servers);
 
         std::string getResponse();
         int getFd();

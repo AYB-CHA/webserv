@@ -20,6 +20,4 @@ public:
     void    filterClients();
 
     void    getBatch(std::vector<Server>&, std::vector<Client>& read, std::vector<Client>& write);
-
-    std::map<int, Server>& getMapServers();
 };

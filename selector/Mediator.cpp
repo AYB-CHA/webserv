@@ -78,7 +78,3 @@ void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rc
         wclients.push_back(fd_clients[fd]);
     }
 }
-
-std::map<int, Server>& Mediator::getMapServers() {
-    return this->fd_servers;
-}
