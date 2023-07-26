@@ -5,6 +5,7 @@
 #include "../server/Server.hpp"
 #include "../client/Client.hpp"
 #include "Mediator.hpp"
+
 class Multiplexer {
 private:
     typedef std::vector<Server>::iterator SIter;
@@ -12,6 +13,7 @@ private:
     std::vector<Server> ready_servers;
     std::vector<Client> write_clients;
     std::vector<Client> read_clients;
+    std::vector<Server> servers;
     Mediator            mediator;
 
     void    acceptConnections(std::vector<Server>& ready_servers);

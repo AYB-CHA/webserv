@@ -11,18 +11,17 @@
 
 #include <vector>
 
-RequestHandler::RequestHandler(HttpRequest &request, Client &client) {
+RequestHandler::RequestHandler(HttpRequest &request, Client &client, std::vector<Server> servers) {
     this->request = request;
     this->client = client;
     fd = -1;
+    this->servers = servers;
     handleIt();
 }
 
 std::string RequestHandler::getResponse() { return response.build(); }
 
-Location RequestHandler::matchLocation(std::string endpoint,
-                                       std::vector<Location> &locations) {
-    // std::vector<Location> locations;
+Location RequestHandler::matchLocation(std::string endpoint, std::vector<Location>& locations) {
     Location target;
     std::string holder = "";
 
@@ -43,9 +42,28 @@ Location RequestHandler::matchLocation(std::string endpoint,
     return target;
 }
 
-void validPath() {}
+Server& RequestHandler::validServerName(std::string serverName) {
+    for (std::vector<Server>::iterator itr = servers.begin(); itr != servers.end(); itr++) {
+        std::vector<std::string> server_names = itr->getServerNames();
+        for (std::vector<std::string>::iterator itr1 = server_names.begin(); itr1 != server_names.end(); itr1++) {
+            if (serverName == *itr1) {
+                return *itr;
+            }
+        }
+    }
+    return *(servers.begin());
+}
 
 void RequestHandler::handleIt() {
+
+    Server srv;
+
+    std::string hostHeader = request.getHeader("Host");
+    srv = validServerName(hostHeader);
+    client.setServer(srv);
+    std::cout << "updated server: " << srv.getServerNames()[0] << std::endl;
+
+
 
     std::string file = request.getEndpoint();
 
@@ -54,7 +72,7 @@ void RequestHandler::handleIt() {
         const_cast<std::vector<Location> &>(client.getServer().getLocation()));
 
     file = "./" + targetLoc.getRoot() + file;
-
+    // file = "./types.txt";
     // std::cout << file << std::endl;
     if (access(file.c_str(), F_OK) == -1)
         throw HttpResponseException(404);
@@ -67,6 +85,8 @@ void RequestHandler::handleIt() {
 
     fd = open(file.c_str(), O_RDONLY);
 
+    std::cout << "len: " << length << std::endl;
+    // std::cout << "fd: " << fd << std::endl;
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(file))
         ->setHeader("Content-Length", utils::string::fromInt(length));

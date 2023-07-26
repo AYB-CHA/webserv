@@ -10,7 +10,7 @@
 #include <sys/errno.h>
 #include <sys/socket.h>
 
-Multiplexer::Multiplexer(std::vector<Server> servers) : mediator(servers) {}
+Multiplexer::Multiplexer(std::vector<Server> servers) : servers(servers), mediator(servers) {}
 
 void    Multiplexer::acceptConnections(std::vector<Server>& ready_servers) {
     for (SIter it = ready_servers.begin(); it != ready_servers.end();
@@ -50,10 +50,10 @@ void    Multiplexer::readRequests(std::vector<Client>& read_clients) {
 
             std::string buffer = it->getRequest();
             // std::cout << buffer << std::endl;
-            HttpRequest request; 
+            HttpRequest request;
             std::cout << it->getServer().getLocation()[1].getRoot() << std::endl;
             HttpRequestParser parser(request, buffer);
-            RequestHandler handler(request, *it);
+            RequestHandler handler(request, *it, servers);
             it->storeResponse(handler.getResponse());
             it->setFileFd(handler.getFd());
             mediator.updateClient(*it);

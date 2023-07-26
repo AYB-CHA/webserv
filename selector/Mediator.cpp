@@ -18,6 +18,7 @@ void    Mediator::addClient(int fd, Server& server) {
         return;
     }
     std::cout << "Client has joined. id: " << fd << std::endl;
+    std::cout << "Server: " << server.getServerNames()[0] << std::endl;
     Client client;
     client.setFd(fd);
     client.setServer(server);

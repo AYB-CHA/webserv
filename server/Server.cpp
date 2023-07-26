@@ -79,7 +79,7 @@ void Server::listen() {
 
 void Server::setReUseAddressOption() {
     int value = 1;
-    if (setsockopt(this->getSocketFd(), SOL_SOCKET, SO_REUSEADDR, &value,
+    if (setsockopt(this->getSocketFd(), SOL_SOCKET, SO_REUSEPORT, &value,
                    sizeof(int)) < 0)
         throw std::runtime_error("socket init: setsockopt() failed.");
 }

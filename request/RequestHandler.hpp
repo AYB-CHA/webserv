@@ -7,20 +7,22 @@
 
 class RequestHandler {
   private:
-    HttpResponseBuilder response;
-    HttpRequest request;
-    Client client;
-    int fd;
+        HttpResponseBuilder response;
+        HttpRequest request;
+        Client client;
+        int fd;
 
-    void handleIt();
+        std::vector<Server> servers;
 
-  public:
-    RequestHandler(HttpRequest &request, Client &client);
+        void handleIt();
 
-    std::string getResponse();
-    int getFd();
+    public:
+        RequestHandler(HttpRequest &request, Client& client, std::vector<Server> servers);
 
-    Location matchLocation(std::string endpoint,
-                           std::vector<Location> &locations);
-    std::string getFileMimeType(const std::string &file_name) const;
+        Server& validServerName(std::string serverName);
+        Location matchLocation(std::string endpoint, std::vector<Location>& locations);
+
+        int getFd();
+        std::string getResponse();
+        std::string getFileMimeType(const std::string &file_name) const;
 };
