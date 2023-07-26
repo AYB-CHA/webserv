@@ -15,7 +15,8 @@ const int Client::max_sendfile = 1000000;
 
 Client::Client()
     : bodyFd(-1), method("GET"), file_offset(0),
-      connectionClose(false), clientMaxBodySize(1024) {
+      connectionClose(false), clientMaxBodySize(1024),
+      contentLength(0) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
