@@ -1,12 +1,13 @@
 #include "RequestHandler.hpp"
+#include "../response/HttpResponseException.hpp"
+#include "../response/Mime.hpp"
+#include "../utils/string.hpp"
 #include <sys/fcntl.h>
 #include <sys/stat.h>
-#include "../response/HttpResponseException.hpp"
-#include "../utils/string.hpp"
 
-#include <unistd.h> // access
 #include <cstring>
 #include <fstream>
+#include <unistd.h> // access
 
 #include <vector>
 
@@ -17,19 +18,21 @@ RequestHandler::RequestHandler(HttpRequest &request, Client &client) {
     handleIt();
 }
 
-std::string RequestHandler::getResponse() {
-    return response.build();
-}
+std::string RequestHandler::getResponse() { return response.build(); }
 
-Location RequestHandler::matchLocation(std::string endpoint, std::vector<Location>& locations) {
+Location RequestHandler::matchLocation(std::string endpoint,
+                                       std::vector<Location> &locations) {
     // std::vector<Location> locations;
     Location target;
     std::string holder = "";
 
-    for (std::vector<Location>::iterator itr = locations.begin(); itr != locations.end(); itr++) {
+    for (std::vector<Location>::iterator itr = locations.begin();
+         itr != locations.end(); itr++) {
         std::vector<std::string> prefixs = itr->getPrefix();
-        for (std::vector<std::string>::iterator itr1 = prefixs.begin(); itr1 != prefixs.end(); itr1++) {
-            if (strncmp(itr1->c_str(), endpoint.c_str(), itr1->size()) == 0 && (itr1->size() > holder.size())) {
+        for (std::vector<std::string>::iterator itr1 = prefixs.begin();
+             itr1 != prefixs.end(); itr1++) {
+            if (strncmp(itr1->c_str(), endpoint.c_str(), itr1->size()) == 0 &&
+                (itr1->size() > holder.size())) {
                 holder = *itr1;
                 target = *itr;
             }
@@ -40,15 +43,15 @@ Location RequestHandler::matchLocation(std::string endpoint, std::vector<Locatio
     return target;
 }
 
-void validPath() {
-
-}
+void validPath() {}
 
 void RequestHandler::handleIt() {
 
     std::string file = request.getEndpoint();
 
-    Location targetLoc = matchLocation(file, const_cast<std::vector<Location>& >(client.getServer().getLocation()));
+    Location targetLoc = matchLocation(
+        file,
+        const_cast<std::vector<Location> &>(client.getServer().getLocation()));
 
     file = "./" + targetLoc.getRoot() + file;
 
@@ -64,13 +67,15 @@ void RequestHandler::handleIt() {
 
     fd = open(file.c_str(), O_RDONLY);
 
-    std::cout << "aaasilen: " << length << std::endl;
-    // std::cout << "fd: " << fd << std::endl;
     response.setStatuscode(200)
-        // ->setHeader("Content-Type", "video/mp4")
+        ->setHeader("Content-Type", this->getFileMimeType(file))
         ->setHeader("Content-Length", utils::string::fromInt(length));
 }
 
-int    RequestHandler::getFd() {
-    return this->fd;
+int RequestHandler::getFd() { return this->fd; }
+
+std::string
+RequestHandler::getFileMimeType(const std::string &file_name) const {
+    std::string extention = file_name.substr(file_name.find_last_of('.') + 1);
+    return Mime::getInstance()->getMimeType(extention);
 }
