@@ -1,7 +1,8 @@
 #include "HttpResponseBuilder.hpp"
 #include "../utils/string.hpp"
 
-HttpResponseBuilder::HttpResponseBuilder() { this->http_version = "HTTP/1.1"; }
+HttpResponseBuilder::HttpResponseBuilder()
+    : has_content_length(false), http_version("HTTP/1.1") {}
 
 HttpResponseBuilder *HttpResponseBuilder::setStatuscode(int status_code) {
     this->status_code = status_code;
@@ -32,6 +33,8 @@ HttpResponseBuilder *HttpResponseBuilder::setStatuscode(int status_code) {
 HttpResponseBuilder *HttpResponseBuilder::setHeader(const std::string &key,
                                                     const std::string &value) {
     this->headers[key] = value;
+    if (key == "Content-Length")
+        this->has_content_length = true;
     return this;
 }
 
@@ -41,14 +44,15 @@ HttpResponseBuilder *HttpResponseBuilder::pushBody(const std::string &buffer) {
 }
 
 std::string HttpResponseBuilder::build() {
-    // this->setHeader("Content-Length",
-    //                 utils::string::fromInt(this->body.length()));
     std::string response;
     response += this->http_version + " ";
     response += utils::string::fromInt(this->status_code) + " ";
     response += this->status_code_phrase + "\r\n";
     std::map<std::string, std::string>::iterator it;
 
+    if (!this->has_content_length)
+        this->setHeader("Content-Length",
+                        utils::string::fromInt(this->body.length()));
     for (it = this->headers.begin(); it != this->headers.end(); ++it) {
         response += it->first + ": " + it->second + "\r\n";
     }
