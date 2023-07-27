@@ -17,34 +17,44 @@ private:
     int     bodyFd;
 
     std::string writeBuffer;
-    // std::string bodyBuffer; // Will be needed later for POST methods
+    std::string bodyBuffer;
     std::string readBuffer;
-    std::string path;
+    std::string method;
+    std::vector<char> tempBuffer;
 
     off_t   file_offset;
     bool    connectionClose; 
     off_t   clientMaxBodySize;
+    off_t   contentLength;
     timeval lastTimeRW;
     Server  server;
 
     unsigned int timeDifference() const;
+    bool    writeFromBuffer();
+    bool    writeFromFile();
 public:
     Client();
     Client(const Client& o);
     bool    operator==(const Client& o) const;
 
     int     getSocketFd() const;
+    std::string getMethod() const;
     std::string getRequest();
     Server& getServer();
+    std::string getPostBody();
     bool    shouldBeClosed() const;
+    bool    hasReadBody() const;
 
     void    setServer(Server server);
     void    setFd(int fd);
     void    setFileFd(int fd);
+    void    setMethod(std::string& method);
+    void    setContentLength(off_t length);
     void    setConnectionClose(bool close);
 
     bool    writeChunk();
     bool    readRequest();
+    bool    readBody();
     void    storeResponse(const std::string& response);
     void    updateTimeout();
 
