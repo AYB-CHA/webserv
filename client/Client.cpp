@@ -50,7 +50,6 @@ bool Client::writeChunk() {
         writeFromBuffer();
     } else {
         int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
-        // std::cout << "bytes sent: " << bytes_sent << std::endl;
         if (bytes_sent > 0)
             updateTimeout();
         if (bytes_sent == 0) {
