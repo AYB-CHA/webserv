@@ -28,7 +28,7 @@ Client::Client(const Client &client)
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
       lastTimeRW(client.lastTimeRW), server(client.server) {}
 
-void    Client::writeFromBuffer() {
+bool    Client::writeFromBuffer() {
     const char *string = writeBuffer.c_str();
     size_t length = writeBuffer.length();
 
@@ -41,6 +41,7 @@ void    Client::writeFromBuffer() {
     size_t remainingLength = length - writeLen;
     writeBuffer = writeBuffer.substr(writeLen, remainingLength);
     updateTimeout();
+    return false;
 }
 
 bool    Client::writeFromFile() {
@@ -60,7 +61,7 @@ bool Client::writeChunk() {
     if (writeBuffer.empty() && bodyFd == -1)
         return true;
     if (!writeBuffer.empty()) {
-        writeFromBuffer();
+        return writeFromBuffer();
     } else {
         return writeFromFile();
     }

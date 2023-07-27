@@ -30,7 +30,7 @@ private:
     Server  server;
 
     unsigned int timeDifference() const;
-    void    writeFromBuffer();
+    bool    writeFromBuffer();
     bool    writeFromFile();
 public:
     Client();
