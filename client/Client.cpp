@@ -152,6 +152,10 @@ bool Client::shouldBeClosed() const {
            (timeDifference() > max_timeout);
 }
 
+bool    Client::hasReadBody() const {
+    return contentLength == 0;
+}
+
 void Client::setServer(Server server) { this->server = server; }
 
 void Client::setFd(int fd) { this->socketFd = fd; }

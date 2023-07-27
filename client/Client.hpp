@@ -42,6 +42,7 @@ public:
     Server& getServer();
     std::string getPostBody();
     bool    shouldBeClosed() const;
+    bool    hasReadBody() const;
 
     void    setServer(Server server);
     void    setFd(int fd);
