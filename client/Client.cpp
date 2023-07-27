@@ -72,7 +72,7 @@ bool    Client::readBody() {
     const size_t previousSize = tempBuffer.size();
 
     tempBuffer.resize(tempBuffer.size() + contentLength);
-    int len = read(socketFd, tempBuffer.data() + tempBuffer.size(), contentLength);
+    int len = read(socketFd, tempBuffer.data() + previousSize, contentLength);
     tempBuffer.resize(previousSize + len);
 
     contentLength -= len;
