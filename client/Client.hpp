@@ -30,6 +30,7 @@ private:
     Server  server;
 
     unsigned int timeDifference() const;
+    void    writeFromBuffer();
 public:
     Client();
     Client(const Client& o);

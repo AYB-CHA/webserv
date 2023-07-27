@@ -28,16 +28,26 @@ Client::Client(const Client &client)
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
       lastTimeRW(client.lastTimeRW), server(client.server) {}
 
+void    Client::writeFromBuffer() {
+    const char *string = writeBuffer.c_str();
+    size_t length = writeBuffer.length();
+
+    int writeLen = write(socketFd, string, length);
+    if (writeLen == -1) {
+        std::string errMsg("Client write() error:");
+        throw std::runtime_error(errMsg + strerror(errno));
+    }
+
+    size_t remainingLength = length - writeLen;
+    writeBuffer = writeBuffer.substr(writeLen, remainingLength);
+    updateTimeout();
+}
+
 bool Client::writeChunk() {
     if (writeBuffer.empty() && bodyFd == -1)
         return true;
     if (!writeBuffer.empty()) {
-        int len = write(socketFd, writeBuffer.c_str(), writeBuffer.length());
-        if (len == -1)
-            throw std::runtime_error(std::string("Client write() error:") +
-                                     strerror(errno));
-        writeBuffer = writeBuffer.substr(len, writeBuffer.length() - len);
-        updateTimeout();
+        writeFromBuffer();
     } else {
         int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
         // std::cout << "bytes sent: " << bytes_sent << std::endl;
