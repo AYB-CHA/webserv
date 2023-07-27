@@ -20,9 +20,15 @@ class RequestHandler {
         RequestHandler(HttpRequest &request, Client& client, std::vector<Server> servers);
 
         Server& validServerName(std::string serverName);
-        Location matchLocation(std::string endpoint, std::vector<Location>& locations);
+        bool matchLocation(std::string endpoint, const Server &serv, Location &target);
 
         int getFd();
         std::string getResponse();
         std::string getFileMimeType(const std::string &file_name) const;
 };
+
+#define forEach(type, iterable, name) \
+    for (type::iterator name = iterable.begin(); name != iterable.end(); name++)
+
+#define forEachConst(type, iterable, name) \
+    for (type::const_iterator name = iterable.begin(); name != iterable.end(); name++)

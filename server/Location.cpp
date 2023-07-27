@@ -3,7 +3,7 @@
 Location::Location() {
     this->autoindex = true;
     // from base class
-    this->root = "index.html";
+    this->root = "";
     this->upload_path = "/upload/clientFile/";
     this->client_max_body_size = pow(2, 30);
 }
