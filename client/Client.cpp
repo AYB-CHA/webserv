@@ -127,6 +127,10 @@ std::string Client::getRequest() {
     return ret;
 }
 
+std::string Client::getMethod() const {
+    return this->method;
+}
+
 Server &Client::getServer() { return this->server; }
 
 std::string Client::getPostBody() {

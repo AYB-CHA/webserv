@@ -38,6 +38,7 @@ public:
     bool    operator==(const Client& o) const;
 
     int     getSocketFd() const;
+    std::string getMethod() const;
     std::string getRequest();
     Server& getServer();
     std::string getPostBody();
