@@ -43,21 +43,26 @@ void    Client::writeFromBuffer() {
     updateTimeout();
 }
 
+bool    Client::writeFromFile() {
+    int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
+    if (bytes_sent > 0)
+        updateTimeout();
+    if (bytes_sent == 0) {
+        close(bodyFd);
+        bodyFd = -1;
+        file_offset = 0;
+        return true;
+    }
+    return false;
+}
+
 bool Client::writeChunk() {
     if (writeBuffer.empty() && bodyFd == -1)
         return true;
     if (!writeBuffer.empty()) {
         writeFromBuffer();
     } else {
-        int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
-        if (bytes_sent > 0)
-            updateTimeout();
-        if (bytes_sent == 0) {
-            close(bodyFd);
-            bodyFd = -1;
-            file_offset = 0;
-            return true;
-        }
+        return writeFromFile();
     }
     return false;
 }

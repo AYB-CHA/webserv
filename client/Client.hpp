@@ -31,7 +31,7 @@ private:
 
     unsigned int timeDifference() const;
     void    writeFromBuffer();
-    void    writeFromFile();
+    bool    writeFromFile();
 public:
     Client();
     Client(const Client& o);
