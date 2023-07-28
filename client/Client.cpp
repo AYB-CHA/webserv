@@ -51,7 +51,10 @@ void Client::handleRequest(std::vector<Server> servers) {
         HttpRequest request;
         HttpRequestParser parser(request, this->getRequest());
         requestHandler = RequestHandler(request, servers);
-        requestHandler.handleIt(*this);
+        requestHandler.init(*this);
+    }
+    if (method == "GET") {
+        requestHandler.handleGET(*this);
         std::cout << "writeBuffer: " << bufC.write << std::endl;
     }
 }

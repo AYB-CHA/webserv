@@ -25,5 +25,6 @@ class RequestHandler {
         bool    hasBeenHandled() const;
         std::string getResponse();
         std::string getFileMimeType(const std::string &file_name) const;
-        void handleIt(Client& client);
+        void init(Client& client);
+        void handleGET(Client& client);
 };

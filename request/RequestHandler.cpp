@@ -60,13 +60,16 @@ Server& RequestHandler::validServerName(std::string serverName) {
     return *(servers.begin());
 }
 
-void RequestHandler::handleIt(Client& client) {
-
+void RequestHandler::init(Client& client) {
     Server srv;
 
     std::string hostHeader = request.getHeader("Host");
     srv = validServerName(hostHeader);
     client.setServer(srv);
+    client.setMethod(request.getMethod());
+}
+
+void RequestHandler::handleGET(Client& client) {
 
     std::string file = request.getEndpoint();
 
