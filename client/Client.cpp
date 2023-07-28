@@ -26,6 +26,25 @@ Client::Client(const Client &client)
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
       lastTimeRW(client.lastTimeRW), hasReadPostBody(client.hasReadPostBody), server(client.server) {}
 
+bool Client::writeChunk() {
+    if (bufC.write.empty() && bodyFd == -1)
+        return true;
+    if (!bufC.write.empty()) {
+        return writeFromBuffer();
+    }
+    return writeFromFile();
+}
+
+bool Client::readRequest() {
+    if (method == "POST") {
+        return readBody();
+    } else if (method == "DELETE") {
+        return true; // Unimplemented
+    } else {
+        return readStatusHeaders();
+    }
+}
+
 bool    Client::writeFromBuffer() {
     const char *string = bufC.write.c_str();
     size_t length = bufC.write.length();
@@ -52,17 +71,6 @@ bool    Client::writeFromFile() {
         bodyFd = -1;
         file_offset = 0;
         return true;
-    }
-    return false;
-}
-
-bool Client::writeChunk() {
-    if (bufC.write.empty() && bodyFd == -1)
-        return true;
-    if (!bufC.write.empty()) {
-        return writeFromBuffer();
-    } else {
-        return writeFromFile();
     }
     return false;
 }
@@ -110,16 +118,6 @@ bool Client::readStatusHeaders() {
         throw HttpResponseException(494);
     }
     return false;
-}
-
-bool Client::readRequest() {
-    if (method == "POST") {
-        return readBody();
-    } else if (method == "DELETE") {
-        return true;
-    } else {
-        return readStatusHeaders();
-    }
 }
 
 bool Client::operator==(const Client &o) const {

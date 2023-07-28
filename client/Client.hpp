@@ -39,6 +39,7 @@ private:
     bool    writeFromFile();
     bool    readBody();
     bool    readStatusHeaders();
+    void    updateTimeout();
 public:
     Client();
     Client(const Client& o);
@@ -63,7 +64,6 @@ public:
     bool    readRequest();
     // After the client holds the request handler, storeResponse should be private
     void    storeResponse(const std::string& response);
-    void    updateTimeout();
 
     ~Client();
 };
