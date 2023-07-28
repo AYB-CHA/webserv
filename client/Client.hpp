@@ -7,31 +7,38 @@
 #include <string>
 #include <sys/types.h>
 
+struct BufferContainer {
+    std::string write;
+    std::string body;
+    std::string read;
+    std::vector<char> temp;
+};
+
 class Client {
 private:
-    static const int read_buf_size;
     static const unsigned int max_timeout;
     static const int max_sendfile;
 
     int     socketFd;
     int     bodyFd;
 
-    std::string writeBuffer;
-    std::string bodyBuffer;
-    std::string readBuffer;
+    BufferContainer bufC;
     std::string method;
-    std::vector<char> tempBuffer;
 
     off_t   file_offset;
     bool    connectionClose; 
     off_t   clientMaxBodySize;
     off_t   contentLength;
     timeval lastTimeRW;
+    bool    hasReadPostBody;
+
     Server  server;
 
     unsigned int timeDifference() const;
     bool    writeFromBuffer();
     bool    writeFromFile();
+    bool    readBody();
+    bool    readStatusHeaders();
 public:
     Client();
     Client(const Client& o);
@@ -54,7 +61,6 @@ public:
 
     bool    writeChunk();
     bool    readRequest();
-    bool    readBody();
     void    storeResponse(const std::string& response);
     void    updateTimeout();
 
