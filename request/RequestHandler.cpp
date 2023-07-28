@@ -9,6 +9,8 @@
 #include <fstream>
 #include <unistd.h> // access
 
+#include <dirent.h>
+
 #include <vector>
 
 RequestHandler::RequestHandler(HttpRequest &request, Client &client, std::vector<Server> servers) {
@@ -92,15 +94,37 @@ void RequestHandler::handleIt() {
 
     struct stat data;
     stat(file.c_str(), &data);
-    off_t length = data.st_size;
 
-    fd = open(file.c_str(), O_RDONLY);
+    //check for the existence of the dir
+    if (S_ISDIR(data.st_mode)) {
+        if (funStatus) {
+            std::cout << ">> autoindex value: " << targetLoc.getAutoindex() << std::endl;
+            if (targetLoc.getAutoindex()) {
 
-    std::cout << "len: " << length << std::endl;
-    // std::cout << "fd: " << fd << std::endl;
-    response.setStatuscode(200)
-        ->setHeader("Content-Type", this->getFileMimeType(file))
-        ->setHeader("Content-Length", utils::string::fromInt(length));
+                DIR *d = opendir(file.c_str());
+                std::cout << "_____________________________________" << std::endl;
+                for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
+                    std::cout << "File Name: " << de->d_name << std::endl;
+                }
+                std::cout << "_____________________________________" << std::endl;
+
+            } else
+                throw HttpResponseException(403);
+        } else {
+
+        }
+    } else {
+
+        off_t length = data.st_size;
+
+        fd = open(file.c_str(), O_RDONLY);
+        std::cout << "len: " << length << std::endl;
+        // std::cout << "fd: " << fd << std::endl;
+        response.setStatuscode(200)
+            ->setHeader("Content-Type", this->getFileMimeType(file))
+            ->setHeader("Content-Length", utils::string::fromInt(length));
+    }
+
 }
 
 int RequestHandler::getFd() { return this->fd; }

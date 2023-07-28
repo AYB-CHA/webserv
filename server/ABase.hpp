@@ -11,6 +11,7 @@ class ABase {
     std::vector<std::string> index;
     std::map<int, std::string> error_page;
     long client_max_body_size;
+    bool autoindex;
 
   public:
     ABase();
@@ -23,6 +24,8 @@ class ABase {
     const std::vector<std::string> &getIndex(void) const;
     const std::map<int, std::string> &getErrorPage(void) const;
     const long &getClientMaxBodySize(void) const;
+    bool getAutoindex(void) const;
+
 
     void setRoot(std::string root);
     void setUploadPath(std::string upload_path);
@@ -30,4 +33,5 @@ class ABase {
     void setIndex(std::string index);
     void setErrorPage(int status_code, std::string path);
     void setClientMaxBodySize(long max_body_size);
+    void setAutoindex(bool autoindex);
 };

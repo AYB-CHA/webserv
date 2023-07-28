@@ -5,6 +5,8 @@ Server::Server() {
     this->port = 80;
     this->host = "127.0.0.1";
 
+    // form base class
+    this->autoindex = true;
     this->root = "/root";
     this->upload_path = "/upload/clientFile/";
     this->client_max_body_size = pow(2, 30);

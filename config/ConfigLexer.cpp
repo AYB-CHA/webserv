@@ -7,6 +7,7 @@ ConfigLexer::ConfigLexer() : line(1) {
     // SERVER KEYWORDS
     Config::srvkeywords["listen"] = LISTEN;
     Config::srvkeywords["index"] = INDEX;
+    Config::srvkeywords["autoindex"] = AUTOINDEX;
     Config::srvkeywords["server_name"] = SERVER_NAME;
     Config::srvkeywords["accepted_methods"] = ACCEPTED_METHODS;
     Config::srvkeywords["root"] = ROOT;
