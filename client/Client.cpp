@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "../response/HttpResponseException.hpp"
+#include "../request/HttpRequestParser.hpp"
 #include <cstddef>
 #include <cstring>
 #include <iostream>
@@ -42,6 +43,16 @@ bool Client::readRequest() {
         return true; // Unimplemented
     } else {
         return readStatusHeaders();
+    }
+}
+
+void Client::handleRequest(std::vector<Server> servers) {
+    if (!requestHandler.hasBeenHandled()) {
+        HttpRequest request;
+        HttpRequestParser parser(request, this->getRequest());
+        requestHandler = RequestHandler(request, servers);
+        requestHandler.handleIt(*this);
+        std::cout << "writeBuffer: " << bufC.write << std::endl;
     }
 }
 

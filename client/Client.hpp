@@ -6,6 +6,7 @@
 #include <exception>
 #include <string>
 #include <sys/types.h>
+#include "../request/RequestHandler.hpp"
 
 class Client {
 private:
@@ -18,6 +19,7 @@ private:
         std::vector<char> temp;
     };
 
+    RequestHandler requestHandler;
 
     int     socketFd;
     int     bodyFd;
@@ -62,7 +64,7 @@ public:
 
     bool    writeChunk();
     bool    readRequest();
-    // After the client holds the request handler, storeResponse should be private
+    void    handleRequest(std::vector<Server> servers);
     void    storeResponse(const std::string& response);
 
     ~Client();

@@ -2,6 +2,7 @@
 #include "../response/HttpResponseException.hpp"
 #include "../response/Mime.hpp"
 #include "../utils/string.hpp"
+#include "../client/Client.hpp"
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
@@ -11,12 +12,17 @@
 
 #include <vector>
 
-RequestHandler::RequestHandler(HttpRequest &request, Client &client, std::vector<Server> servers) {
+RequestHandler::RequestHandler() : handled(false) {}
+
+RequestHandler::RequestHandler(const RequestHandler& o)
+    : response(o.response), request(o.request),
+    servers(o.servers), fd(o.fd), handled(o.handled)
+{}
+
+RequestHandler::RequestHandler(HttpRequest &request, std::vector<Server>& servers) {
     this->request = request;
-    this->client = client;
     fd = -1;
     this->servers = servers;
-    handleIt();
 }
 
 std::string RequestHandler::getResponse() { return response.build(); }
@@ -54,16 +60,13 @@ Server& RequestHandler::validServerName(std::string serverName) {
     return *(servers.begin());
 }
 
-void RequestHandler::handleIt() {
+void RequestHandler::handleIt(Client& client) {
 
     Server srv;
 
     std::string hostHeader = request.getHeader("Host");
     srv = validServerName(hostHeader);
     client.setServer(srv);
-    std::cout << "updated server: " << srv.getServerNames()[0] << std::endl;
-
-
 
     std::string file = request.getEndpoint();
 
@@ -90,9 +93,15 @@ void RequestHandler::handleIt() {
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(file))
         ->setHeader("Content-Length", utils::string::fromInt(length));
+    client.storeResponse(this->getResponse());
+    client.setFileFd(this->getFd());
 }
 
 int RequestHandler::getFd() { return this->fd; }
+
+bool    RequestHandler::hasBeenHandled() const {
+    return handled;
+}
 
 std::string
 RequestHandler::getFileMimeType(const std::string &file_name) const {

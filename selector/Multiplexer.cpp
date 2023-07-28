@@ -47,15 +47,7 @@ void    Multiplexer::readRequests(std::vector<Client>& read_clients) {
                 mediator.updateClient(*it);
                 continue;
             }
-
-            std::string buffer = it->getRequest();
-            // std::cout << buffer << std::endl;
-            HttpRequest request;
-            std::cout << it->getServer().getLocation()[1].getRoot() << std::endl;
-            HttpRequestParser parser(request, buffer);
-            RequestHandler handler(request, *it, servers);
-            it->storeResponse(handler.getResponse());
-            it->setFileFd(handler.getFd());
+            it->handleRequest(servers);
             mediator.updateClient(*it);
         } catch (HttpResponseException& e) {
             it->storeResponse(e.build());
