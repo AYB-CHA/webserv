@@ -174,7 +174,7 @@ void Client::setFd(int fd) { this->socketFd = fd; }
 
 void Client::setFileFd(int fd) { this->bodyFd = fd; }
 
-void Client::setMethod(std::string& method) { this->method = method; }
+void Client::setMethod(const std::string& method) { this->method = method; }
 
 void Client::setContentLength(off_t length) { this->contentLength = length; }
 
