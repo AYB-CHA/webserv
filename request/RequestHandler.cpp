@@ -25,6 +25,62 @@ RequestHandler::RequestHandler(HttpRequest &request, std::vector<Server>& server
     this->servers = servers;
 }
 
+void RequestHandler::init(Client& client) {
+    Server srv;
+
+    std::string hostHeader = request.getHeader("Host");
+    srv = validServerName(hostHeader);
+    client.setServer(srv);
+    client.setMethod(request.getMethod());
+}
+
+bool RequestHandler::handlePOST(Client &client) {
+    if (!client.hasReadBody())
+        return false; // Return, and wait until the client reads everything
+    //client.setCGI(CGI(path, client.getPostBody()));
+    // Here, the constructor is called, and the cgi is initialized
+    // once, and it opens pipes and everything
+    // 
+    // next time, when we call fillWriteFromCGI(), it will
+    // read from the pipe into the writebuffer.
+
+    // Honestly, I think we have to monitor the fd alone, and then
+    // the cgi will tell me when it completely filled the buffer,
+    // so that we can set the Content-Length in the response.
+    return true;
+}
+
+void RequestHandler::handleGET(Client& client) {
+
+    std::string file = request.getEndpoint();
+
+    Location targetLoc = matchLocation(
+        file,
+        const_cast<std::vector<Location> &>(client.getServer().getLocation()));
+
+    file = "./" + targetLoc.getRoot() + file;
+    // file = "./types.txt";
+    // std::cout << file << std::endl;
+    if (access(file.c_str(), F_OK) == -1)
+        throw HttpResponseException(404);
+    if (access(file.c_str(), R_OK == -1))
+        throw HttpResponseException(403);
+
+    struct stat data;
+    stat(file.c_str(), &data);
+    off_t length = data.st_size;
+
+    fd = open(file.c_str(), O_RDONLY);
+
+    std::cout << "len: " << length << std::endl;
+    // std::cout << "fd: " << fd << std::endl;
+    response.setStatuscode(200)
+        ->setHeader("Content-Type", this->getFileMimeType(file))
+        ->setHeader("Content-Length", utils::string::fromInt(length));
+    client.storeResponse(this->getResponse());
+    client.setFileFd(this->getFd());
+}
+
 std::string RequestHandler::getResponse() { return response.build(); }
 
 Location RequestHandler::matchLocation(std::string endpoint, std::vector<Location>& locations) {
@@ -60,47 +116,11 @@ Server& RequestHandler::validServerName(std::string serverName) {
     return *(servers.begin());
 }
 
-void RequestHandler::init(Client& client) {
-    Server srv;
-
-    std::string hostHeader = request.getHeader("Host");
-    srv = validServerName(hostHeader);
-    client.setServer(srv);
-    client.setMethod(request.getMethod());
-}
-
-void RequestHandler::handleGET(Client& client) {
-
-    std::string file = request.getEndpoint();
-
-    Location targetLoc = matchLocation(
-        file,
-        const_cast<std::vector<Location> &>(client.getServer().getLocation()));
-
-    file = "./" + targetLoc.getRoot() + file;
-    // file = "./types.txt";
-    // std::cout << file << std::endl;
-    if (access(file.c_str(), F_OK) == -1)
-        throw HttpResponseException(404);
-    if (access(file.c_str(), R_OK == -1))
-        throw HttpResponseException(403);
-
-    struct stat data;
-    stat(file.c_str(), &data);
-    off_t length = data.st_size;
-
-    fd = open(file.c_str(), O_RDONLY);
-
-    std::cout << "len: " << length << std::endl;
-    // std::cout << "fd: " << fd << std::endl;
-    response.setStatuscode(200)
-        ->setHeader("Content-Type", this->getFileMimeType(file))
-        ->setHeader("Content-Length", utils::string::fromInt(length));
-    client.storeResponse(this->getResponse());
-    client.setFileFd(this->getFd());
-}
-
 int RequestHandler::getFd() { return this->fd; }
+
+void    RequestHandler::setHandled(bool handled) {
+    this->handled = handled;
+}
 
 bool    RequestHandler::hasBeenHandled() const {
     return handled;

@@ -16,7 +16,8 @@ const int Client::max_sendfile = 1000000;
 Client::Client()
     : bodyFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
-      contentLength(0), hasReadPostBody(false) {
+      contentLength(0), hasReadPostBody(false),
+      cgiIsSet(false) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
@@ -25,9 +26,20 @@ Client::Client(const Client &client)
       bufC(client.bufC), method(client.method),
       file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
-      lastTimeRW(client.lastTimeRW), hasReadPostBody(client.hasReadPostBody), server(client.server) {}
+      lastTimeRW(client.lastTimeRW), hasReadPostBody(client.hasReadPostBody),
+      cgiIsSet(client.cgiIsSet), server(client.server) {}
+
+void Client::readOutputCGI() {
+    throw std::runtime_error("readOutputCGI() Unimplemented.");
+}
 
 bool Client::writeChunk() {
+    if (method == "POST" && cgiIsSet == false) {
+        if (requestHandler.handlePOST(*this) == false)
+            return true;
+        readOutputCGI();
+        cgiIsSet = true;
+    }
     if (bufC.write.empty() && bodyFd == -1)
         return true;
     if (!bufC.write.empty()) {
@@ -57,6 +69,7 @@ void Client::handleRequest(std::vector<Server> servers) {
         requestHandler.handleGET(*this);
         std::cout << "writeBuffer: " << bufC.write << std::endl;
     }
+    requestHandler.setHandled(true);
 }
 
 bool    Client::writeFromBuffer() {

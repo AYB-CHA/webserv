@@ -22,9 +22,11 @@ class RequestHandler {
         RequestHandler(HttpRequest &request, std::vector<Server>& servers);
 
         int getFd();
+        void    setHandled(bool handled);
         bool    hasBeenHandled() const;
         std::string getResponse();
         std::string getFileMimeType(const std::string &file_name) const;
         void init(Client& client);
         void handleGET(Client& client);
+        bool handlePOST(Client& client);
 };

@@ -33,6 +33,7 @@ private:
     off_t   contentLength;
     timeval lastTimeRW;
     bool    hasReadPostBody;
+    bool    cgiIsSet;
 
     Server  server;
 
@@ -42,6 +43,7 @@ private:
     bool    readBody();
     bool    readStatusHeaders();
     void    updateTimeout();
+    void    readOutputCGI();
 public:
     Client();
     Client(const Client& o);
