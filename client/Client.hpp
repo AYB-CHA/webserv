@@ -7,17 +7,17 @@
 #include <string>
 #include <sys/types.h>
 
-struct BufferContainer {
-    std::string write;
-    std::string body;
-    std::string read;
-    std::vector<char> temp;
-};
-
 class Client {
 private:
     static const unsigned int max_timeout;
     static const int max_sendfile;
+    struct BufferContainer {
+        std::string write;
+        std::string body;
+        std::string read;
+        std::vector<char> temp;
+    };
+
 
     int     socketFd;
     int     bodyFd;
