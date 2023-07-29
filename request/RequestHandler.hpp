@@ -5,6 +5,7 @@
 #include "../server/Server.hpp"
 
 class Client;
+class Mediator;
 class RequestHandler {
   private:
         HttpResponseBuilder response;
@@ -28,5 +29,5 @@ class RequestHandler {
         std::string getFileMimeType(const std::string &file_name) const;
         void init(Client& client);
         void handleGET(Client& client);
-        bool handlePOST(Client& client);
+        bool handlePOST(Client& client, Mediator& mediator);
 };

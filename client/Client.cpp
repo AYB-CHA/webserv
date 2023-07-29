@@ -22,14 +22,16 @@ Client::Client()
 }
 
 Client::Client(const Client &client)
-    : socketFd(client.socketFd), bodyFd(client.bodyFd),
+    : socketFd(client.socketFd), bodyFd(client.bodyFd), cgiFd(client.cgiFd),
       bufC(client.bufC), method(client.method),
       file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
       lastTimeRW(client.lastTimeRW), hasReadPostBody(client.hasReadPostBody),
       cgiIsSet(client.cgiIsSet), server(client.server) {}
 
-void Client::readOutputCGI() {
+bool Client::readOutputCGI() {
+    // here the client reads from the pipe, and appends to the buffer the following:
+    // $len"\r\n"$data"\r\n"
     throw std::runtime_error("readOutputCGI() Unimplemented.");
 }
 
@@ -55,7 +57,7 @@ bool Client::readRequest() {
     }
 }
 
-void Client::handleRequest(std::vector<Server> servers) {
+void Client::handleRequest(std::vector<Server> servers, Mediator& mediator) {
     if (!requestHandler.hasBeenInitialized()) {
         HttpRequest request;
         HttpRequestParser parser(request, this->getRequest());
@@ -71,7 +73,7 @@ void Client::handleRequest(std::vector<Server> servers) {
         if (hasReadBody() == false) {
             return;
         }
-        requestHandler.handlePOST(*this);
+        requestHandler.handlePOST(*this, mediator);
     }
 }
 
@@ -156,6 +158,8 @@ bool Client::operator==(const Client &o) const {
 
 int Client::getSocketFd() const { return this->socketFd; }
 
+int Client::getCgiFd() const { return this->cgiFd; }
+
 std::string Client::getRequest() {
     std::string ret = bufC.read;
     bufC.read.clear();
@@ -201,6 +205,8 @@ void Client::setServer(Server server) { this->server = server; }
 void Client::setFd(int fd) { this->socketFd = fd; }
 
 void Client::setFileFd(int fd) { this->bodyFd = fd; }
+
+void Client::setCgiFd(int fd) { this->cgiFd = fd; }
 
 void Client::setMethod(const std::string& method) { this->method = method; }
 

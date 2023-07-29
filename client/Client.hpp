@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include "../request/RequestHandler.hpp"
 
+class Mediator;
+
 class Client {
 private:
     static const unsigned int max_timeout;
@@ -23,6 +25,7 @@ private:
 
     int     socketFd;
     int     bodyFd;
+    int     cgiFd;
 
     BufferContainer bufC;
     std::string method;
@@ -43,13 +46,13 @@ private:
     bool    readBody();
     bool    readStatusHeaders();
     void    updateTimeout();
-    void    readOutputCGI();
 public:
     Client();
     Client(const Client& o);
     bool    operator==(const Client& o) const;
 
     int     getSocketFd() const;
+    int     getCgiFd() const;
     std::string getMethod() const;
     std::string getRequest();
     Server& getServer();
@@ -60,13 +63,15 @@ public:
     void    setServer(Server server);
     void    setFd(int fd);
     void    setFileFd(int fd);
+    void    setCgiFd(int fd);
     void    setMethod(const std::string& method);
     void    setContentLength(off_t length);
     void    setConnectionClose(bool close);
 
+    bool    readOutputCGI();
     bool    writeChunk();
     bool    readRequest();
-    void    handleRequest(std::vector<Server> servers);
+    void    handleRequest(std::vector<Server> servers, Mediator& mediator);
     void    storeResponse(const std::string& response);
 
     ~Client();

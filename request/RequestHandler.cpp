@@ -3,6 +3,7 @@
 #include "../response/Mime.hpp"
 #include "../utils/string.hpp"
 #include "../client/Client.hpp"
+#include "../selector/Mediator.hpp"
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
@@ -32,10 +33,21 @@ void RequestHandler::init(Client& client) {
     srv = validServerName(hostHeader);
     client.setServer(srv);
     client.setMethod(request.getMethod());
+    // if (request.getMethod() == "POST") {
+    //  pushStatusLine, headers (chunked transfer encoding) and \r\n\r\n
+    //}
 }
 
-bool RequestHandler::handlePOST(Client &client) {
+bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
     (void)client;
+    (void)mediator;
+    // if cgi meaning if the extension matches a cgi and we have to go through it
+    // if (cgi()) {
+    //  client.setCgiFd(pipe[0]);
+    //  mediator.addCgi(pipe[0]);
+    // } else {
+    //  client.setBodyFd(file) // if the file exists etc
+    // }
     return true;
 }
 
