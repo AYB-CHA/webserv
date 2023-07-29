@@ -58,18 +58,24 @@ void    Multiplexer::readRequests(std::vector<Client>& read_clients) {
 
 void    Multiplexer::readFromPipes(std::vector<Client>& cgi_pipes) {
     for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
-        if (it->readOutputCGI() == true) {//true meaning, it was done reading from the CGI
-            // mediator.removeCGI(it->getCgiFd());
-        };
+        try {
+            if (it->readOutputCGI() == true) {//true meaning: it was done reading from the CGI
+                mediator.removeCGI(it->getCgiFd());
+            };
+            mediator.updateClient(*it);
+        } catch (HttpResponseException& e) {
+            it->storeResponse(e.build());
+            mediator.updateClient(*it);
+        }
     }
 }
 
 void Multiplexer::run() {
     for (;;) {
-        mediator.getBatch(ready_servers, read_clients, write_clients/* , cgi_pipes */);
+        mediator.getBatch(ready_servers, read_clients, write_clients, cgi_pipes);
 
         acceptConnections(ready_servers);
-        // readFromPipes();
+        readFromPipes(cgi_pipes);
         writeResponses(write_clients, read_clients);
         readRequests(read_clients);
         mediator.filterClients();

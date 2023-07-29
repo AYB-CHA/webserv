@@ -18,6 +18,7 @@ private:
         std::string write;
         std::string body;
         std::string read;
+        std::string headers;
         std::vector<char> temp;
     };
 
@@ -37,6 +38,7 @@ private:
     timeval lastTimeRW;
     bool    hasReadPostBody;
     bool    cgiIsSet;
+    bool    headersSent;
 
     Server  server;
 

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include "../utils/string.hpp"
 #include <unistd.h>
 int sendFile(int fileFd, int socketFd, off_t *offset, size_t count);
 
@@ -17,7 +18,7 @@ Client::Client()
     : bodyFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
       contentLength(0), hasReadPostBody(false),
-      cgiIsSet(false) {
+      cgiIsSet(false), headersSent(false) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
@@ -27,12 +28,35 @@ Client::Client(const Client &client)
       file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
       lastTimeRW(client.lastTimeRW), hasReadPostBody(client.hasReadPostBody),
-      cgiIsSet(client.cgiIsSet), server(client.server) {}
+      cgiIsSet(client.cgiIsSet), headersSent(client.headersSent), server(client.server) {}
 
 bool Client::readOutputCGI() {
-    // here the client reads from the pipe, and appends to the buffer the following:
-    // $len"\r\n"$data"\r\n"
-    throw std::runtime_error("readOutputCGI() Unimplemented.");
+    if (headersSent == false) {
+        char buf[1];
+        int len = read(cgiFd, buf, 1);
+        if (len <= 0) {
+            // make sure you reset things to not interefere with the respone writing
+            // add a method called reset() that handles that
+            throw HttpResponseException(400);
+        }
+        bufC.headers += std::string(buf, 1);
+        if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
+            bufC.write += bufC.headers;
+            headersSent = true;
+        }
+        return false;
+    }
+    char buf[1024];
+    int len = read(cgiFd, buf, 1024);
+    std::string readString = std::string(buf, len);
+    std::string append = utils::string::toHex(len) + "\r\n" + readString + "\r\n";
+    bufC.write += append;
+    if (len == 0) {
+        cgiFd = -1;
+        cgiIsSet = false;
+        return true;
+    }
+    return false;
 }
 
 bool Client::writeChunk() {
@@ -197,7 +221,7 @@ bool Client::shouldBeClosed() const {
 }
 
 bool    Client::hasReadBody() const {
-    return contentLength == 0;
+    return hasReadPostBody;
 }
 
 void Client::setServer(Server server) { this->server = server; }

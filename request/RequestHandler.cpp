@@ -33,9 +33,7 @@ void RequestHandler::init(Client& client) {
     srv = validServerName(hostHeader);
     client.setServer(srv);
     client.setMethod(request.getMethod());
-    // if (request.getMethod() == "POST") {
-    //  pushStatusLine, headers (chunked transfer encoding) and \r\n\r\n
-    //}
+    client.setContentLength(utils::string::toInt(request.getHeader("Content-Length")));
 }
 
 bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
@@ -43,6 +41,10 @@ bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
     (void)mediator;
     // if cgi meaning if the extension matches a cgi and we have to go through it
     // if (cgi()) {
+    //   if (request.getMethod() == "POST") {
+    //    pushStatusLine, headers (chunked transfer encoding) and \r\n\r\n
+    //  }
+    //  CGI cgi = CGI(path, ext);
     //  client.setCgiFd(pipe[0]);
     //  mediator.addCgi(pipe[0]);
     // } else {

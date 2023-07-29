@@ -11,6 +11,7 @@ class Mediator {
 private:
     std::map<int, Client>   fd_clients;
     std::map<int, Server>   fd_servers;
+    std::vector<int>        fd_pipes;
     Selector                selector;
 public:
     Mediator(std::vector<Server>& initServers);
@@ -18,6 +19,8 @@ public:
     void    removeClient(int fd);
     void    updateClient(Client client);
     void    filterClients();
+    void    addCGI(int fd);
+    void    removeCGI(int fd);
 
-    void    getBatch(std::vector<Server>&, std::vector<Client>& read, std::vector<Client>& write);
+    void    getBatch(std::vector<Server>&, std::vector<Client>& read, std::vector<Client>& write, std::vector<Client>& pipes);
 };

@@ -1,4 +1,5 @@
 #include "Mediator.hpp"
+#include <algorithm>
 #include <cstring>
 #include <stdexcept>
 #include <unistd.h>
@@ -10,6 +11,21 @@ Mediator::Mediator(std::vector<Server>& init) {
         fd_servers[it->getSocketFd()] = *it;
         selector.pushFd(it->getSocketFd());
     }
+}
+
+void    Mediator::addCGI(int fd) {
+    fd_pipes.push_back(fd);
+    selector.pushFd(fd);
+}
+
+void    Mediator::removeCGI(int fd) {
+    std::vector<int>::iterator it = std::find(fd_pipes.begin(), fd_pipes.end(), fd);
+    if (it == fd_pipes.end()) {
+        throw std::runtime_error("Pipe file descriptor was not found");
+    }
+    fd_pipes.erase(it);
+    selector.popFd(fd);
+    close(fd);
 }
 
 void    Mediator::addClient(int fd, Server& server) {
@@ -55,8 +71,8 @@ void    Mediator::filterClients() {
     }
 }
 
-void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rclients, std::vector<Client>& wclients) {
-    servers.clear(); rclients.clear(); wclients.clear();
+void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rclients, std::vector<Client>& wclients, std::vector<Client>& pipes) {
+    servers.clear(); rclients.clear(); wclients.clear(); pipes.clear();
 
     if (selector.poll() == -1)
         throw std::runtime_error(std::string("select() failed: ")+ strerror(errno));
@@ -66,8 +82,16 @@ void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rc
             break;
         if (fd_servers.find(fd) != fd_servers.end())
             servers.push_back(fd_servers[fd]);
-        else
+        else if (fd_clients.find(fd) != fd_clients.end())
             rclients.push_back(fd_clients[fd]);
+        else {
+            for (std::map<int, Client>::iterator it = fd_clients.begin(); it != fd_clients.end(); ++it) {
+                if (it->second.getCgiFd() == fd) {
+                    pipes.push_back(it->second);
+                    break;
+                }
+            }
+        }
     }
 
     while (int fd = selector.getWriteFd()) {
