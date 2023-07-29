@@ -23,7 +23,8 @@ Client::Client()
 }
 
 Client::Client(const Client &client)
-    : socketFd(client.socketFd), bodyFd(client.bodyFd), cgiFd(client.cgiFd),
+    : requestHandler(client.requestHandler),
+      socketFd(client.socketFd), bodyFd(client.bodyFd), cgiFd(client.cgiFd),
       bufC(client.bufC), method(client.method),
       file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
