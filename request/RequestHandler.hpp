@@ -28,6 +28,6 @@ class RequestHandler {
         std::string getResponse();
         std::string getFileMimeType(const std::string &file_name) const;
         void init(Client& client);
-        void handleGET(Client& client);
+        void handleGET(Client& client, Mediator& mediator);
         bool handlePOST(Client& client, Mediator& mediator);
 };

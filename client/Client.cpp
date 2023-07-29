@@ -90,7 +90,7 @@ void Client::handleRequest(std::vector<Server> servers, Mediator& mediator) {
         requestHandler.setInitialized(true);
     }
     if (method == "GET") {
-        requestHandler.handleGET(*this);
+        requestHandler.handleGET(*this, mediator);
         std::cout << "writeBuffer: " << bufC.write << std::endl;
     }
     if (method == "POST") {

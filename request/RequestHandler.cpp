@@ -53,7 +53,8 @@ bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
     return true;
 }
 
-void RequestHandler::handleGET(Client& client) {
+void RequestHandler::handleGET(Client& client, Mediator& mediator) {
+    (void)mediator;
     std::string file = request.getEndpoint();
 
     Location targetLoc = matchLocation(
