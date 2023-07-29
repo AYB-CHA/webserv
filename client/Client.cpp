@@ -34,11 +34,8 @@ void Client::readOutputCGI() {
 }
 
 bool Client::writeChunk() {
-    if (method == "POST" && cgiIsSet == false) {
-        if (requestHandler.handlePOST(*this) == false)
+    if (method == "POST" && hasReadBody() == false) {
             return true;
-        readOutputCGI();
-        cgiIsSet = true;
     }
     if (bufC.write.empty() && bodyFd == -1)
         return true;
@@ -59,17 +56,23 @@ bool Client::readRequest() {
 }
 
 void Client::handleRequest(std::vector<Server> servers) {
-    if (!requestHandler.hasBeenHandled()) {
+    if (!requestHandler.hasBeenInitialized()) {
         HttpRequest request;
         HttpRequestParser parser(request, this->getRequest());
         requestHandler = RequestHandler(request, servers);
         requestHandler.init(*this);
+        requestHandler.setInitialized(true);
     }
     if (method == "GET") {
         requestHandler.handleGET(*this);
         std::cout << "writeBuffer: " << bufC.write << std::endl;
     }
-    requestHandler.setHandled(true);
+    if (method == "POST") {
+        if (hasReadBody() == false) {
+            return;
+        }
+        requestHandler.handlePOST(*this);
+    }
 }
 
 bool    Client::writeFromBuffer() {

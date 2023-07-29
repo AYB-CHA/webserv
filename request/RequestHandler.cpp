@@ -35,23 +35,11 @@ void RequestHandler::init(Client& client) {
 }
 
 bool RequestHandler::handlePOST(Client &client) {
-    if (!client.hasReadBody())
-        return false; // Return, and wait until the client reads everything
-    //client.setCGI(CGI(path, client.getPostBody()));
-    // Here, the constructor is called, and the cgi is initialized
-    // once, and it opens pipes and everything
-    // 
-    // next time, when we call fillWriteFromCGI(), it will
-    // read from the pipe into the writebuffer.
-
-    // Honestly, I think we have to monitor the fd alone, and then
-    // the cgi will tell me when it completely filled the buffer,
-    // so that we can set the Content-Length in the response.
+    (void)client;
     return true;
 }
 
 void RequestHandler::handleGET(Client& client) {
-
     std::string file = request.getEndpoint();
 
     Location targetLoc = matchLocation(
@@ -118,11 +106,11 @@ Server& RequestHandler::validServerName(std::string serverName) {
 
 int RequestHandler::getFd() { return this->fd; }
 
-void    RequestHandler::setHandled(bool handled) {
+void    RequestHandler::setInitialized(bool handled) {
     this->handled = handled;
 }
 
-bool    RequestHandler::hasBeenHandled() const {
+bool    RequestHandler::hasBeenInitialized() const {
     return handled;
 }
 

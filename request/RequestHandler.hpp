@@ -22,8 +22,8 @@ class RequestHandler {
         RequestHandler(HttpRequest &request, std::vector<Server>& servers);
 
         int getFd();
-        void    setHandled(bool handled);
-        bool    hasBeenHandled() const;
+        void    setInitialized(bool handled);
+        bool    hasBeenInitialized() const;
         std::string getResponse();
         std::string getFileMimeType(const std::string &file_name) const;
         void init(Client& client);
