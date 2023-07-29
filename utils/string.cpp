@@ -13,7 +13,7 @@ std::string utils::string::toHex(int number) {
     std::string result;
 
     ss << std::hex << number;
-    ss << result;
+    ss >> result;
     return result;
 }
 
