@@ -76,6 +76,15 @@ void Multiplexer::run() {
 
         acceptConnections(ready_servers);
         readFromPipes(cgi_pipes);
+        for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
+            CIter client = std::find(read_clients.begin(), read_clients.end(), *it);
+            if (client != read_clients.end())
+                *client = *it;
+            client = std::find(write_clients.begin(), write_clients.end(), *it);
+            if (client != write_clients.end())
+                *client = *it;
+        }
+
         writeResponses(write_clients, read_clients);
         readRequests(read_clients);
         mediator.filterClients();
