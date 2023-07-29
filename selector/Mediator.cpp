@@ -9,13 +9,13 @@ Mediator::Mediator(std::vector<Server>& init) {
     selector.setTimeout(5, 0);
     for (std::vector<Server>::iterator it = init.begin(); it != init.end(); ++it) {
         fd_servers[it->getSocketFd()] = *it;
-        selector.pushFd(it->getSocketFd());
+        selector.pushFd(it->getSocketFd(), false);
     }
 }
 
 void    Mediator::addCGI(int fd) {
     fd_pipes.push_back(fd);
-    selector.pushFd(fd);
+    selector.pushFd(fd, true);
 }
 
 void    Mediator::removeCGI(int fd) {
@@ -39,7 +39,7 @@ void    Mediator::addClient(int fd, Server& server) {
     client.setFd(fd);
     client.setServer(server);
     fd_clients[fd] = client;
-    selector.pushFd(fd);
+    selector.pushFd(fd, false);
     std::cout << "Num of clients: " << fd_clients.size() << std::endl;
 }
 
