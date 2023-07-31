@@ -52,6 +52,7 @@ public:
     Client();
     Client(int socketFd, Server server);
     Client(const Client& o);
+    Client& operator=(const Client& o);
     bool    operator==(const Client& o) const;
 
     int     getSocketFd() const;

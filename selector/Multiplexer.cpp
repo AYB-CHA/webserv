@@ -29,7 +29,6 @@ void    Multiplexer::acceptConnections() {
 void    Multiplexer::writeResponses() {
     for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
         bool bufferisEmpty = (*it)->writeChunk();
-        mediator.updateClient(**it);
         if (!bufferisEmpty) {
             CIter client =
                 std::find(read_clients.begin(), read_clients.end(), *it);
@@ -43,14 +42,11 @@ void    Multiplexer::readRequests() {
     for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
         try {
             if (!(*it)->readRequest()) {
-                mediator.updateClient(**it);
                 continue;
             }
             (*it)->handleRequest(servers, mediator);
-            mediator.updateClient(**it);
         } catch (HttpResponseException& e) {
             (*it)->storeResponse(e.build());
-            mediator.updateClient(**it);
         }
     }
 }
@@ -61,10 +57,8 @@ void    Multiplexer::readFromPipes() {
             if ((*it)->readOutputCGI() == true) {//true meaning: it was done reading from the CGI
                 mediator.removeCGI((*it)->getCgiFd());
             };
-            mediator.updateClient(**it);
         } catch (HttpResponseException& e) {
             (*it)->storeResponse(e.build());
-            mediator.updateClient(**it);
         }
     }
 }

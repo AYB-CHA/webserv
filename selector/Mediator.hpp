@@ -17,7 +17,6 @@ public:
     Mediator(std::vector<Server>& initServers);
     void    addClient(int fd, Server& server);
     void    removeClient(int fd);
-    void    updateClient(Client client);
     void    filterClients();
     void    addCGI(int fd);
     void    removeCGI(int fd);

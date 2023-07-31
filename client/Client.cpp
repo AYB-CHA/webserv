@@ -42,6 +42,12 @@ Client::Client(const Client &client)
       lastTimeRW(client.lastTimeRW), hasReadPostBody(client.hasReadPostBody),
       cgiIsSet(client.cgiIsSet), headersSent(client.headersSent), server(client.server) {}
 
+Client& Client::operator=(const Client& o) {
+    if (this == &o) return *this;
+    new (this) Client(o);
+    return *this;
+}
+
 bool Client::readOutputCGI() {
     if (headersSent == false) {
         char buf[1];

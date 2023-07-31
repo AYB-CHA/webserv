@@ -54,10 +54,6 @@ void    Mediator::removeClient(int fd) {
     }
 }
 
-void    Mediator::updateClient(Client client) {
-    fd_clients[client.getSocketFd()] = client;
-}
-
 void    Mediator::filterClients() {
     std::vector<int> toDelete;
     for (std::map<int, Client>::iterator it = fd_clients.begin(); it != fd_clients.end(); ++it) {
