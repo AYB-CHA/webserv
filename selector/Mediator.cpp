@@ -71,7 +71,7 @@ void    Mediator::filterClients() {
     }
 }
 
-void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rclients, std::vector<Client>& wclients, std::vector<Client>& pipes) {
+void    Mediator::getBatch(std::vector<Server*>& servers, std::vector<Client*>& rclients, std::vector<Client*>& wclients, std::vector<Client*>& pipes) {
     servers.clear(); rclients.clear(); wclients.clear(); pipes.clear();
 
     if (selector.poll() == -1)
@@ -81,13 +81,13 @@ void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rc
         if (fd == -1)
             break;
         if (fd_servers.find(fd) != fd_servers.end())
-            servers.push_back(fd_servers[fd]);
+            servers.push_back(&fd_servers[fd]);
         else if (fd_clients.find(fd) != fd_clients.end())
-            rclients.push_back(fd_clients[fd]);
+            rclients.push_back(&fd_clients[fd]);
         else {
             for (std::map<int, Client>::iterator it = fd_clients.begin(); it != fd_clients.end(); ++it) {
                 if (it->second.getCgiFd() == fd) {
-                    pipes.push_back(it->second);
+                    pipes.push_back(&it->second);
                     break;
                 }
             }
@@ -99,6 +99,6 @@ void    Mediator::getBatch(std::vector<Server>& servers, std::vector<Client>& rc
             break;
         if (fd_servers.find(fd) != fd_servers.end())
             throw std::runtime_error("server socket failed.");
-        wclients.push_back(fd_clients[fd]);
+        wclients.push_back(&fd_clients[fd]);
     }
 }

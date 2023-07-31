@@ -15,7 +15,7 @@ Multiplexer::Multiplexer(std::vector<Server> servers) : servers(servers), mediat
 void    Multiplexer::acceptConnections() {
     for (SIter it = ready_servers.begin(); it != ready_servers.end();
     ++it) {
-        int fd = accept(it->getSocketFd(), NULL, NULL);
+        int fd = accept((*it)->getSocketFd(), NULL, NULL);
         if (fd == -1) {
             if (errno != EWOULDBLOCK) {
                 throw std::runtime_error("accept() failed");
@@ -23,14 +23,14 @@ void    Multiplexer::acceptConnections() {
             break;
         }
         // std::cout << it->getLocation()[1].getRoot() << std::endl;
-        mediator.addClient(fd, *it);
+        mediator.addClient(fd, **it);
     }
 }
 
 void    Multiplexer::writeResponses() {
     for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
-        bool bufferisEmpty = it->writeChunk();
-        mediator.updateClient(*it);
+        bool bufferisEmpty = (*it)->writeChunk();
+        mediator.updateClient(**it);
         if (!bufferisEmpty) {
             CIter client =
                 std::find(read_clients.begin(), read_clients.end(), *it);
@@ -43,15 +43,15 @@ void    Multiplexer::writeResponses() {
 void    Multiplexer::readRequests() {
     for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
         try {
-            if (!it->readRequest()) {
-                mediator.updateClient(*it);
+            if (!(*it)->readRequest()) {
+                mediator.updateClient(**it);
                 continue;
             }
-            it->handleRequest(servers, mediator);
-            mediator.updateClient(*it);
+            (*it)->handleRequest(servers, mediator);
+            mediator.updateClient(**it);
         } catch (HttpResponseException& e) {
-            it->storeResponse(e.build());
-            mediator.updateClient(*it);
+            (*it)->storeResponse(e.build());
+            mediator.updateClient(**it);
         }
     }
 }
@@ -59,13 +59,13 @@ void    Multiplexer::readRequests() {
 void    Multiplexer::readFromPipes() {
     for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
         try {
-            if (it->readOutputCGI() == true) {//true meaning: it was done reading from the CGI
-                mediator.removeCGI(it->getCgiFd());
+            if ((*it)->readOutputCGI() == true) {//true meaning: it was done reading from the CGI
+                mediator.removeCGI((*it)->getCgiFd());
             };
-            mediator.updateClient(*it);
+            mediator.updateClient(**it);
         } catch (HttpResponseException& e) {
-            it->storeResponse(e.build());
-            mediator.updateClient(*it);
+            (*it)->storeResponse(e.build());
+            mediator.updateClient(**it);
         }
     }
 }
