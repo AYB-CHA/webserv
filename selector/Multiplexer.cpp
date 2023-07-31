@@ -12,7 +12,7 @@
 
 Multiplexer::Multiplexer(std::vector<Server> servers) : servers(servers), mediator(servers) {}
 
-void    Multiplexer::acceptConnections(std::vector<Server>& ready_servers) {
+void    Multiplexer::acceptConnections() {
     for (SIter it = ready_servers.begin(); it != ready_servers.end();
     ++it) {
         int fd = accept(it->getSocketFd(), NULL, NULL);
@@ -27,7 +27,7 @@ void    Multiplexer::acceptConnections(std::vector<Server>& ready_servers) {
     }
 }
 
-void    Multiplexer::writeResponses(std::vector<Client>& write_clients, std::vector<Client>& read_clients) {
+void    Multiplexer::writeResponses() {
     for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
         bool bufferisEmpty = it->writeChunk();
         mediator.updateClient(*it);
@@ -40,7 +40,7 @@ void    Multiplexer::writeResponses(std::vector<Client>& write_clients, std::vec
     }
 }
 
-void    Multiplexer::readRequests(std::vector<Client>& read_clients) {
+void    Multiplexer::readRequests() {
     for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
         try {
             if (!it->readRequest()) {
@@ -56,7 +56,7 @@ void    Multiplexer::readRequests(std::vector<Client>& read_clients) {
     }
 }
 
-void    Multiplexer::readFromPipes(std::vector<Client>& cgi_pipes) {
+void    Multiplexer::readFromPipes() {
     for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
         try {
             if (it->readOutputCGI() == true) {//true meaning: it was done reading from the CGI
@@ -74,19 +74,19 @@ void Multiplexer::run() {
     for (;;) {
         mediator.getBatch(ready_servers, read_clients, write_clients, cgi_pipes);
 
-        acceptConnections(ready_servers);
-        readFromPipes(cgi_pipes);
-        for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
-            CIter client = std::find(read_clients.begin(), read_clients.end(), *it);
-            if (client != read_clients.end())
-                *client = *it;
-            client = std::find(write_clients.begin(), write_clients.end(), *it);
-            if (client != write_clients.end())
-                *client = *it;
-        }
+        acceptConnections();
+        readFromPipes();
+        // for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
+        //     CIter client = std::find(read_clients.begin(), read_clients.end(), *it);
+        //     if (client != read_clients.end())
+        //         *client = *it;
+        //     client = std::find(write_clients.begin(), write_clients.end(), *it);
+        //     if (client != write_clients.end())
+        //         *client = *it;
+        // }
 
-        writeResponses(write_clients, read_clients);
-        readRequests(read_clients);
+        writeResponses();
+        readRequests();
         mediator.filterClients();
     }
 }

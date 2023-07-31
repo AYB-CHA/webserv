@@ -17,10 +17,10 @@ private:
     std::vector<Server> servers;
     Mediator            mediator;
 
-    void    acceptConnections(std::vector<Server>& ready_servers);
-    void    writeResponses(std::vector<Client>& write_clients, std::vector<Client>& read_clients);
-    void    readFromPipes(std::vector<Client>& cgi_pipes);
-    void    readRequests(std::vector<Client>& read_clients);
+    void    acceptConnections();
+    void    writeResponses();
+    void    readFromPipes();
+    void    readRequests();
 public:
     Multiplexer(std::vector<Server> servers);
     void    run();
