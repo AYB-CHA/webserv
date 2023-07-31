@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <sys/errno.h>
 #include <sys/socket.h>
+#include <csignal>
 
 Multiplexer::Multiplexer(std::vector<Server> servers) : servers(servers), mediator(servers) {}
 
