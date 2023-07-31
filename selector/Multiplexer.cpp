@@ -64,6 +64,7 @@ void    Multiplexer::readFromPipes() {
 }
 
 void Multiplexer::run() {
+    signal(SIGPIPE, SIG_IGN);
     for (;;) {
         mediator.getBatch(ready_servers, read_clients, write_clients, cgi_pipes);
 

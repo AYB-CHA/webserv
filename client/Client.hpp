@@ -77,6 +77,8 @@ public:
     bool    readRequest();
     void    handleRequest(std::vector<Server> servers, Mediator& mediator);
     void    storeResponse(const std::string& response);
+    void    reset();
+    void    clear();
 
     ~Client();
 };

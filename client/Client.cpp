@@ -125,8 +125,11 @@ bool    Client::writeFromBuffer() {
 
     int writeLen = write(socketFd, string, length);
     if (writeLen == -1) {
-        std::string errMsg("Client write() error:");
-        throw std::runtime_error(errMsg + strerror(errno));
+        clear();
+        connectionClose = true;
+        return false;
+        // std::string errMsg("Client write() error:");
+        // throw std::runtime_error(errMsg + strerror(errno));
     }
 
     size_t remainingLength = length - writeLen;
@@ -258,6 +261,17 @@ void Client::setConnectionClose(bool close) { this->connectionClose = close; }
 
 void Client::storeResponse(const std::string &response) {
     this->bufC.write = response;
+}
+
+void Client::reset() {
+    if (bufC.write.empty() && bodyFd == -1 && cgiFd == -1)
+        *this = Client(socketFd, server);
+}
+
+void Client::clear() {
+    bufC.write.clear();
+    bodyFd = -1;
+    cgiFd = -1;
 }
 
 Client::~Client() {}

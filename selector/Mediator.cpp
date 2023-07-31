@@ -60,6 +60,7 @@ void    Mediator::filterClients() {
         if (it->second.shouldBeClosed()) {
             toDelete.push_back(it->second.getSocketFd());
         }
+        // it->second.reset();
     }
     for (std::vector<int>::iterator it = toDelete.begin(); it != toDelete.end(); ++it) {
         removeClient(*it);
