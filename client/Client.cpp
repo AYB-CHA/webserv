@@ -106,15 +106,18 @@ void Client::handleRequest(std::vector<Server> servers, Mediator& mediator) {
         requestHandler = RequestHandler(request, servers);
         requestHandler.init(*this);
         requestHandler.setInitialized(true);
+        if (method == "POST")
+            return;
     }
+    requestHandler.setInitialized(false);
     if (method == "GET") {
         requestHandler.handleGET(*this, mediator);
         std::cout << "writeBuffer: " << bufC.write << std::endl;
     }
     if (method == "POST") {
-        if (hasReadBody() == false) {
-            return;
-        }
+        // if (hasReadBody() == false) {
+        //     return;
+        // }
         requestHandler.handlePOST(*this, mediator);
     }
 }
@@ -188,7 +191,6 @@ bool Client::readStatusHeaders() {
     updateTimeout();
 
     if (bufC.read.find("\r\n\r\n") != std::string::npos) {
-        requestHandler.setInitialized(false);
         return true;
     }
     if (bufC.read.size() >= 8190) {
