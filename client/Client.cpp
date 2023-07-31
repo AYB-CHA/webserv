@@ -18,8 +18,19 @@ Client::Client()
     : bodyFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
       contentLength(0), hasReadPostBody(false),
-      cgiIsSet(false), headersSent(false) {
+      cgiIsSet(false), headersSent(false)
+{
     gettimeofday(&lastTimeRW, NULL);
+}
+
+Client::Client(int socketFd, Server server) 
+    : bodyFd(-1), method("GET"), file_offset(0),
+      connectionClose(false), clientMaxBodySize(1024),
+      contentLength(0), hasReadPostBody(false),
+      cgiIsSet(false), headersSent(false)
+{
+    this->socketFd = socketFd;
+    this->server = server;
 }
 
 Client::Client(const Client &client)

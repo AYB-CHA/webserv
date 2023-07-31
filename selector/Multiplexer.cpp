@@ -22,8 +22,7 @@ void    Multiplexer::acceptConnections() {
             }
             break;
         }
-        // std::cout << it->getLocation()[1].getRoot() << std::endl;
-        mediator.addClient(fd, **it);
+        new_clients.push_back(Client(fd, **it));
     }
 }
 
@@ -76,17 +75,12 @@ void Multiplexer::run() {
 
         acceptConnections();
         readFromPipes();
-        // for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
-        //     CIter client = std::find(read_clients.begin(), read_clients.end(), *it);
-        //     if (client != read_clients.end())
-        //         *client = *it;
-        //     client = std::find(write_clients.begin(), write_clients.end(), *it);
-        //     if (client != write_clients.end())
-        //         *client = *it;
-        // }
-
         writeResponses();
         readRequests();
         mediator.filterClients();
+        for (std::vector<Client>::iterator it = new_clients.begin(); it != new_clients.end(); ++it) {
+            mediator.addClient(it->getSocketFd(), it->getServer());
+        }
+        new_clients.clear();
     }
 }

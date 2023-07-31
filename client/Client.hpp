@@ -50,6 +50,7 @@ private:
     void    updateTimeout();
 public:
     Client();
+    Client(int socketFd, Server server);
     Client(const Client& o);
     bool    operator==(const Client& o) const;
 

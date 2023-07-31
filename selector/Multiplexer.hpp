@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include <vector>
 #include <algorithm>
 #include "../server/Server.hpp"
@@ -10,6 +11,7 @@ class Multiplexer {
 private:
     typedef std::vector<Server*>::iterator SIter;
     typedef std::vector<Client*>::iterator CIter;
+    std::vector<Client>   new_clients;
     std::vector<Server*> ready_servers;
     std::vector<Client*> cgi_pipes;
     std::vector<Client*> write_clients;
