@@ -188,6 +188,7 @@ bool Client::readStatusHeaders() {
     updateTimeout();
 
     if (bufC.read.find("\r\n\r\n") != std::string::npos) {
+        requestHandler.setInitialized(false);
         return true;
     }
     if (bufC.read.size() >= 8190) {
