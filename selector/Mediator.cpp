@@ -60,7 +60,6 @@ void    Mediator::filterClients() {
         if (it->second.shouldBeClosed()) {
             toDelete.push_back(it->second.getSocketFd());
         }
-        // it->second.reset();
     }
     for (std::vector<int>::iterator it = toDelete.begin(); it != toDelete.end(); ++it) {
         removeClient(*it);
@@ -72,7 +71,7 @@ void    Mediator::getBatch(std::vector<Server*>& servers, std::vector<Client*>& 
     servers.clear(); rclients.clear(); wclients.clear(); pipes.clear();
 
     if (selector.poll() == -1)
-        throw std::runtime_error(std::string("select() failed: ")+ strerror(errno));
+        throw std::runtime_error(std::string("select() failed: ") + strerror(errno));
 
     while (int fd = selector.getReadFd()) {
         if (fd == -1)

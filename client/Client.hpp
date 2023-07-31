@@ -37,7 +37,6 @@ private:
     off_t   contentLength;
     timeval lastTimeRW;
     bool    hasReadPostBody;
-    bool    cgiIsSet;
     bool    headersSent;
 
     Server  server;

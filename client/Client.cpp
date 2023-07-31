@@ -15,19 +15,19 @@ const unsigned int Client::max_timeout = 30;
 const int Client::max_sendfile = 1000000;
 
 Client::Client()
-    : bodyFd(-1), method("GET"), file_offset(0),
+    : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
       contentLength(0), hasReadPostBody(false),
-      cgiIsSet(false), headersSent(false)
+      headersSent(false)
 {
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(int socketFd, Server server) 
-    : bodyFd(-1), method("GET"), file_offset(0),
+    : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
       contentLength(0), hasReadPostBody(false),
-      cgiIsSet(false), headersSent(false)
+      headersSent(false)
 {
     this->socketFd = socketFd;
     this->server = server;
@@ -40,7 +40,7 @@ Client::Client(const Client &client)
       file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
       lastTimeRW(client.lastTimeRW), hasReadPostBody(client.hasReadPostBody),
-      cgiIsSet(client.cgiIsSet), headersSent(client.headersSent), server(client.server) {}
+      headersSent(client.headersSent), server(client.server) {}
 
 Client& Client::operator=(const Client& o) {
     if (this == &o) return *this;
@@ -66,12 +66,15 @@ bool Client::readOutputCGI() {
     }
     char buf[1024];
     int len = read(cgiFd, buf, 1024);
+    if (len == -1) {
+        std::string errMsg("readOutputCGI(): ");
+        throw std::runtime_error(errMsg + strerror(errno));
+    }
     std::string readString = std::string(buf, len);
     std::string append = utils::string::toHex(len) + "\r\n" + readString + "\r\n";
     bufC.write += append;
     if (len == 0) {
         cgiFd = -1;
-        cgiIsSet = false;
         return true;
     }
     return false;
