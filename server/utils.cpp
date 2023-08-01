@@ -31,6 +31,14 @@ void utils::strTrim(std::string& str) {
     str = result;
 }
 
+void utils::strTrimV2(std::string& str, const std::string& charSet) {
+    std::string result = str;
+    result.erase(0, result.find_first_not_of(charSet));
+    result.erase(result.find_last_not_of(charSet) + 1);
+    str = result;
+}
+
+
 std::vector<std::string> utils::split(std::string str, std::string delimiter) {
 
     std::vector<std::string> list;

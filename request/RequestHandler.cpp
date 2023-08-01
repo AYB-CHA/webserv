@@ -113,21 +113,22 @@ void RequestHandler::handleGET(Client& client, Mediator& mediator) {
                 DIR *d = opendir(file.c_str());
                 std::cout << "_____________________________________" << std::endl;
                 for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
-                    std::string iteam;
+                    std::string item;
                     struct stat info;
                     std::string s(de->d_name);
                     stat(s.c_str(), &info);
+                    std::cout << "file name: " << s << std::endl;
                     if (S_ISDIR(info.st_mode)) {
                         if (s == "..")
-                            iteam = "\t\t\t<li style=\"list-style-image: url('/images/arrow.png')\"><a href=\"" + s + "\">" + s + "</a>" + "</li>\n";
+                            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/arrow.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
                         else
-                            iteam = "\t\t\t<li style=\"list-style-image: url('/images/folder.png')\"><a href=\"" + s + "\">" + s + "</a>" + "</li>\n";
+                            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/folder.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
                     } else {
-                        iteam = "\t\t\t<li style=\"list-style-image: url('/images/file.png')\"><a href=\"" + s + "\">" + s + "</a>" + "</li>\n";
+                        item = std::string("\t\t\t<li style=\"list-style-image: url('/images/file.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
                     }
 
-                    container.insert(index, iteam);
-                    index += iteam.length();
+                    container.insert(index, item);
+                    index += item.length();
                 }
 
                 response.setStatuscode(200)
@@ -137,7 +138,7 @@ void RequestHandler::handleGET(Client& client, Mediator& mediator) {
             } else
                 throw HttpResponseException(403);
         } else {
-
+            throw HttpResponseException(404);
         }
     } else {
 
@@ -179,13 +180,22 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv, Loc
                 // list.pop_back();
 
                 std::cout << "tmp: " << tmp << " | i=  " << i << " | size: " << list.size() << std::endl;
-                if (strcmp(tmp.c_str(), itr1->c_str()) == 0) {
+
+                std::string prefix = *itr1;
+                utils::strTrimV2(prefix, "/");
+                prefix.insert(prefix.begin(), '/');
+                std::cout << "prefix modified: " << prefix << std::endl;
+                if (tmp == prefix) {
                     found = true;
-                    holder = *itr1;
+                    holder = prefix;
                     target = *itr;
                 }
             }
 
+            if (list.empty() && *itr1 == "/") {
+                target = *itr;
+                return true;
+            }
         }
         std::cout << "================ Location ===================" << std::endl;
     }

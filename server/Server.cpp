@@ -75,7 +75,7 @@ void Server::bindAddress() {
 }
 
 void Server::listen() {
-    if (::listen(this->socket_fd, SOMAXCONN))
+    if (::listen(this->socket_fd, SOMAXCONN * 10))
         throw std::runtime_error("socket init: could't listen to the socket");
 }
 
