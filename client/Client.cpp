@@ -24,13 +24,12 @@ Client::Client()
 }
 
 Client::Client(int socketFd, Server server) 
-    : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
+    : socketFd(socketFd), bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
-      contentLength(0),
-      headersSent(false)
+      contentLength(0), headersSent(false),
+      server(server)
 {
-    this->socketFd = socketFd;
-    this->server = server;
+    gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(const Client &client)
@@ -128,8 +127,6 @@ bool    Client::writeFromBuffer() {
         clear();
         connectionClose = true;
         return false;
-        // std::string errMsg("Client write() error:");
-        // throw std::runtime_error(errMsg + strerror(errno));
     }
 
     size_t remainingLength = length - writeLen;
