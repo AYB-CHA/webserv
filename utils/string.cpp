@@ -8,6 +8,15 @@ bool utils::string::hasNoSpace(const std::string &string) {
     return true;
 }
 
+std::string utils::string::toHex(int number) {
+    std::stringstream ss;
+    std::string result;
+
+    ss << std::hex << number;
+    ss >> result;
+    return result;
+}
+
 int utils::string::toInt(const std::string &string) {
     int integer;
 

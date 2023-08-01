@@ -2,6 +2,8 @@
 #include "../response/HttpResponseException.hpp"
 #include "../response/Mime.hpp"
 #include "../utils/string.hpp"
+#include "../client/Client.hpp"
+#include "../selector/Mediator.hpp"
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
@@ -11,12 +13,75 @@
 
 #include <vector>
 
-RequestHandler::RequestHandler(HttpRequest &request, Client &client, std::vector<Server> servers) {
+RequestHandler::RequestHandler() : handled(false) {}
+
+RequestHandler::RequestHandler(const RequestHandler& o)
+    : response(o.response), request(o.request),
+    servers(o.servers), fd(o.fd), handled(o.handled)
+{}
+
+RequestHandler::RequestHandler(HttpRequest &request, std::vector<Server>& servers) {
     this->request = request;
-    this->client = client;
     fd = -1;
     this->servers = servers;
-    handleIt();
+}
+
+void RequestHandler::init(Client& client) {
+    Server srv;
+
+    std::string hostHeader = request.getHeader("Host");
+    srv = validServerName(hostHeader);
+    client.setServer(srv);
+    client.setMethod(request.getMethod());
+    client.setContentLength(utils::string::toInt(request.getHeader("Content-Length")));
+}
+
+bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
+    (void)client;
+    (void)mediator;
+    // if cgi meaning if the extension matches a cgi and we have to go through it
+    // if (cgi()) {
+    //   if (request.getMethod() == "POST") {
+    //    pushStatusLine, headers (chunked transfer encoding) and \r\n\r\n
+    //  }
+    //  CGI cgi = CGI(path, ext);
+    //  client.setCgiFd(pipe[0]);
+    //  mediator.addCgi(pipe[0]);
+    // } else {
+    //  client.setBodyFd(file) // if the file exists etc
+    // }
+    return true;
+}
+
+void RequestHandler::handleGET(Client& client, Mediator& mediator) {
+    (void)mediator;
+    std::string file = request.getEndpoint();
+
+    Location targetLoc = matchLocation(
+        file,
+        const_cast<std::vector<Location> &>(client.getServer().getLocation()));
+
+    file = "./" + targetLoc.getRoot() + file;
+    // file = "./types.txt";
+    // std::cout << file << std::endl;
+    if (access(file.c_str(), F_OK) == -1)
+        throw HttpResponseException(404);
+    if (access(file.c_str(), R_OK == -1))
+        throw HttpResponseException(403);
+
+    struct stat data;
+    stat(file.c_str(), &data);
+    off_t length = data.st_size;
+
+    fd = open(file.c_str(), O_RDONLY);
+
+    std::cout << "len: " << length << std::endl;
+    // std::cout << "fd: " << fd << std::endl;
+    response.setStatuscode(200)
+        ->setHeader("Content-Type", this->getFileMimeType(file))
+        ->setHeader("Content-Length", utils::string::fromInt(length));
+    client.storeResponse(this->getResponse());
+    client.setFileFd(this->getFd());
 }
 
 std::string RequestHandler::getResponse() { return response.build(); }
@@ -54,45 +119,15 @@ Server& RequestHandler::validServerName(std::string serverName) {
     return *(servers.begin());
 }
 
-void RequestHandler::handleIt() {
+int RequestHandler::getFd() { return this->fd; }
 
-    Server srv;
-
-    std::string hostHeader = request.getHeader("Host");
-    srv = validServerName(hostHeader);
-    client.setServer(srv);
-    std::cout << "updated server: " << srv.getServerNames()[0] << std::endl;
-
-
-
-    std::string file = request.getEndpoint();
-
-    Location targetLoc = matchLocation(
-        file,
-        const_cast<std::vector<Location> &>(client.getServer().getLocation()));
-
-    file = "./" + targetLoc.getRoot() + file;
-    // file = "./types.txt";
-    // std::cout << file << std::endl;
-    if (access(file.c_str(), F_OK) == -1)
-        throw HttpResponseException(404);
-    if (access(file.c_str(), R_OK == -1))
-        throw HttpResponseException(403);
-
-    struct stat data;
-    stat(file.c_str(), &data);
-    off_t length = data.st_size;
-
-    fd = open(file.c_str(), O_RDONLY);
-
-    std::cout << "len: " << length << std::endl;
-    // std::cout << "fd: " << fd << std::endl;
-    response.setStatuscode(200)
-        ->setHeader("Content-Type", this->getFileMimeType(file))
-        ->setHeader("Content-Length", utils::string::fromInt(length));
+void    RequestHandler::setInitialized(bool handled) {
+    this->handled = handled;
 }
 
-int RequestHandler::getFd() { return this->fd; }
+bool    RequestHandler::hasBeenInitialized() const {
+    return handled;
+}
 
 std::string
 RequestHandler::getFileMimeType(const std::string &file_name) const {
