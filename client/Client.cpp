@@ -17,7 +17,7 @@ const int Client::max_sendfile = 1000000;
 Client::Client()
     : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
-      contentLength(0), hasReadPostBody(false),
+      contentLength(0),
       headersSent(false)
 {
     gettimeofday(&lastTimeRW, NULL);
@@ -26,7 +26,7 @@ Client::Client()
 Client::Client(int socketFd, Server server) 
     : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
-      contentLength(0), hasReadPostBody(false),
+      contentLength(0),
       headersSent(false)
 {
     this->socketFd = socketFd;
@@ -39,7 +39,7 @@ Client::Client(const Client &client)
       bufC(client.bufC), method(client.method),
       file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
-      lastTimeRW(client.lastTimeRW), hasReadPostBody(client.hasReadPostBody),
+      lastTimeRW(client.lastTimeRW),
       headersSent(client.headersSent), server(client.server) {}
 
 Client& Client::operator=(const Client& o) {
@@ -74,16 +74,14 @@ bool Client::readOutputCGI() {
     std::string append = utils::string::toHex(len) + "\r\n" + readString + "\r\n";
     bufC.write += append;
     if (len == 0) {
-        cgiFd = -1;
+        headersSent = false;
+        bufC.headers.clear();
         return true;
     }
     return false;
 }
 
 bool Client::writeChunk() {
-    if (method == "POST" && hasReadBody() == false) {
-            return true;
-    }
     if (bufC.write.empty() && bodyFd == -1)
         return true;
     if (!bufC.write.empty()) {
@@ -115,12 +113,8 @@ void Client::handleRequest(std::vector<Server> servers, Mediator& mediator) {
     requestHandler.setInitialized(false);
     if (method == "GET") {
         requestHandler.handleGET(*this, mediator);
-        std::cout << "writeBuffer: " << bufC.write << std::endl;
     }
     if (method == "POST") {
-        // if (hasReadBody() == false) {
-        //     return;
-        // }
         requestHandler.handlePOST(*this, mediator);
     }
 }
@@ -168,7 +162,7 @@ bool    Client::readBody() {
     contentLength -= len;
     if (contentLength == 0) {
         bufC.body = std::string(bufC.temp.begin(), bufC.temp.end());
-        hasReadPostBody = true;
+        bufC.temp.clear();
         return true;
     }
     if (len <= 0) {
@@ -183,8 +177,7 @@ bool Client::readStatusHeaders() {
     int readlen = recv(socketFd, buffer, 1, 0);
 
     if (readlen == -1) {
-        std::string errMsg("readlen(): ");
-        throw std::runtime_error(errMsg + strerror(errno));
+        return true;
     }
     if (readlen == 0) {
         connectionClose = true;
@@ -245,10 +238,6 @@ void Client::updateTimeout() {
 bool Client::shouldBeClosed() const {
     return (this->connectionClose && bufC.write.empty() && bodyFd == -1) ||
            (timeDifference() > max_timeout);
-}
-
-bool    Client::hasReadBody() const {
-    return hasReadPostBody;
 }
 
 void Client::setServer(Server server) { this->server = server; }

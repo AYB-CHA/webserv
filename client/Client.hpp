@@ -36,7 +36,6 @@ private:
     off_t   clientMaxBodySize;
     off_t   contentLength;
     timeval lastTimeRW;
-    bool    hasReadPostBody;
     bool    headersSent;
 
     Server  server;
@@ -61,7 +60,6 @@ public:
     Server& getServer();
     std::string getPostBody();
     bool    shouldBeClosed() const;
-    bool    hasReadBody() const;
 
     void    setServer(Server server);
     void    setFd(int fd);
