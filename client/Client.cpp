@@ -174,6 +174,8 @@ bool Client::readStatusHeaders() {
     int readlen = recv(socketFd, buffer, 1, 0);
 
     if (readlen == -1) {
+        clear();
+        connectionClose = true;
         return true;
     }
     if (readlen == 0) {
