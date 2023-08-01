@@ -55,8 +55,9 @@ void    Multiplexer::readRequests() {
 void    Multiplexer::readFromPipes() {
     for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
         try {
-            if ((*it)->readOutputCGI() == true) {//true meaning: it was done reading from the CGI
+            if ((*it)->readOutputCGI() == true) {
                 mediator.removeCGI((*it)->getCgiFd());
+                (*it)->setMethod("GET");
                 (*it)->setCgiFd(-1);
             };
         } catch (HttpResponseException& e) {
