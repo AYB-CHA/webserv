@@ -2,6 +2,8 @@
 #include "../response/HttpResponseException.hpp"
 #include "../response/Mime.hpp"
 #include "../utils/string.hpp"
+#include "../client/Client.hpp"
+#include "../selector/Mediator.hpp"
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
@@ -15,87 +17,47 @@
 
 #include <vector>
 
-RequestHandler::RequestHandler(HttpRequest &request, Client &client, std::vector<Server> servers) {
+RequestHandler::RequestHandler() : handled(false) {}
+
+RequestHandler::RequestHandler(const RequestHandler& o)
+    : response(o.response), request(o.request),
+    servers(o.servers), fd(o.fd), handled(o.handled) {}
+
+RequestHandler::RequestHandler(HttpRequest &request, std::vector<Server>& servers) {
     this->request = request;
-    this->client = client;
     fd = -1;
     this->servers = servers;
-    handleIt();
 }
 
-std::string RequestHandler::getResponse() { return response.build(); }
-
-bool RequestHandler::matchLocation(std::string endpoint, const Server &serv, Location &target) {
-
-    std::vector<Location> locations = serv.getLocation();
-    if (locations.empty()) {
-        return false;
-    }
-
-    bool found = false;
-    std::string holder = "";
-
-    forEach (std::vector<Location>, locations, itr) {
-        forEachConst (std::vector<std::string>, itr->getPrefix(), itr1) {
-            std::vector<std::string> list = utils::split(endpoint, "/");
-            for (size_t i = 0; i < list.size(); i++) {
-
-                std::string tmp = "";
-                for (std::vector<std::string>::iterator itr2 = list.begin(); itr2 != list.begin() + i + 1; itr2++) {
-                    tmp += "/" + *itr2;
-                }
-                // list.pop_back();
-
-                std::cout << "tmp: " << tmp << " | i=  " << i << " | size: " << list.size() << std::endl;
-                if (strcmp(tmp.c_str(), itr1->c_str()) == 0) {
-                    found = true;
-                    holder = *itr1;
-                    target = *itr;
-                }
-            }
-            
-        }
-        std::cout << "================ Location ===================" << std::endl;
-    }
-
-    return found;
-}
-
-Server& RequestHandler::validServerName(std::string serverName) {
-    for (std::vector<Server>::iterator itr = servers.begin(); itr != servers.end(); itr++) {
-        std::vector<std::string> server_names = itr->getServerNames();
-        for (std::vector<std::string>::iterator itr1 = server_names.begin(); itr1 != server_names.end(); itr1++) {
-            if (serverName == *itr1) {
-                return *itr;
-            }
-        }
-    }
-    return *(servers.begin());
-}
-
-
-// void replace(std::string& holder, std::string s1, std::string s2)
-// {
-// 	int index = holder.find(s1);
-// 	while (index != -1)
-// 	{
-// 		holder.erase(index, s1.length());
-// 		holder.insert(index, s2);
-// 		index = holder.find(s1, index + 1);
-// 	}
-// }
-
-
-void RequestHandler::handleIt() {
-
+void RequestHandler::init(Client& client) {
     Server srv;
 
     std::string hostHeader = request.getHeader("Host");
     srv = validServerName(hostHeader);
     client.setServer(srv);
-    std::cout << "updated server: " << srv.getServerNames()[0] << std::endl;
+    client.setMethod(request.getMethod());
+    client.setContentLength(utils::string::toInt(request.getHeader("Content-Length")));
+}
 
+bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
+    (void)client;
+    (void)mediator;
+    // if cgi meaning if the extension matches a cgi and we have to go through it
+    // if (cgi()) {
+    //   if (request.getMethod() == "POST") {
+    //    pushStatusLine, headers (chunked transfer encoding) and \r\n\r\n
+    //  }
+    //  CGI cgi = CGI(path, ext);
+    //  client.setCgiFd(pipe[0]);
+    //  mediator.addCgi(pipe[0]);
+    // } else {
+    //  client.setBodyFd(file) // if the file exists etc
+    // }
+    return true;
+}
 
+void RequestHandler::handleGET(Client& client, Mediator& mediator) {
+    (void)mediator;
 
     std::string file = request.getEndpoint();
     std::cout << "end point: " << file << std::endl;
@@ -189,9 +151,70 @@ void RequestHandler::handleIt() {
             ->setHeader("Content-Length", utils::string::fromInt(length));
     }
 
+    client.storeResponse(this->getResponse());
+    client.setFileFd(this->getFd());
 }
 
+std::string RequestHandler::getResponse() { return response.build(); }
+
+bool RequestHandler::matchLocation(std::string endpoint, const Server &serv, Location &target) {
+
+    std::vector<Location> locations = serv.getLocation();
+    if (locations.empty()) {
+        return false;
+    }
+
+    bool found = false;
+    std::string holder = "";
+
+    forEach (std::vector<Location>, locations, itr) {
+        forEachConst (std::vector<std::string>, itr->getPrefix(), itr1) {
+            std::vector<std::string> list = utils::split(endpoint, "/");
+            for (size_t i = 0; i < list.size(); i++) {
+
+                std::string tmp = "";
+                for (std::vector<std::string>::iterator itr2 = list.begin(); itr2 != list.begin() + i + 1; itr2++) {
+                    tmp += "/" + *itr2;
+                }
+                // list.pop_back();
+
+                std::cout << "tmp: " << tmp << " | i=  " << i << " | size: " << list.size() << std::endl;
+                if (strcmp(tmp.c_str(), itr1->c_str()) == 0) {
+                    found = true;
+                    holder = *itr1;
+                    target = *itr;
+                }
+            }
+
+        }
+        std::cout << "================ Location ===================" << std::endl;
+    }
+
+    return found;
+}
+
+Server& RequestHandler::validServerName(std::string serverName) {
+    for (std::vector<Server>::iterator itr = servers.begin(); itr != servers.end(); itr++) {
+        std::vector<std::string> server_names = itr->getServerNames();
+        for (std::vector<std::string>::iterator itr1 = server_names.begin(); itr1 != server_names.end(); itr1++) {
+            if (serverName == *itr1) {
+                return *itr;
+            }
+        }
+    }
+    return *(servers.begin());
+}
+
+
 int RequestHandler::getFd() { return this->fd; }
+
+void    RequestHandler::setInitialized(bool handled) {
+    this->handled = handled;
+}
+
+bool    RequestHandler::hasBeenInitialized() const {
+    return handled;
+}
 
 std::string
 RequestHandler::getFileMimeType(const std::string &file_name) const {

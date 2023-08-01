@@ -7,8 +7,10 @@
 
 Selector::Selector() {}
 
-void Selector::pushFd(int fd) {
+void Selector::pushFd(int fd, bool readOnly) {
     fds.push_back(fd);
+    if (readOnly)
+        readonly_fds.push_back(fd);
     highest_fd = *std::max_element(fds.begin(), fds.end());
 }
 
@@ -29,7 +31,8 @@ int Selector::poll() {
     FD_ZERO(&write_set);
     for (selIter it = fds.begin(); it != fds.end(); ++it) {
         FD_SET(*it, &read_set);
-        FD_SET(*it, &write_set);
+        if (std::find(readonly_fds.begin(), readonly_fds.end(), *it) == readonly_fds.end())
+            FD_SET(*it, &write_set);
     }
 
     return select(highest_fd + 1, &read_set, &write_set, NULL, &timeout);
