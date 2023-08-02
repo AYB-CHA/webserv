@@ -11,19 +11,29 @@
 #include <fstream>
 #include <unistd.h> // access
 
+#include <dirent.h>
+
+#include "../server/utils.hpp"
+
 #include <vector>
 
 RequestHandler::RequestHandler() : handled(false) {}
 
 RequestHandler::RequestHandler(const RequestHandler& o)
     : response(o.response), request(o.request),
-    servers(o.servers), fd(o.fd), handled(o.handled)
-{}
+    servers(o.servers), fd(o.fd), handled(o.handled), file(o.file),
+    targetLoc(o.targetLoc), matchLocState(o.matchLocState) {}
 
 RequestHandler::RequestHandler(HttpRequest &request, std::vector<Server>& servers) {
     this->request = request;
     fd = -1;
     this->servers = servers;
+}
+
+RequestHandler& RequestHandler::operator=(const RequestHandler& o) {
+    if (this == &o) return *this;
+    new (this) RequestHandler(o);
+    return *this;
 }
 
 void RequestHandler::init(Client& client) {
@@ -53,58 +63,164 @@ bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
     return true;
 }
 
-void RequestHandler::handleGET(Client& client, Mediator& mediator) {
-    (void)mediator;
-    std::string file = request.getEndpoint();
+void RequestHandler::checkConfAndAccess(Client& client) {
+    file = request.getEndpoint();
+    std::cout << "end point: " << file << std::endl;
 
-    Location targetLoc = matchLocation(
-        file,
-        const_cast<std::vector<Location> &>(client.getServer().getLocation()));
+    this->matchLocState = matchLocation(file, client.getServer());
+    if (this->matchLocState) {
+        std::string LocationRoot = this->targetLoc.getRoot();
+        if (LocationRoot.empty())
+            LocationRoot = client.getServer().getRoot();
+        file = "." + LocationRoot + file;
+    } else {
+        file = "." + client.getServer().getRoot() + file;
+    }
 
-    file = "./" + targetLoc.getRoot() + file;
-    // file = "./types.txt";
-    // std::cout << file << std::endl;
+    std::cout << "-->file: " << file << std::endl;
+    std::cout << "-->function state: " << std::boolalpha << this->matchLocState << std::endl;
     if (access(file.c_str(), F_OK) == -1)
         throw HttpResponseException(404);
     if (access(file.c_str(), R_OK == -1))
         throw HttpResponseException(403);
+}
+
+void RequestHandler::createContainer(std::string& container, std::string::size_type& index) {
+    std::fstream strm("./root/listDir.html", std::ios::in);
+    if (!strm.is_open())
+        throw HttpResponseException(500);
+
+    char c;
+    while (!strm.eof()) {
+        strm.get(c);
+        container.push_back(c);
+    }
+    strm.close();
+
+    std::string s1("{content}");
+    index = container.find(s1);
+    if (index == std::string::npos) {
+        throw HttpResponseException(500);
+    }
+    container.erase(index, s1.length());
+}
+
+void RequestHandler::fillContainer(std::string& container, std::string::size_type& index) {
+
+    DIR *d = opendir(file.c_str());
+    std::cout << "_____________________________________" << std::endl;
+    for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
+        std::string item;
+        std::string s(de->d_name);
+
+        std::cout << "file name: " << s << std::endl;
+
+        if (DT_DIR == de->d_type && s == "..")
+            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/arrow.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+        else if (DT_DIR == de->d_type) {
+            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/folder.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+        } else {
+            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/file.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+        }
+
+        container.insert(index, item);
+        index += item.length();
+    }
+}
+
+void RequestHandler::listDirectory () {
+    if (this->matchLocState) {
+        std::cout << std::endl << std::endl<< ">> autoindex value: " << this->targetLoc.getAutoindex() << std::endl;
+        if (this->targetLoc.getAutoindex()) {
+
+            std::string container;
+            std::string::size_type index = 0;
+
+            createContainer(container, index);
+            fillContainer(container, index);
+
+            response.setStatuscode(200)
+            ->setHeader("Content-Type", this->getFileMimeType("test.html"))
+            ->pushBody(container);
+
+        } else
+            throw HttpResponseException(403);
+    } else
+        throw HttpResponseException(404);
+}
+
+void RequestHandler::handleGET(Client& client, Mediator& mediator) {
+    (void)mediator;
+
+    checkConfAndAccess(client);
 
     struct stat data;
     stat(file.c_str(), &data);
-    off_t length = data.st_size;
 
-    fd = open(file.c_str(), O_RDONLY);
+    //check for the existence of the dir
+    if (S_ISDIR(data.st_mode)) {
+        listDirectory();
+    } else {
 
-    std::cout << "len: " << length << std::endl;
-    // std::cout << "fd: " << fd << std::endl;
-    response.setStatuscode(200)
-        ->setHeader("Content-Type", this->getFileMimeType(file))
-        ->setHeader("Content-Length", utils::string::fromInt(length));
+        off_t length = data.st_size;
+
+        this->fd = open(file.c_str(), O_RDONLY);
+        std::cout << "len: " << length << std::endl;
+        // std::cout << "fd: " << fd << std::endl;
+        response.setStatuscode(200)
+            ->setHeader("Content-Type", this->getFileMimeType(file))
+            ->setHeader("Content-Length", utils::string::fromInt(length));
+    }
+
     client.storeResponse(this->getResponse());
     client.setFileFd(this->getFd());
 }
 
 std::string RequestHandler::getResponse() { return response.build(); }
 
-Location RequestHandler::matchLocation(std::string endpoint, std::vector<Location>& locations) {
-    Location target;
-    std::string holder = "";
+bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
 
-    for (std::vector<Location>::iterator itr = locations.begin();
-         itr != locations.end(); itr++) {
-        std::vector<std::string> prefixs = itr->getPrefix();
-        for (std::vector<std::string>::iterator itr1 = prefixs.begin();
-             itr1 != prefixs.end(); itr1++) {
-            if (strncmp(itr1->c_str(), endpoint.c_str(), itr1->size()) == 0 &&
-                (itr1->size() > holder.size())) {
-                holder = *itr1;
-                target = *itr;
-            }
-        }
+    std::vector<Location> locations = serv.getLocation();
+    if (locations.empty()) {
+        return false;
     }
 
-    // std::cout << "matcher path: " << target.getRoot() << std::endl;
-    return target;
+    bool found = false;
+    std::string holder = "";
+
+    forEach (std::vector<Location>, locations, itr) {
+        forEachConst (std::vector<std::string>, itr->getPrefix(), itr1) {
+            std::vector<std::string> list = utils::split(endpoint, "/");
+            for (size_t i = 0; i < list.size(); i++) {
+
+                std::string tmp = "";
+                for (std::vector<std::string>::iterator itr2 = list.begin(); itr2 != list.begin() + i + 1; itr2++) {
+                    tmp += "/" + *itr2;
+                }
+                // list.pop_back();
+
+                std::cout << "tmp: " << tmp << " | i=  " << i << " | size: " << list.size() << std::endl;
+
+                std::string prefix = *itr1;
+                utils::strTrimV2(prefix, "/");
+                prefix.insert(prefix.begin(), '/');
+                std::cout << "prefix modified: " << prefix << std::endl;
+                if (tmp == prefix) {
+                    found = true;
+                    holder = prefix;
+                    this->targetLoc = *itr;
+                }
+            }
+
+            if (list.empty() && *itr1 == "/") {
+                this->targetLoc = *itr;
+                return true;
+            }
+        }
+        std::cout << "================ Location ===================" << std::endl;
+    }
+
+    return found;
 }
 
 Server& RequestHandler::validServerName(std::string serverName) {
@@ -118,6 +234,7 @@ Server& RequestHandler::validServerName(std::string serverName) {
     }
     return *(servers.begin());
 }
+
 
 int RequestHandler::getFd() { return this->fd; }
 

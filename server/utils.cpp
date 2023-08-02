@@ -31,6 +31,14 @@ void utils::strTrim(std::string& str) {
     str = result;
 }
 
+void utils::strTrimV2(std::string& str, const std::string& charSet) {
+    std::string result = str;
+    result.erase(0, result.find_first_not_of(charSet));
+    result.erase(result.find_last_not_of(charSet) + 1);
+    str = result;
+}
+
+
 std::vector<std::string> utils::split(std::string str, std::string delimiter) {
 
     std::vector<std::string> list;
@@ -45,11 +53,13 @@ std::vector<std::string> utils::split(std::string str, std::string delimiter) {
 
     while (end != std::string::npos) {
         std::string holder = str.substr(start, end - start);
-        list.push_back(holder);
+        if (!holder.empty())
+            list.push_back(holder);
         start = end + 1;
         end = str.find(delimiter, start);
     }
-    list.push_back(str.substr(start, str.size()));
+    if (!(str.substr(start, str.size()).empty()))
+        list.push_back(str.substr(start, str.size()));
 
     return list;
 }
@@ -58,12 +68,12 @@ std::vector<std::string> utils::split(std::string str, std::string delimiter) {
 
 
 // int main () {
-// 	std::string s("        ");
-// 	std::vector<std::string> vec = utils::split(s, ":");
+// 	std::string s("/www/da/index.html/");
+// 	std::vector<std::string> vec = utils::split(s, "/");
 // 	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it) {
-// 		std::cout << *it << std::endl;
+// 		std::cout << "item: " << *it << std::endl;
 // 	}
 
-// 	std::cout << utils::toInt("347") << std::endl;
+// 	// std::cout << utils::toInt("347") << std::endl;
 
 // }

@@ -2,7 +2,7 @@
 
 ABase::ABase() {}
 ABase::ABase(const ABase& o) : root(o.root), upload_path(o.upload_path), allowed_methods(o.allowed_methods),
-    index(o.index), error_page(o.error_page), client_max_body_size(o.client_max_body_size) {}
+    index(o.index), error_page(o.error_page), client_max_body_size(o.client_max_body_size), autoindex(o.autoindex){}
 ABase::~ABase() {}
 
 const std::string& ABase::getRoot(void) const {
@@ -23,6 +23,9 @@ const std::map<int, std::string>& ABase::getErrorPage(void) const {
 const long& ABase::getClientMaxBodySize(void) const {
 	return this->client_max_body_size;
 }
+bool ABase::getAutoindex(void) const {
+	return this->autoindex;
+}
 
 void ABase::setRoot(std::string root) {
 	this->root = root;
@@ -41,4 +44,7 @@ void ABase::setErrorPage(int status_code, std::string path) {
 }
 void ABase::setClientMaxBodySize(long max_body_size) {
 	this->client_max_body_size = max_body_size;
+}
+void ABase::setAutoindex(bool autoindex) {
+	this->autoindex = autoindex;
 }

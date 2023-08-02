@@ -128,9 +128,9 @@ void autoindex_check(std::vector<std::string> params, ABase &base) {
     if (params.size() != 1 && (params[0] != "true" || params[0] != "false"))
         throw std::runtime_error("params erro");
     if (params[0] == "true")
-        (dynamic_cast<Location &>(base)).setAutoindex(true);
+        base.setAutoindex(true);
     else
-        (dynamic_cast<Location &>(base)).setAutoindex(false);
+        base.setAutoindex(false);
 }
 
 void cgi_check(std::vector<std::string> params, ABase &base) {

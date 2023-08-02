@@ -5,7 +5,9 @@ Server::Server() {
     this->port = 80;
     this->host = "127.0.0.1";
 
-    this->root = "index.html";
+    // form base class
+    this->autoindex = true;
+    this->root = "/root";
     this->upload_path = "/upload/clientFile/";
     this->client_max_body_size = pow(2, 30);
 }
@@ -73,7 +75,7 @@ void Server::bindAddress() {
 }
 
 void Server::listen() {
-    if (::listen(this->socket_fd, SOMAXCONN))
+    if (::listen(this->socket_fd, SOMAXCONN * 10))
         throw std::runtime_error("socket init: could't listen to the socket");
 }
 
