@@ -14,6 +14,11 @@ class RequestHandler {
         int fd;
         bool    handled;
 
+        //------- new attr
+        std::string file;
+        // Location targetLoc;
+        // bool matchLocState;
+
 
         Server& validServerName(std::string serverName);
         bool matchLocation(std::string endpoint, const Server &serv, Location &target);
@@ -21,11 +26,12 @@ class RequestHandler {
     public:
         RequestHandler();
         RequestHandler(const RequestHandler& other);
+        RequestHandler& operator=(const RequestHandler& o);
         RequestHandler(HttpRequest &request, std::vector<Server>& servers);
 
         int getFd();
-        void    setInitialized(bool handled);
-        bool    hasBeenInitialized() const;
+        void setInitialized(bool handled);
+        bool hasBeenInitialized() const;
         std::string getResponse();
         std::string getFileMimeType(const std::string &file_name) const;
         void init(Client& client);

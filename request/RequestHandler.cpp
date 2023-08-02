@@ -21,12 +21,18 @@ RequestHandler::RequestHandler() : handled(false) {}
 
 RequestHandler::RequestHandler(const RequestHandler& o)
     : response(o.response), request(o.request),
-    servers(o.servers), fd(o.fd), handled(o.handled) {}
+    servers(o.servers), fd(o.fd), handled(o.handled), file(o.file) {}
 
 RequestHandler::RequestHandler(HttpRequest &request, std::vector<Server>& servers) {
     this->request = request;
     fd = -1;
     this->servers = servers;
+}
+
+RequestHandler& RequestHandler::operator=(const RequestHandler& o) {
+    if (this == &o) return *this;
+    new (this) RequestHandler(o);
+    return *this;
 }
 
 void RequestHandler::init(Client& client) {
@@ -59,7 +65,7 @@ bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
 void RequestHandler::handleGET(Client& client, Mediator& mediator) {
     (void)mediator;
 
-    std::string file = request.getEndpoint();
+    file = request.getEndpoint();
     std::cout << "end point: " << file << std::endl;
 
     Location targetLoc;
@@ -114,14 +120,13 @@ void RequestHandler::handleGET(Client& client, Mediator& mediator) {
                 std::cout << "_____________________________________" << std::endl;
                 for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
                     std::string item;
-                    struct stat info;
                     std::string s(de->d_name);
-                    stat(s.c_str(), &info);
+
                     std::cout << "file name: " << s << std::endl;
-                    if (S_ISDIR(info.st_mode)) {
-                        if (s == "..")
+
+                    if (DT_DIR == de->d_type && s == "..") {
                             item = std::string("\t\t\t<li style=\"list-style-image: url('/images/arrow.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
-                        else
+                    } else if (DT_DIR == de->d_type) {
                             item = std::string("\t\t\t<li style=\"list-style-image: url('/images/folder.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
                     } else {
                         item = std::string("\t\t\t<li style=\"list-style-image: url('/images/file.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
