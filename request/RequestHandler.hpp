@@ -15,8 +15,19 @@ class RequestHandler {
         bool    handled;
 
 
+        //------- new attr
+        std::string file;
+        Location targetLoc;
+        bool matchLocState;
+
+        // -------- new fun
+        void checkConfAndAccess(Client& client);
+        void listDirectory ();
+        void createContainer(std::string& container, std::string::size_type& index);
+
+
         Server& validServerName(std::string serverName);
-        bool matchLocation(std::string endpoint, const Server &serv, Location &target);
+        bool matchLocation(std::string endpoint, const Server &serv);
         // Location matchLocation(std::string endpoint, std::vector<Location>& locations);
     public:
         RequestHandler();
@@ -31,6 +42,10 @@ class RequestHandler {
         void init(Client& client);
         void handleGET(Client& client, Mediator& mediator);
         bool handlePOST(Client& client, Mediator& mediator);
+
+
+
+
 };
 
 #define forEach(type, iterable, name) \
