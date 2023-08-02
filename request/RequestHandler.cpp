@@ -21,7 +21,8 @@ RequestHandler::RequestHandler() : handled(false) {}
 
 RequestHandler::RequestHandler(const RequestHandler& o)
     : response(o.response), request(o.request),
-    servers(o.servers), fd(o.fd), handled(o.handled), file(o.file) {}
+    servers(o.servers), fd(o.fd), handled(o.handled), file(o.file),
+    targetLoc(o.targetLoc), matchLocState(o.matchLocState) {}
 
 RequestHandler::RequestHandler(HttpRequest &request, std::vector<Server>& servers) {
     this->request = request;
@@ -62,16 +63,13 @@ bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
     return true;
 }
 
-void RequestHandler::handleGET(Client& client, Mediator& mediator) {
-    (void)mediator;
-
+void RequestHandler::checkConfAndAccess(Client& client) {
     file = request.getEndpoint();
     std::cout << "end point: " << file << std::endl;
 
-    Location targetLoc;
-    bool funStatus = matchLocation(file, client.getServer(), targetLoc);
-    if (funStatus) {
-        std::string LocationRoot = targetLoc.getRoot();
+    this->matchLocState = matchLocation(file, client.getServer());
+    if (this->matchLocState) {
+        std::string LocationRoot = this->targetLoc.getRoot();
         if (LocationRoot.empty())
             LocationRoot = client.getServer().getRoot();
         file = "." + LocationRoot + file;
@@ -80,71 +78,88 @@ void RequestHandler::handleGET(Client& client, Mediator& mediator) {
     }
 
     std::cout << "-->file: " << file << std::endl;
-    std::cout << "-->function state: " << std::boolalpha << funStatus << std::endl;
+    std::cout << "-->function state: " << std::boolalpha << this->matchLocState << std::endl;
     if (access(file.c_str(), F_OK) == -1)
         throw HttpResponseException(404);
     if (access(file.c_str(), R_OK == -1))
         throw HttpResponseException(403);
+}
+
+void RequestHandler::createContainer(std::string& container, std::string::size_type& index) {
+    std::fstream strm("./root/listDir.html", std::ios::in);
+    if (!strm.is_open())
+        throw HttpResponseException(500);
+
+    char c;
+    while (!strm.eof()) {
+        strm.get(c);
+        container.push_back(c);
+    }
+    strm.close();
+
+    std::string s1("{content}");
+    index = container.find(s1);
+    if (index == std::string::npos) {
+        throw HttpResponseException(500);
+    }
+    container.erase(index, s1.length());
+}
+
+void RequestHandler::fillContainer(std::string& container, std::string::size_type& index) {
+
+    DIR *d = opendir(file.c_str());
+    std::cout << "_____________________________________" << std::endl;
+    for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
+        std::string item;
+        std::string s(de->d_name);
+
+        std::cout << "file name: " << s << std::endl;
+
+        if (DT_DIR == de->d_type && s == "..")
+            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/arrow.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+        else if (DT_DIR == de->d_type) {
+            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/folder.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+        } else {
+            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/file.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+        }
+
+        container.insert(index, item);
+        index += item.length();
+    }
+}
+
+void RequestHandler::listDirectory () {
+    if (this->matchLocState) {
+        std::cout << std::endl << std::endl<< ">> autoindex value: " << this->targetLoc.getAutoindex() << std::endl;
+        if (this->targetLoc.getAutoindex()) {
+
+            std::string container;
+            std::string::size_type index = 0;
+
+            createContainer(container, index);
+            fillContainer(container, index);
+
+            response.setStatuscode(200)
+            ->setHeader("Content-Type", this->getFileMimeType("test.html"))
+            ->pushBody(container);
+
+        } else
+            throw HttpResponseException(403);
+    } else
+        throw HttpResponseException(404);
+}
+
+void RequestHandler::handleGET(Client& client, Mediator& mediator) {
+    (void)mediator;
+
+    checkConfAndAccess(client);
 
     struct stat data;
     stat(file.c_str(), &data);
 
     //check for the existence of the dir
     if (S_ISDIR(data.st_mode)) {
-        if (funStatus) {
-            std::cout << std::endl << std::endl<< ">> autoindex value: " << targetLoc.getAutoindex() << std::endl;
-            if (targetLoc.getAutoindex()) {
-
-                std::string container;
-                std::fstream strm("./root/listDir.html", std::ios::in);
-                if (!strm.is_open()) {
-                    // something
-                    std::cout << "error" << std::endl;
-                }
-
-                char c;
-                while (!strm.eof()) {
-                    strm.get(c);
-                    container.push_back(c);
-                }
-                strm.close();
-
-                std::string s1("{content}");
-                int index = container.find(s1);
-                if (index == -1) {
-                    //do somthing
-                }
-                container.erase(index, s1.length());
-
-                DIR *d = opendir(file.c_str());
-                std::cout << "_____________________________________" << std::endl;
-                for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
-                    std::string item;
-                    std::string s(de->d_name);
-
-                    std::cout << "file name: " << s << std::endl;
-
-                    if (DT_DIR == de->d_type && s == "..") {
-                            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/arrow.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
-                    } else if (DT_DIR == de->d_type) {
-                            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/folder.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
-                    } else {
-                        item = std::string("\t\t\t<li style=\"list-style-image: url('/images/file.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
-                    }
-
-                    container.insert(index, item);
-                    index += item.length();
-                }
-
-                response.setStatuscode(200)
-                ->setHeader("Content-Type", this->getFileMimeType("test.html"))
-                ->pushBody(container);
-
-            } else
-                throw HttpResponseException(403);
-        } else {
-            throw HttpResponseException(404);
-        }
+        listDirectory();
     } else {
 
         off_t length = data.st_size;
@@ -163,7 +178,7 @@ void RequestHandler::handleGET(Client& client, Mediator& mediator) {
 
 std::string RequestHandler::getResponse() { return response.build(); }
 
-bool RequestHandler::matchLocation(std::string endpoint, const Server &serv, Location &target) {
+bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
 
     std::vector<Location> locations = serv.getLocation();
     if (locations.empty()) {
@@ -193,12 +208,12 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv, Loc
                 if (tmp == prefix) {
                     found = true;
                     holder = prefix;
-                    target = *itr;
+                    this->targetLoc = *itr;
                 }
             }
 
             if (list.empty() && *itr1 == "/") {
-                target = *itr;
+                this->targetLoc = *itr;
                 return true;
             }
         }

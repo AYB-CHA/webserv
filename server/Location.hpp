@@ -11,6 +11,7 @@ class Location : public ABase {
 	public:
         Location();
         Location(const Location& o);
+        Location& operator=(const Location& o);
 		~Location();
 
 

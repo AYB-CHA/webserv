@@ -8,6 +8,13 @@ Location::Location() {
     this->client_max_body_size = pow(2, 30);
 }
 Location::Location(const Location& o) : ABase(o), prefix(o.prefix), cgi_path(o.cgi_path) {}
+
+Location& Location::operator=(const Location& o) {
+    if (this == &o) return *this;
+    new (this) Location(o);
+    return *this;
+}
+
 Location::~Location() {}
 
 const std::vector<std::string>& Location::getPrefix(void) const {
