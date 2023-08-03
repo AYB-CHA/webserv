@@ -29,7 +29,7 @@ void CGIResolver::runCGI() {
     if (!(pid = fork())) {
         dup2(this->read_pipes[1], STDOUT_FILENO);
         dup2(this->write_pipes[0], STDIN_FILENO);
-    
+
         close(this->read_pipes[0]);
         close(this->read_pipes[1]);
         close(this->write_pipes[0]);
