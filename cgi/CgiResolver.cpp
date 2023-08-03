@@ -5,35 +5,31 @@
 #define CGI_TIMEOUT_CHUNKS 10
 
 CGIResolver::CGIResolver(const std::string &CGI_path,
-                         const std::string &CGI_file,
-                         HttpResponseBuilder &response, HttpRequest &request,
+                         const std::string &CGI_file, HttpRequest &request,
                          Client &client)
-    : request(request), response(response), client(client), CGI_path(CGI_path),
-      CGI_file(CGI_file) {
+    : request(request), client(client), CGI_path(CGI_path), CGI_file(CGI_file) {
     if (!this->validCGI())
         throw HttpResponseException(502);
     this->buildCGIEnv();
     this->runCGI();
-    std::cout << "WE RUN CGI" << std::endl;
-    this->response.setStatuscode(200);
 }
 
 void CGIResolver::runCGI() {
-    // todo: check for errors here.
-    pipe(this->read_pipes);
-    pipe(this->write_pipes);
+    if (pipe(this->read_pipes) == -1 || pipe(this->write_pipes) == -1)
+        throw HttpResponseException(500);
     write(this->write_pipes[1], this->client.getPostBody().c_str(),
           this->client.getPostBody().length());
 
     int pid;
     if (!(pid = fork())) {
-        dup2(this->read_pipes[1], STDOUT_FILENO);
-        dup2(this->write_pipes[0], STDIN_FILENO);
-
-        close(this->read_pipes[0]);
-        close(this->read_pipes[1]);
-        close(this->write_pipes[0]);
-        close(this->write_pipes[1]);
+        if (dup2(this->read_pipes[1], STDOUT_FILENO) == -1 ||
+            dup2(this->write_pipes[0], STDIN_FILENO) == -1)
+            this->write_cgi_error_output();
+        if (close(this->read_pipes[0]) == -1 ||
+            close(this->read_pipes[1]) == -1 ||
+            close(this->write_pipes[0]) == -1 ||
+            close(this->write_pipes[1]) == -1)
+            this->write_cgi_error_output();
 
         const char *bin = this->CGI_path.c_str();
         char *args[] = {(char *)bin, NULL};
@@ -46,26 +42,14 @@ void CGIResolver::runCGI() {
             env[i++] = (char *)strdup((it->first + "=" + it->second).c_str());
         }
         execve(bin, args, env);
+        this->write_cgi_error_output();
     }
-    close(this->read_pipes[1]);
-    close(this->write_pipes[1]);
-    close(this->write_pipes[0]);
-
-    fcntl(this->read_pipes[0], F_SETFL, O_NONBLOCK);
+    if (close(this->read_pipes[1]) == -1 || close(this->write_pipes[1]) == -1 ||
+        close(this->write_pipes[0]) == -1)
+        throw HttpResponseException(500);
+    if (fcntl(this->read_pipes[0], F_SETFL, O_NONBLOCK) == -1)
+        throw HttpResponseException(500);
 }
-
-// void CGIResolver::monitorForTimeOut(pid_t pid) {
-//     int status;
-//     size_t i = 0;
-//     for (; i < CGI_TIMEOUT_CHUNKS; i++) {
-//         if (waitpid(pid, &status, WNOHANG) == pid)
-//             break;
-//         usleep(CGI_TIMEOUT / CGI_TIMEOUT_CHUNKS);
-//     }
-
-//     if (i == CGI_TIMEOUT_CHUNKS)
-//         throw HttpResponseException(504);
-// }
 
 void CGIResolver::buildCGIEnv() {
     this->env["QUERY_STRING"] = this->request.getQueries();
@@ -73,6 +57,7 @@ void CGIResolver::buildCGIEnv() {
     this->env["SCRIPT_FILENAME"] = this->CGI_file;
     this->env["CONTENT_TYPE"] = this->request.getHeader("Content-Type");
     this->env["CONTENT_LENGTH"] = this->request.getHeader("Content-Length");
+    this->env["PATH_INFO"] = this->request.getEndpoint();
     // Only needed if the cgi is complied with force-cgi-redirect enabled;
     this->env["REDIRECT_STATUS"] = "200";
     for (std::multimap<std::string, std::string>::const_iterator it =
@@ -80,11 +65,6 @@ void CGIResolver::buildCGIEnv() {
          it != this->request.getHeaders().end(); it++) {
         this->env["HTTP_" + utils::string::toUpperCase(it->first)] = it->second;
     }
-
-    // PATH=xx
-    // PATH_INFO=xx
-    // REQUEST_URI=xx
-    // SCRIPT_NAME=xx
 }
 
 bool CGIResolver::validCGI() const {
@@ -92,5 +72,13 @@ bool CGIResolver::validCGI() const {
 }
 
 int CGIResolver::getReadEnd() const { return this->read_pipes[0]; }
+
+void CGIResolver::write_cgi_error_output() {
+    write(1,
+          "HTTP/1.1 500 Internal Server Error \r\nContent-Type: "
+          "text/html\r\n\r\nLimited Resources.\r\n",
+          85);
+    exit(1);
+}
 
 CGIResolver::~CGIResolver() {}

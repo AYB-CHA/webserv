@@ -167,7 +167,7 @@ void RequestHandler::handleGET(Client &client, Mediator &mediator) {
             ->setHeader("Content-Type", this->getFileMimeType(file))
             ->setHeader("Content-Length", utils::string::fromInt(length));
     } else {
-        CGIResolver cgi("./php-cgi", file, this->response, this->request,
+        CGIResolver cgi("./php-cgi", file,  this->request,
                         client);
         client.setCgiFd(cgi.getReadEnd());
         mediator.addCGI(cgi.getReadEnd());
@@ -197,7 +197,7 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
             ->setHeader("Content-Type", this->getFileMimeType(file))
             ->setHeader("Content-Length", utils::string::fromInt(length));
     } else {
-        CGIResolver cgi("./php-cgi", file, this->response, this->request,
+        CGIResolver cgi("./php-cgi", file,  this->request,
                         client);
         client.setCgiFd(cgi.getReadEnd());
         mediator.addCGI(cgi.getReadEnd());

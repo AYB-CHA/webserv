@@ -2,18 +2,17 @@
 #include "../client/Client.hpp"
 #include "../request/HttpRequest.hpp"
 #include "../response/HttpResponseBuilder.hpp"
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <string>
 #include <sys/types.h>
-#include <unistd.h>
-#include <cstring>
 #include <sys/wait.h>
+#include <unistd.h>
 
 class CGIResolver {
   private:
     HttpRequest &request;
-    HttpResponseBuilder &response;
     Client &client;
 
     std::string CGI_path;
@@ -25,8 +24,7 @@ class CGIResolver {
 
   public:
     CGIResolver(const std::string &CGI_path, const std::string &CGI_file,
-                HttpResponseBuilder &response, HttpRequest &request,
-                Client &client);
+                HttpRequest &request, Client &client);
     int getReadEnd() const;
     ~CGIResolver();
 
@@ -34,4 +32,5 @@ class CGIResolver {
     void runCGI();
     void buildCGIEnv();
     bool validCGI() const;
+    void write_cgi_error_output();
 };
