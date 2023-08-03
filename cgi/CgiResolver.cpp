@@ -1,8 +1,6 @@
 #include "CgiResolver.hpp"
 #include "../response/HttpResponseException.hpp"
 #include "../utils/string.hpp"
-#define CGI_TIMEOUT 1000000
-#define CGI_TIMEOUT_CHUNKS 10
 
 CGIResolver::CGIResolver(const std::string &CGI_path,
                          const std::string &CGI_file, HttpRequest &request,
@@ -24,12 +22,12 @@ void CGIResolver::runCGI() {
     if (!(pid = fork())) {
         if (dup2(this->read_pipes[1], STDOUT_FILENO) == -1 ||
             dup2(this->write_pipes[0], STDIN_FILENO) == -1)
-            this->write_cgi_error_output();
+            this->write_CGI_error_output();
         if (close(this->read_pipes[0]) == -1 ||
             close(this->read_pipes[1]) == -1 ||
             close(this->write_pipes[0]) == -1 ||
             close(this->write_pipes[1]) == -1)
-            this->write_cgi_error_output();
+            this->write_CGI_error_output();
 
         const char *bin = this->CGI_path.c_str();
         char *args[] = {(char *)bin, NULL};
@@ -42,7 +40,7 @@ void CGIResolver::runCGI() {
             env[i++] = (char *)strdup((it->first + "=" + it->second).c_str());
         }
         execve(bin, args, env);
-        this->write_cgi_error_output();
+        this->write_CGI_error_output();
     }
     if (close(this->read_pipes[1]) == -1 || close(this->write_pipes[1]) == -1 ||
         close(this->write_pipes[0]) == -1)
@@ -73,7 +71,7 @@ bool CGIResolver::validCGI() const {
 
 int CGIResolver::getReadEnd() const { return this->read_pipes[0]; }
 
-void CGIResolver::write_cgi_error_output() {
+void CGIResolver::write_CGI_error_output() {
     write(1,
           "HTTP/1.1 500 Internal Server Error \r\nContent-Type: "
           "text/html\r\n\r\nLimited Resources.\r\n",
