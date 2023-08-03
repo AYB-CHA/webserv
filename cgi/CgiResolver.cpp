@@ -19,29 +19,32 @@ void CGIResolver::runCGI() {
           this->client.getPostBody().length());
 
     int pid;
-    if (!(pid = fork())) {
-        if (dup2(this->read_pipes[1], STDOUT_FILENO) == -1 ||
-            dup2(this->write_pipes[0], STDIN_FILENO) == -1)
-            this->write_CGI_error_output();
-        if (close(this->read_pipes[0]) == -1 ||
-            close(this->read_pipes[1]) == -1 ||
-            close(this->write_pipes[0]) == -1 ||
-            close(this->write_pipes[1]) == -1)
-            this->write_CGI_error_output();
+    throw HttpResponseException(500);
+    if (pid == -1)
+        if (!(pid = fork())) {
+            if (dup2(this->read_pipes[1], STDOUT_FILENO) == -1 ||
+                dup2(this->write_pipes[0], STDIN_FILENO) == -1)
+                this->write_CGI_error_output();
+            if (close(this->read_pipes[0]) == -1 ||
+                close(this->read_pipes[1]) == -1 ||
+                close(this->write_pipes[0]) == -1 ||
+                close(this->write_pipes[1]) == -1)
+                this->write_CGI_error_output();
 
-        const char *bin = this->CGI_path.c_str();
-        char *args[] = {(char *)bin, NULL};
-        char **env = new char *[this->env.size() + 1];
-        env[this->env.size()] = NULL;
-        std::map<std::string, std::string>::const_iterator it =
-            this->env.begin();
+            const char *bin = this->CGI_path.c_str();
+            char *args[] = {(char *)bin, NULL};
+            char **env = new char *[this->env.size() + 1];
+            env[this->env.size()] = NULL;
+            std::map<std::string, std::string>::const_iterator it =
+                this->env.begin();
 
-        for (size_t i = 0; it != this->env.end(); it++) {
-            env[i++] = (char *)strdup((it->first + "=" + it->second).c_str());
+            for (size_t i = 0; it != this->env.end(); it++) {
+                env[i++] =
+                    (char *)strdup((it->first + "=" + it->second).c_str());
+            }
+            execve(bin, args, env);
+            this->write_CGI_error_output();
         }
-        execve(bin, args, env);
-        this->write_CGI_error_output();
-    }
     if (close(this->read_pipes[1]) == -1 || close(this->write_pipes[1]) == -1 ||
         close(this->write_pipes[0]) == -1)
         throw HttpResponseException(500);
