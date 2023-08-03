@@ -1,5 +1,6 @@
 #include "RequestHandler.hpp"
 #include "../response/HttpResponseException.hpp"
+#include "../cgi/CgiResolver.hpp"
 #include "../response/Mime.hpp"
 #include "../utils/string.hpp"
 #include "../client/Client.hpp"
@@ -154,13 +155,15 @@ void RequestHandler::handleGET(Client& client, Mediator& mediator) {
 
     checkConfAndAccess(client);
 
+    std::cout << "HERE:" << std::endl;
+
     struct stat data;
     stat(file.c_str(), &data);
 
     //check for the existence of the dir
     if (S_ISDIR(data.st_mode)) {
         listDirectory();
-    } else {
+    } else if (false) {
 
         off_t length = data.st_size;
 
@@ -170,6 +173,15 @@ void RequestHandler::handleGET(Client& client, Mediator& mediator) {
         response.setStatuscode(200)
             ->setHeader("Content-Type", this->getFileMimeType(file))
             ->setHeader("Content-Length", utils::string::fromInt(length));
+    }
+    else
+    {
+        std::cout << "cgi file: "<< file << std::endl;
+        CGIResolver cgi("/usr/bin/php-cgi", file, this->response, this->request, client);
+
+        client.setCgiFd(cgi.getReadEnd());
+        mediator.addCGI(cgi.getReadEnd());
+        return ;
     }
 
     client.storeResponse(this->getResponse());

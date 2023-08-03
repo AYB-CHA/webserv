@@ -54,11 +54,12 @@ bool Client::readOutputCGI() {
         if (len <= 0) {
             // make sure you reset things to not interefere with the respone writing
             // add a method called reset() that handles that
-            throw HttpResponseException(400);
+            throw HttpResponseException(500);
         }
         bufC.headers += std::string(buf, 1);
+
         if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
-            bufC.write += bufC.headers;
+            bufC.write += "HTTP/1.1 200 OK\r\n" + bufC.headers;
             headersSent = true;
         }
         return false;
@@ -72,6 +73,7 @@ bool Client::readOutputCGI() {
     std::string readString = std::string(buf, len);
     std::string append = utils::string::toHex(len) + "\r\n" + readString + "\r\n";
     bufC.write += append;
+    std::cout << append << std::endl;
     if (len == 0) {
         headersSent = false;
         bufC.headers.clear();

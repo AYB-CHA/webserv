@@ -30,3 +30,10 @@ std::string utils::string::fromInt(int integer) {
     ss << integer;
     return ss.str();
 }
+
+std::string utils::string::toUpperCase(const std::string &string) {
+    std::string ret_string;
+    for (size_t i = 0; i < string.length(); i++)
+        ret_string += std::toupper(string[i]);
+    return ret_string;
+}

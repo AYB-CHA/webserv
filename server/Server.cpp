@@ -7,7 +7,7 @@ Server::Server() {
 
     // form base class
     this->autoindex = true;
-    this->root = "/root";
+    this->root = "./";
     this->upload_path = "/upload/clientFile/";
     this->client_max_body_size = pow(2, 30);
 }
