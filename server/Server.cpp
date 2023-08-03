@@ -12,9 +12,10 @@ Server::Server() {
     this->client_max_body_size = pow(2, 30);
 }
 
-Server::Server(const Server& o) : ABase(o), port(o.port), host(o.host),
-    server_names(o.server_names), redirect(o.redirect), location(o.location),
-    host_add(o.host_add), socket_fd(o.socket_fd), host_add_len(o.host_add_len) {}
+Server::Server(const Server &o)
+    : ABase(o), port(o.port), host(o.host), server_names(o.server_names),
+      redirect(o.redirect), location(o.location), host_add(o.host_add),
+      socket_fd(o.socket_fd), host_add_len(o.host_add_len) {}
 
 Server::~Server() {}
 
@@ -75,7 +76,7 @@ void Server::bindAddress() {
 }
 
 void Server::listen() {
-    if (::listen(this->socket_fd, SOMAXCONN * 10))
+    if (::listen(this->socket_fd, SOMAXCONN))
         throw std::runtime_error("socket init: could't listen to the socket");
 }
 
