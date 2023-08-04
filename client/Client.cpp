@@ -49,35 +49,9 @@ Client& Client::operator=(const Client& o) {
 
 bool Client::readOutputCGI() {
     if (headersSent == false) {
-        char buf[1];
-        int len = read(cgiFd, buf, 1);
-        if (len <= 0) {
-            // make sure you reset things to not interefere with the respone writing
-            // add a method called reset() that handles that
-            throw HttpResponseException(400);
-        }
-        bufC.headers += std::string(buf, 1);
-        if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
-            bufC.write += bufC.headers;
-            headersSent = true;
-        }
-        return false;
+        return readCGIHeaders();
     }
-    char buf[1024];
-    int len = read(cgiFd, buf, 1024);
-    if (len == -1) {
-        std::string errMsg("readOutputCGI(): ");
-        throw std::runtime_error(errMsg + strerror(errno));
-    }
-    std::string readString = std::string(buf, len);
-    std::string append = utils::string::toHex(len) + "\r\n" + readString + "\r\n";
-    bufC.write += append;
-    if (len == 0) {
-        headersSent = false;
-        bufC.headers.clear();
-        return true;
-    }
-    return false;
+    return readCGIBody();
 }
 
 bool Client::writeChunk() {
@@ -191,6 +165,39 @@ bool Client::readStatusHeaders() {
     if (bufC.read.size() >= 8190) {
         connectionClose = true;
         throw HttpResponseException(494);
+    }
+    return false;
+}
+
+bool Client::readCGIHeaders() {
+    char buf[1];
+    int len = read(cgiFd, buf, 1);
+    if (len <= 0) {
+        throw HttpResponseException(400);
+    }
+    bufC.headers += std::string(buf, 1);
+    if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
+        bufC.write += bufC.headers;
+        headersSent = true;
+    }
+    return false;
+}
+
+bool Client::readCGIBody() {
+    char buf[1024];
+    int len = read(cgiFd, buf, 1024);
+    if (len == -1) {
+        std::string errMsg("readOutputCGI(): ");
+        //change this to not throw exception
+        throw std::runtime_error(errMsg + strerror(errno));
+    }
+    std::string readString = std::string(buf, len);
+    std::string append = utils::string::toHex(len) + "\r\n" + readString + "\r\n";
+    bufC.write += append;
+    if (len == 0) {
+        headersSent = false;
+        bufC.headers.clear();
+        return true;
     }
     return false;
 }

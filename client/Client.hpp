@@ -45,6 +45,8 @@ private:
     bool    writeFromFile();
     bool    readBody();
     bool    readStatusHeaders();
+    bool    readCGIHeaders();
+    bool    readCGIBody();
     void    updateTimeout();
 public:
     Client();
