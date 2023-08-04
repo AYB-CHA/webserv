@@ -271,7 +271,11 @@ void Client::reset() {
 
 void Client::clear() {
     bufC.write.clear();
+    if (bodyFd != -1)
+        close(bodyFd);
     bodyFd = -1;
+    if (cgiFd != -1)
+        close(cgiFd);
     cgiFd = -1;
 }
 
