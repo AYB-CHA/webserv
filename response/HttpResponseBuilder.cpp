@@ -3,11 +3,14 @@
 
 HttpResponseBuilder::HttpResponseBuilder()
     : has_content_length(false), http_version("HTTP/1.1") {}
-HttpResponseBuilder::HttpResponseBuilder(const HttpResponseBuilder& o): has_content_length(o.has_content_length),
-http_version(o.http_version), status_code(o.status_code), status_code_phrase(o.status_code_phrase),
-headers(o.headers), body(o.body) {}
-HttpResponseBuilder& HttpResponseBuilder::operator=(const HttpResponseBuilder& o) {
-    if (this == &o) return *this;
+HttpResponseBuilder::HttpResponseBuilder(const HttpResponseBuilder &o)
+    : has_content_length(o.has_content_length), http_version(o.http_version),
+      status_code(o.status_code), status_code_phrase(o.status_code_phrase),
+      headers(o.headers), body(o.body) {}
+HttpResponseBuilder &
+HttpResponseBuilder::operator=(const HttpResponseBuilder &o) {
+    if (this == &o)
+        return *this;
 
     this->has_content_length = o.has_content_length;
     this->http_version = o.http_version;
@@ -36,6 +39,9 @@ HttpResponseBuilder *HttpResponseBuilder::setStatuscode(int status_code) {
         break;
     case 400:
         this->status_code_phrase = "Bad Request";
+        break;
+    case 502:
+        this->status_code_phrase = "Bad Gateway";
         break;
     default:
         this->status_code_phrase = "Must be implemented!!";

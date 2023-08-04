@@ -24,11 +24,11 @@ class RequestHandler {
 
     // -------- new fun
     void checkConfAndAccess(Client &client);
-    void listDirectory();
+    void listDirectory(Client &client, Mediator &mediator);
     void createContainer(std::string &container, std::string::size_type &index);
     void fillContainer(std::string &container, std::string::size_type &index);
     void validMethod(const std::string &method, Client &c);
-    bool checkForExtension(const std::string &file);
+    bool checkForExtension(const std::string &extension);
     void fileRequested(Client &client, Mediator &mediator);
 
     Server &validServerName(std::string serverName);
@@ -49,7 +49,8 @@ class RequestHandler {
     std::string getFileMimeType(const std::string &file_name) const;
     void init(Client &client);
     void handleGET(Client &client, Mediator &mediator);
-    bool handlePOST(Client &client, Mediator &mediator);
+    void handlePOST(Client &client, Mediator &mediator);
+    const std::string &getCgiPathFromExtension(const std::string &extension);
 };
 
 #define forEach(type, iterable, name)                                          \

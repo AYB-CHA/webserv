@@ -66,8 +66,12 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     struct stat data;
     stat(file.c_str(), &data);
 
-    if (checkForExtension(file)) {
-        CGIResolver cgi("./php-cgi", file, this->request, client);
+    std::string extension = file.substr(file.find_last_of('.'));
+
+    if (checkForExtension(extension)) {
+
+        CGIResolver cgi(this->getCgiPathFromExtension(extension), file,
+                        this->request, client);
         client.setCgiFd(cgi.getReadEnd());
         mediator.addCGI(cgi.getReadEnd());
         return;
@@ -76,7 +80,6 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     off_t length = data.st_size;
 
     this->fd = open(file.c_str(), O_RDONLY);
-    std::cout << "len: " << length << std::endl;
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(file))
         ->setHeader("Content-Length", utils::string::fromInt(length));
@@ -96,7 +99,8 @@ void RequestHandler::handleGET(Client &client, Mediator &mediator) {
 
     // check for the existence of the dir
     if (S_ISDIR(data.st_mode)) {
-        listDirectory();
+        listDirectory(client, mediator);
+        return;
     } else {
         fileRequested(client, mediator);
         return;
@@ -106,12 +110,27 @@ void RequestHandler::handleGET(Client &client, Mediator &mediator) {
     client.setFileFd(this->getFd());
 }
 
-bool RequestHandler::handlePOST(Client &client, Mediator &mediator) {
+void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
     (void)client;
     (void)mediator;
 
     checkConfAndAccess(client);
     validMethod("POST", client);
+
+    struct stat data;
+    stat(file.c_str(), &data);
+
+    if (S_ISDIR(data.st_mode)) {
+        // listDirectory(client, mediator);
+    } else {
+        fileRequested(client, mediator);
+        return;
+    }
+
+    // client.storeResponse(this->getResponse());
+    // client.setFileFd(this->getFd());
+
+    // fileRequested(client, mediator);
 
     // if cgi meaning if the extension matches a cgi and we have to go through
     // it if (cgi()) {
@@ -124,7 +143,6 @@ bool RequestHandler::handlePOST(Client &client, Mediator &mediator) {
     // } else {
     //  client.setBodyFd(file) // if the file exists etc
     // }
-    return true;
 }
 
 void RequestHandler::checkConfAndAccess(Client &client) {
@@ -200,13 +218,10 @@ void RequestHandler::fillContainer(std::string &container,
     }
 }
 
-void RequestHandler::listDirectory() {
+void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
     if (this->matchLocState) {
-        std::cout << std::endl
-                  << std::endl
-                  << ">> autoindex value: " << this->targetLoc.getAutoindex()
-                  << std::endl;
         if (this->targetLoc.getAutoindex()) {
+            std::cout << "===============listing dir============" << std::endl;
 
             std::string container;
             std::string::size_type index = 0;
@@ -217,31 +232,38 @@ void RequestHandler::listDirectory() {
             response.setStatuscode(200)
                 ->setHeader("Content-Type", this->getFileMimeType(".html"))
                 ->pushBody(container);
+            client.storeResponse(this->getResponse());
+            client.setFileFd(this->getFd());
+            return;
 
         } else {
             std::vector<std::string> indexes = this->targetLoc.getIndex();
             forEach(std::vector<std::string>, indexes, itr) {
                 std::string holder = this->file + "/" + *itr;
-                // if (access(holder.c_str(), F_OK | R_OK) == 0) {
-                //     this->file = holder;
-                //     fileRequested();
-                // }
+                if (access(holder.c_str(), F_OK | R_OK) == 0) {
+                    this->file = holder;
+                    fileRequested(client, mediator);
+                    return;
+                }
             }
-            // throw HttpResponseException(403);
+            throw HttpResponseException(403);
         }
     } else
         throw HttpResponseException(404);
 }
 
-bool RequestHandler::checkForExtension(const std::string &file) {
-    std::string extention = file.substr(file.find_last_of('.'));
-
+bool RequestHandler::checkForExtension(const std::string &extension) {
     try {
-        this->targetLoc.getCgiPath().at(extention);
+        this->targetLoc.getCgiPath().at(extension);
         return true;
     } catch (const std::exception &e) {
         return false;
     }
+}
+
+const std::string &
+RequestHandler::getCgiPathFromExtension(const std::string &extension) {
+    return this->targetLoc.getCgiPath().find(extension)->second;
 }
 
 std::string RequestHandler::getResponse() { return response.build(); }
