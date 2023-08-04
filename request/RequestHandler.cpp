@@ -213,7 +213,8 @@ void RequestHandler::listDirectory () {
                     fileRequested();
                 }
             }
-            // throw HttpResponseException(403);
+            if (indexes.empty())
+                throw HttpResponseException(404);
         }
     } else
         throw HttpResponseException(404);
@@ -260,7 +261,7 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
                 utils::strTrimV2(prefix, "/");
                 prefix.insert(prefix.begin(), '/');
                 std::cout << "prefix modified: " << prefix << std::endl;
-                if (tmp == prefix) {
+                if (tmp == prefix || prefix == "/") {
                     found = true;
                     holder = prefix;
                     this->targetLoc = *itr;
