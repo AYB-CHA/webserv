@@ -83,6 +83,8 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(file))
         ->setHeader("Content-Length", utils::string::fromInt(length));
+    client.storeResponse(this->getResponse());
+    client.setFileFd(this->getFd());
 }
 
 void RequestHandler::handleGET(Client &client, Mediator &mediator) {
@@ -103,17 +105,10 @@ void RequestHandler::handleGET(Client &client, Mediator &mediator) {
         return;
     } else {
         fileRequested(client, mediator);
-        return;
     }
-
-    client.storeResponse(this->getResponse());
-    client.setFileFd(this->getFd());
 }
 
 void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
-    (void)client;
-    (void)mediator;
-
     checkConfAndAccess(client);
     validMethod("POST", client);
 
@@ -121,7 +116,7 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
     stat(file.c_str(), &data);
 
     if (S_ISDIR(data.st_mode)) {
-        // listDirectory(client, mediator);
+        this->responseFromIndexes(client, mediator);
     } else {
         fileRequested(client, mediator);
         return;
@@ -221,8 +216,6 @@ void RequestHandler::fillContainer(std::string &container,
 void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
     if (this->matchLocState) {
         if (this->targetLoc.getAutoindex()) {
-            std::cout << "===============listing dir============" << std::endl;
-
             std::string container;
             std::string::size_type index = 0;
 
@@ -236,19 +229,8 @@ void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
             client.setFileFd(this->getFd());
             return;
 
-        } else {
-            std::vector<std::string> indexes = this->targetLoc.getIndex();
-            forEach(std::vector<std::string>, indexes, itr) {
-                std::string holder = this->file + "/" + *itr;
-                if (access(holder.c_str(), F_OK | R_OK) == 0) {
-                    this->file = holder;
-                    fileRequested(client, mediator);
-                    return;
-                }
-            }
-            if (indexes.empty())
-                throw HttpResponseException(404);
-        }
+        } else
+            this->responseFromIndexes(client, mediator);
     } else
         throw HttpResponseException(404);
 }
@@ -260,6 +242,19 @@ bool RequestHandler::checkForExtension(const std::string &extension) {
     } catch (const std::exception &e) {
         return false;
     }
+}
+
+void RequestHandler::responseFromIndexes(Client &client, Mediator &mediator) {
+    std::vector<std::string> indexes = this->targetLoc.getIndex();
+    forEach(std::vector<std::string>, indexes, itr) {
+        std::string holder = this->file + "/" + *itr;
+        if (access(holder.c_str(), F_OK | R_OK) == 0) {
+            this->file = holder;
+            fileRequested(client, mediator);
+            return;
+        }
+    }
+    throw HttpResponseException(404);
 }
 
 const std::string &

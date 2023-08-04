@@ -6,7 +6,7 @@
     // echo "Hello, World!";
 ?>
 
-<form action="/home1/post.php" method="POST" enctype="multipart/form-data">
+<form action="/" method="POST" enctype="multipart/form-data">
     <input type="text" name="name">
     <input type="file" name="myfile">
     <br>

@@ -51,6 +51,7 @@ class RequestHandler {
     void handleGET(Client &client, Mediator &mediator);
     void handlePOST(Client &client, Mediator &mediator);
     const std::string &getCgiPathFromExtension(const std::string &extension);
+    void responseFromIndexes(Client &client, Mediator &mediator);
 };
 
 #define forEach(type, iterable, name)                                          \
