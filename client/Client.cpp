@@ -1,6 +1,7 @@
 #include "Client.hpp"
 #include "../request/HttpRequestParser.hpp"
 #include "../response/HttpResponseException.hpp"
+#include "../server/utils.hpp"
 #include "../utils/string.hpp"
 #include <cstddef>
 #include <cstring>
@@ -17,14 +18,15 @@ const int Client::max_sendfile = 1000000;
 Client::Client()
     : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024), contentLength(0),
-      headersSent(false) {
+      headersSent(false), chunkedRequest(false), chunkIsReady(false) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(int socketFd, Server server)
     : socketFd(socketFd), bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024), contentLength(0),
-      headersSent(false), server(server) {
+      headersSent(false), chunkedRequest(false), chunkIsReady(false),
+      server(server) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
@@ -35,7 +37,9 @@ Client::Client(const Client &client)
       connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize),
       contentLength(client.contentLength), lastTimeRW(client.lastTimeRW),
-      headersSent(client.headersSent), server(client.server) {}
+      headersSent(client.headersSent), chunkedRequest(client.chunkedRequest),
+      chunkIsReady(client.chunkIsReady), chunkedLength(client.chunkedLength),
+      server(client.server) {}
 
 Client &Client::operator=(const Client &o) {
     if (this == &o)
@@ -53,46 +57,12 @@ Client &Client::operator=(const Client &o) {
     this->contentLength = o.contentLength;
     this->lastTimeRW = o.lastTimeRW;
     this->headersSent = o.headersSent;
+    this->chunkedRequest = o.chunkedRequest;
+    this->chunkIsReady = o.chunkIsReady;
+    this->chunkedLength = o.chunkedLength;
     this->server = o.server;
 
     return *this;
-}
-
-bool Client::readOutputCGI() {
-    if (headersSent == false) {
-        char buf[1];
-        int len = read(cgiFd, buf, 1);
-        if (len <= 0) {
-            // make sure you reset things to not interefere with the respone
-            // writing add a method called reset() that handles that
-            throw HttpResponseException(500);
-        }
-        bufC.headers += std::string(buf, 1);
-
-        if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
-            bufC.write += "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" +
-                          bufC.headers;
-            headersSent = true;
-        }
-        return false;
-    }
-    char buf[1024];
-    int len = read(cgiFd, buf, 1024);
-    if (len == -1) {
-        std::string errMsg("readOutputCGI(): ");
-        throw std::runtime_error(errMsg + strerror(errno));
-    }
-    std::string readString = std::string(buf, len);
-    std::string append =
-        utils::string::toHex(len) + "\r\n" + readString + "\r\n";
-    bufC.write += append;
-    std::cout << append << std::endl;
-    if (len == 0) {
-        headersSent = false;
-        bufC.headers.clear();
-        return true;
-    }
-    return false;
 }
 
 bool Client::writeChunk() {
@@ -107,11 +77,15 @@ bool Client::writeChunk() {
 bool Client::readRequest() {
     if (method == "POST") {
         return readBody();
-    } else if (method == "DELETE") {
-        return true; // Unimplemented
-    } else {
-        return readStatusHeaders();
     }
+    return readStatusHeaders();
+}
+
+bool Client::readOutputCGI() {
+    if (headersSent == false) {
+        return readCGIHeaders();
+    }
+    return readCGIBody();
 }
 
 void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
@@ -131,6 +105,9 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
     if (method == "POST") {
         requestHandler.handlePOST(*this, mediator);
     }
+    // if (method == "DELETE") {
+    //     requestHandler.handleDELETE(*this, mediator);
+    // }
 }
 
 bool Client::writeFromBuffer() {
@@ -155,16 +132,13 @@ bool Client::writeFromFile() {
     if (bytes_sent > 0)
         updateTimeout();
     if (bytes_sent == 0) {
-        std::cout << "I have closed the file." << std::endl;
-        close(bodyFd);
-        bodyFd = -1;
-        file_offset = 0;
+        clear();
         return true;
     }
     return false;
 }
 
-bool Client::readBody() {
+bool Client::readContentLengthBody() {
     const size_t previousSize = bufC.temp.size();
 
     bufC.temp.resize(bufC.temp.size() + contentLength);
@@ -175,25 +149,74 @@ bool Client::readBody() {
     if (contentLength == 0) {
         bufC.body = std::string(bufC.temp.begin(), bufC.temp.end());
         bufC.temp.clear();
+        updateTimeout();
         return true;
     }
-    if (len <= 0) {
+    if (len == -1 || len == 0) {
         connectionClose = true;
         return false;
     }
+    updateTimeout();
     return false;
+}
+
+bool Client::readChunkedHexa() {
+    char buf[1];
+
+    int len = read(socketFd, buf, 1);
+    if (len == -1 || len == 0) {
+        connectionClose = true;
+        return false;
+    }
+
+    bufC.hexa += std::string(buf, len);
+    if (bufC.hexa.find("\r\n") != std::string::npos) {
+        utils::strTrimV2(bufC.hexa, "\r\n");
+        chunkedLength = utils::string::toIntHex(bufC.hexa) + 2;
+        bufC.hexa.clear();
+        bufC.temp.resize(bufC.temp.size() + chunkedLength);
+        chunkIsReady = true;
+    }
+    return false;
+}
+
+bool Client::readChunkedBody() {
+    if (!chunkIsReady)
+        return readChunkedHexa();
+    char buf[1024];
+    int len = read(socketFd, buf, chunkedLength - bufC.chunk.length() + 2);
+    if (len == -1 || len == 0) {
+        connectionClose = true;
+        return false;
+    }
+    bufC.chunk += std::string(buf, len);
+    if (bufC.chunk.length() == chunkedLength + 2) {
+        if (bufC.chunk.find("\r\n") == std::string::npos)
+            throw HttpResponseException(400);
+        chunkIsReady = false;
+        if (chunkedLength == 0) {
+            bufC.chunk.clear();
+            chunkedRequest = false;
+            return true;
+        }
+        utils::strTrimV2(bufC.chunk, "\r\n");
+        bufC.body += bufC.chunk;
+        bufC.chunk.clear();
+    }
+    return false;
+}
+
+bool Client::readBody() {
+    if (chunkedRequest == true)
+        return readChunkedBody();
+    return readContentLengthBody();
 }
 
 bool Client::readStatusHeaders() {
     char buffer[1];
     int readlen = recv(socketFd, buffer, 1, 0);
 
-    if (readlen == -1) {
-        clear();
-        connectionClose = true;
-        return true;
-    }
-    if (readlen == 0) {
+    if (readlen == -1 || readlen == 0) {
         connectionClose = true;
         return false;
     }
@@ -206,6 +229,39 @@ bool Client::readStatusHeaders() {
     if (bufC.read.size() >= 8190) {
         connectionClose = true;
         throw HttpResponseException(494);
+    }
+    return false;
+}
+
+bool Client::readCGIHeaders() {
+    char buf[1];
+    int len = read(cgiFd, buf, 1);
+    if (len <= 0) {
+        throw HttpResponseException(500);
+    }
+    bufC.headers += std::string(buf, 1);
+    if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
+        bufC.write +=
+            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" + bufC.headers;
+        headersSent = true;
+    }
+    return false;
+}
+
+bool Client::readCGIBody() {
+    char buf[1024];
+    int len = read(cgiFd, buf, 1024);
+    if (len == -1) {
+        throw HttpResponseException(500);
+    }
+    std::string readString = std::string(buf, len);
+    std::string append =
+        utils::string::toHex(len) + "\r\n" + readString + "\r\n";
+    bufC.write += append;
+    if (len == 0) {
+        headersSent = false;
+        bufC.headers.clear();
+        return true;
     }
     return false;
 }
@@ -264,7 +320,10 @@ void Client::setContentLength(off_t length) { this->contentLength = length; }
 
 void Client::setConnectionClose(bool close) { this->connectionClose = close; }
 
+void Client::setChunkedRequest(bool chunked) { this->chunkedRequest = chunked; }
+
 void Client::storeResponse(const std::string &response) {
+    clear();
     this->bufC.write = response;
 }
 
@@ -275,8 +334,13 @@ void Client::reset() {
 
 void Client::clear() {
     bufC.write.clear();
+    if (bodyFd != -1)
+        close(bodyFd);
     bodyFd = -1;
+    if (cgiFd != -1)
+        close(cgiFd);
     cgiFd = -1;
+    file_offset = 0;
 }
 
 Client::~Client() {}
