@@ -77,7 +77,6 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
 
     this->fd = open(file.c_str(), O_RDONLY);
     std::cout << "len: " << length << std::endl;
-    // std::cout << "fd: " << fd << std::endl;
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(file))
         ->setHeader("Content-Length", utils::string::fromInt(length));
@@ -100,6 +99,7 @@ void RequestHandler::handleGET(Client &client, Mediator &mediator) {
         listDirectory();
     } else {
         fileRequested(client, mediator);
+        return;
     }
 
     client.storeResponse(this->getResponse());
@@ -234,16 +234,10 @@ void RequestHandler::listDirectory() {
 }
 
 bool RequestHandler::checkForExtension(const std::string &file) {
-    // std::vector<std::string> v = utils::split(file, ".");
-    // std::string afterLPoint = "." + v.back();
     std::string extention = file.substr(file.find_last_of('.'));
 
     try {
-        std::cout << "=============== " << this->targetLoc.getCgiPath().size()
-                  << std::endl;
         this->targetLoc.getCgiPath().at(extention);
-        std::cout << "FILE: " << file << std::endl;
-        std::cout << "EXT: " << extention << std::endl;
         return true;
     } catch (const std::exception &e) {
         return false;

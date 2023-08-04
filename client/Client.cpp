@@ -37,8 +37,9 @@ Client::Client(const Client &client)
       contentLength(client.contentLength), lastTimeRW(client.lastTimeRW),
       headersSent(client.headersSent), server(client.server) {}
 
-Client& Client::operator=(const Client& o) {
-    if (this == &o) return *this;
+Client &Client::operator=(const Client &o) {
+    if (this == &o)
+        return *this;
 
     this->requestHandler = o.requestHandler;
     this->socketFd = o.socketFd;
@@ -48,7 +49,7 @@ Client& Client::operator=(const Client& o) {
     this->method = o.method;
     this->file_offset = o.file_offset;
     this->connectionClose = o.connectionClose;
-    this-> clientMaxBodySize = o.clientMaxBodySize;
+    this->clientMaxBodySize = o.clientMaxBodySize;
     this->contentLength = o.contentLength;
     this->lastTimeRW = o.lastTimeRW;
     this->headersSent = o.headersSent;

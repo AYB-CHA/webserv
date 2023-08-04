@@ -10,19 +10,19 @@
 class BlockDirective;
 class Directive {
 private:
-    token_type token;
+    Token token;
     std::string name;
     std::vector<std::string> parameters;
     BlockDirective *block;
 public:
     Directive(const Directive& o);
-    Directive(std::string, std::vector<std::string>, BlockDirective*);
-    Directive(token_type, std::vector<std::string>, BlockDirective*);
+    Directive(Token, std::vector<std::string>, BlockDirective*);
 
     token_type getType();
     std::string getName();
     std::vector<std::string> getParameters();
     BlockDirective  *getBlock();
+    std::string     getLine();
 
     void    debug();
     ~Directive();

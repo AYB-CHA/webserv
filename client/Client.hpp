@@ -19,6 +19,8 @@ private:
         std::string body;
         std::string read;
         std::string headers;
+        std::string hexa;
+        std::string chunk;
         std::vector<char> temp;
     };
 
@@ -37,6 +39,9 @@ private:
     off_t   contentLength;
     timeval lastTimeRW;
     bool    headersSent;
+    bool    chunkedRequest;
+    bool    chunkIsReady;
+    std::string::size_type  chunkedLength;
 
     Server  server;
 
@@ -45,6 +50,11 @@ private:
     bool    writeFromFile();
     bool    readBody();
     bool    readStatusHeaders();
+    bool    readCGIHeaders();
+    bool    readCGIBody();
+    bool    readContentLengthBody();
+    bool    readChunkedBody();
+    bool    readChunkedHexa();
     void    updateTimeout();
 public:
     Client();
@@ -68,6 +78,7 @@ public:
     void    setMethod(const std::string& method);
     void    setContentLength(off_t length);
     void    setConnectionClose(bool close);
+    void    setChunkedRequest(bool chunked);
 
     bool    readOutputCGI();
     bool    writeChunk();
