@@ -4,6 +4,8 @@
 #include "../response/HttpResponseBuilder.hpp"
 #include "../server/Server.hpp"
 
+#include <sys/stat.h>
+
 class Client;
 class Mediator;
 class RequestHandler {
@@ -18,12 +20,16 @@ class RequestHandler {
         std::string file;
         Location targetLoc;
         bool matchLocState;
+        // struct stat data;
 
         // -------- new fun
         void checkConfAndAccess(Client& client);
         void listDirectory ();
         void createContainer(std::string& container, std::string::size_type& index);
         void fillContainer(std::string& container, std::string::size_type& index);
+        void validMethod(const std::string& method, Client& c);
+        bool checkForExtension(std::string file);
+        void fileRequested();
 
 
         Server& validServerName(std::string serverName);
@@ -34,6 +40,7 @@ class RequestHandler {
         RequestHandler(const RequestHandler& other);
         RequestHandler& operator=(const RequestHandler& o);
         RequestHandler(HttpRequest &request, std::vector<Server>& servers);
+        ~RequestHandler();
 
         int getFd();
         void setInitialized(bool handled);

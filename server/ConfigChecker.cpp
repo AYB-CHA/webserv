@@ -9,39 +9,39 @@
 #include "../server/Server.hpp"
 #include "../server/utils.hpp"
 
-void root_check(std::vector<std::string> params, ABase &base) {
+void root_check(std::vector<std::string> params, AContext &base) {
     if (params.size() != 1)
-        throw std::runtime_error("params error");
+        throw std::runtime_error("Configuration error.");
     base.setRoot(params.front());
 }
 
-void upload_path_check(std::vector<std::string> params, ABase& base) {
+void upload_path_check(std::vector<std::string> params, AContext& base) {
     if (params.size() != 1)
-        throw std::runtime_error("params error");
+        throw std::runtime_error("Configuration error.");
     base.setUploadPath(params.front());
 }
 
-void accepted_methods_check(std::vector<std::string> params, ABase& base) {
+void accepted_methods_check(std::vector<std::string> params, AContext& base) {
     for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
         if (*it != "GET" && *it != "POST" && *it != "DELETE")
-            throw std::runtime_error("params error");
+            throw std::runtime_error("Configuration error.");
         base.setAllowedMethods(*it);
     }
 }
 
-void index_check(std::vector<std::string> params, ABase &base) {
+void index_check(std::vector<std::string> params, AContext &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
         base.setIndex(*it);
     }
 }
 
-void error_page_check(std::vector<std::string> params, ABase &base) {
+void error_page_check(std::vector<std::string> params, AContext &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
         std::vector<std::string> s = utils::split(*it, ":");
         if (s.size() != 2 || utils::toInt(s[0]) < 0)
-            throw std::runtime_error("params erro");
+            throw std::runtime_error("Configuration error.");
         else
             base.setErrorPage(utils::toInt(s[0]), s[1]);
     }
@@ -59,13 +59,13 @@ bool valid_size(std::string str) {
     return true;
 }
 
-void client_max_body_size_check(std::vector<std::string> params, ABase& base) {
+void client_max_body_size_check(std::vector<std::string> params, AContext& base) {
     if (params.size() != 1 || !valid_size(params.front()))
-        throw std::runtime_error("params error");
+        throw std::runtime_error("Configuration error.");
     char *end_ptr;
     long size = std::strtol(params.front().c_str(), &end_ptr, 10);
     if (errno == ERANGE || size == 0)
-        throw std::runtime_error("params error");
+        throw std::runtime_error("Configuration error.");
     switch (*(params.front().rbegin())) {
         case 'G': size*=pow(2, 30); break;
         case 'M': size*=pow(2, 20); break;
@@ -87,63 +87,63 @@ bool valid_ip_addr(std::string str) {
     return true;
 }
 
-void listen_check(std::vector<std::string> params, ABase& base) {
+void listen_check(std::vector<std::string> params, AContext& base) {
     for (std::vector<std::string>::iterator it = params.begin(); it != params.end(); ++it) {
         std::vector<std::string> s = utils::split(*it, ":");
         if (s.size() == 1) {
             int port = utils::toInt(s.front());
             if (port > 65535 || port < 0)
-                throw std::runtime_error("params erro");
+                throw std::runtime_error("Configuration error.");
             (dynamic_cast<Server&>(base)).setPort(port);
         } else if (s.size() == 2 && valid_ip_addr(s.front())) {
             int port = utils::toInt(s[1]);
             if (port > 65535 || port < 0)
-                throw std::runtime_error("params erro");
+                throw std::runtime_error("Configuration error.");
             (dynamic_cast<Server&>(base)).setPort(port); // port
             (dynamic_cast<Server&>(base)).setHost(s.front()); // ip addr
         } else {
-            throw std::runtime_error("params erro");
+            throw std::runtime_error("Configuration error.");
         }
     }
 }
 
-void server_name_check(std::vector<std::string> params, ABase &base) {
+void server_name_check(std::vector<std::string> params, AContext &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
         (dynamic_cast<Server &>(base)).setServerName(*it);
     }
 }
 
-void redirect_check(std::vector<std::string> params, ABase &base) {
-    for (std::vector<std::string>::iterator it = params.begin();
-         it != params.end(); ++it) {
-        std::vector<std::string> s = utils::split(*it, ":");
-        if (s.size() != 2)
-            throw std::runtime_error("params erro");
-        (dynamic_cast<Server&>(base)).setRedirect(s[0], s[1]);
-    }
+void redirect_check(std::vector<std::string> params, AContext &base) {
+    // for (std::vector<std::string>::iterator it = params.begin();
+    //      it != params.end(); ++it) {
+    //     std::vector<std::string> s = utils::split(*it, ":");
+    //     if (s.size() != 2)
+    //         throw std::runtime_error("Configuration error.");
+        (dynamic_cast<Location&>(base)).setRedirection(params[0]);
+    // }
 }
 
-void autoindex_check(std::vector<std::string> params, ABase &base) {
+void autoindex_check(std::vector<std::string> params, AContext &base) {
     if (params.size() != 1 && (params[0] != "true" || params[0] != "false"))
-        throw std::runtime_error("params erro");
+        throw std::runtime_error("Configuration error.");
     if (params[0] == "true")
         base.setAutoindex(true);
     else
         base.setAutoindex(false);
 }
 
-void cgi_check(std::vector<std::string> params, ABase &base) {
+void cgi_check(std::vector<std::string> params, AContext &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
         std::vector<std::string> s = utils::split(*it, ":");
         if (s.size() != 2)
-            throw std::runtime_error("params erro");
+            throw std::runtime_error("Configuration error.");
         (dynamic_cast<Location&>(base)).setCgiPath(s[0], s[1]);
     }
 }
 
-void match_dir(std::vector<Directive>::iterator &it1, ABase &base) {
+void match_dir(std::vector<Directive>::iterator &it1, AContext &base) {
     std::vector<std::string> params = it1->getParameters();
     switch (it1->getType()) {
         case ROOT: root_check(params, base); break;

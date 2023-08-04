@@ -21,6 +21,7 @@ ConfigLexer::ConfigLexer() : line(1) {
     Config::lockeywords["root"] = ROOT;
     Config::lockeywords["index"] = INDEX;
     Config::lockeywords["autoindex"] = AUTOINDEX;
+    Config::lockeywords["accepted_methods"] = ACCEPTED_METHODS;
     Config::lockeywords["cgi"] = CGI;
     Config::lockeywords["error_page"] = ERROR_PAGE;
     Config::lockeywords["upload_path"] = UPLOAD_PATH;

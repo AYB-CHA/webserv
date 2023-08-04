@@ -23,7 +23,7 @@ Client::Client()
     gettimeofday(&lastTimeRW, NULL);
 }
 
-Client::Client(int socketFd, Server server) 
+Client::Client(int socketFd, Server server)
     : socketFd(socketFd), bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
       contentLength(0), headersSent(false),
@@ -43,7 +43,21 @@ Client::Client(const Client &client)
 
 Client& Client::operator=(const Client& o) {
     if (this == &o) return *this;
-    new (this) Client(o);
+
+    this->requestHandler = o.requestHandler;
+    this->socketFd = o.socketFd;
+    this->bodyFd = o.bodyFd;
+    this->cgiFd = o.cgiFd;
+    this->bufC = o.bufC;
+    this->method = o.method;
+    this->file_offset = o.file_offset;
+    this->connectionClose = o.connectionClose;
+    this-> clientMaxBodySize = o.clientMaxBodySize;
+    this->contentLength = o.contentLength;
+    this->lastTimeRW = o.lastTimeRW;
+    this->headersSent = o.headersSent;
+    this->server = o.server;
+
     return *this;
 }
 
