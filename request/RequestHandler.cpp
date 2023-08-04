@@ -59,6 +59,9 @@ void RequestHandler::init(Client &client) {
     client.setMethod(request.getMethod());
     client.setContentLength(
         utils::string::toInt(request.getHeader("Content-Length")));
+    if (request.getHeader("Transfer-Encoding") == "chunked") {
+        client.setChunkedRequest(true);
+    }
     // client setMaxBodySize();
 }
 
