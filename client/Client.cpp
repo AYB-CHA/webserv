@@ -18,7 +18,8 @@ const int Client::max_sendfile = 1000000;
 Client::Client()
     : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
-      contentLength(0), headersSent(false), chunkedRequest(false)
+      contentLength(0), headersSent(false), chunkedRequest(false),
+      chunkIsReady(false)
 {
     gettimeofday(&lastTimeRW, NULL);
 }
@@ -27,7 +28,7 @@ Client::Client(int socketFd, Server server)
     : socketFd(socketFd), bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024),
       contentLength(0), headersSent(false), chunkedRequest(false),
-      server(server)
+      chunkIsReady(false), server(server)
 {
     gettimeofday(&lastTimeRW, NULL);
 }
@@ -39,7 +40,8 @@ Client::Client(const Client &client)
       file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
       lastTimeRW(client.lastTimeRW), headersSent(client.headersSent), 
-      chunkedRequest(client.chunkedRequest), server(client.server) {}
+      chunkedRequest(client.chunkedRequest), chunkIsReady(client.chunkIsReady),
+      chunkedLength(client.chunkedLength), server(client.server) {}
 
 Client& Client::operator=(const Client& o) {
     if (this == &o) return *this;
@@ -56,6 +58,9 @@ Client& Client::operator=(const Client& o) {
     this->contentLength = o.contentLength;
     this->lastTimeRW = o.lastTimeRW;
     this->headersSent = o.headersSent;
+    this->chunkedRequest = o.chunkedRequest;
+    this->chunkIsReady = o.chunkIsReady;
+    this->chunkedLength = o.chunkedLength;
     this->server = o.server;
 
     return *this;
@@ -148,10 +153,7 @@ bool    Client::readContentLengthBody() {
         updateTimeout();
         return true;
     }
-    if (len == 0) {
-        throw HttpResponseException(400);
-    }
-    if (len == -1) {
+    if (len == -1 || len == 0) {
         connectionClose = true;
         return false;
     }
