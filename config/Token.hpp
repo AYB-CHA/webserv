@@ -27,9 +27,11 @@ typedef enum token_type {
 class Token {
 private:
     std::string literal;
-    token_type type;
+    token_type  type;
     int         line;
 public:
+    Token(const Token& o);
+    Token& operator=(const Token& o);
     Token(std::string literal, token_type type, int line);
     Token(std::string literal, int line);
     Token(token_type type, int line);

@@ -18,6 +18,19 @@ Token::Token(token_type type, int line) {
     this->line = line;
 }
 
+Token::Token(const Token& o) :
+    literal(o.literal), type(o.type), line(o.line)
+{}
+
+Token& Token::operator=(const Token& o) {
+    if (this == &o) return *this;
+
+    this->literal = o.literal;
+    this->type = o.type;
+    this->line = o.line;
+    return *this;
+}
+
 token_type Token::getType() {
     return this->type;
 }
