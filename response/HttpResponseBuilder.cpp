@@ -3,6 +3,21 @@
 
 HttpResponseBuilder::HttpResponseBuilder()
     : has_content_length(false), http_version("HTTP/1.1") {}
+HttpResponseBuilder::HttpResponseBuilder(const HttpResponseBuilder& o): has_content_length(o.has_content_length),
+http_version(o.http_version), status_code(o.status_code), status_code_phrase(o.status_code_phrase),
+headers(o.headers), body(o.body) {}
+HttpResponseBuilder& HttpResponseBuilder::operator=(const HttpResponseBuilder& o) {
+    if (this == &o) return *this;
+
+    this->has_content_length = o.has_content_length;
+    this->http_version = o.http_version;
+    this->status_code = o.status_code;
+    this->status_code_phrase = o.status_code_phrase;
+    this->headers = o.headers;
+    this->body = o.body;
+
+    return *this;
+}
 
 HttpResponseBuilder *HttpResponseBuilder::setStatuscode(int status_code) {
     this->status_code = status_code;

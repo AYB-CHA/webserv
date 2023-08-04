@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <vector>
 
-class Server : public ABase {
+class Server : public AContext {
   private:
     int port;
     std::string host;
@@ -29,6 +29,7 @@ class Server : public ABase {
   public:
     Server();
     Server(const Server& o);
+    Server& operator=(const Server& o);
     ~Server();
 
     const std::string &getHost(void) const;
