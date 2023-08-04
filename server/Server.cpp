@@ -1,5 +1,5 @@
 #include "Server.hpp"
-#include "ABase.hpp"
+#include "AContext.hpp"
 
 Server::Server() {
     this->port = 80;
@@ -12,11 +12,35 @@ Server::Server() {
     this->client_max_body_size = pow(2, 30);
 }
 
-Server::Server(const Server& o) : ABase(o), port(o.port), host(o.host),
+Server::Server(const Server& o) : AContext(o), port(o.port), host(o.host),
     server_names(o.server_names), redirect(o.redirect), location(o.location),
     host_add(o.host_add), socket_fd(o.socket_fd), host_add_len(o.host_add_len) {}
 
 Server::~Server() {}
+
+Server& Server::operator=(const Server& o) {
+
+    if (this == &o) return *this;
+
+    this->root = o.root;
+    this->upload_path = o.upload_path;
+    this->allowed_methods = o.allowed_methods;
+    this->index = o.index;
+    this->error_page = o.error_page;
+    this->client_max_body_size = o.client_max_body_size;
+    this->autoindex = o.autoindex;
+
+    this->port = o.port;
+    this->host = o.host;
+    this->server_names = o.server_names;
+    this->redirect = o.redirect;
+    this->location = o.location;
+    this->host_add = o.host_add;
+    this->socket_fd = o.socket_fd;
+    this->host_add_len = o.host_add_len;
+
+    return *this;
+}
 
 const std::string &Server::getHost(void) const { return this->host; }
 int Server::getPort(void) const { return this->port; }

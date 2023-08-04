@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-class ABase {
+class AContext {
   protected:
     std::string root;
     std::string upload_path;
@@ -14,9 +14,9 @@ class ABase {
     bool autoindex;
 
   public:
-    ABase();
-    ABase(const ABase& o);
-    virtual ~ABase() = 0;
+    AContext();
+    AContext(const AContext& o);
+    virtual ~AContext() = 0;
 
     const std::string &getRoot(void) const;
     const std::string &getUploadPath(void) const;
