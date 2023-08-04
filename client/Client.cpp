@@ -172,7 +172,7 @@ bool Client::readChunkedHexa() {
     bufC.hexa += std::string(buf, len);
     if (bufC.hexa.find("\r\n") != std::string::npos) {
         utils::strTrimV2(bufC.hexa, "\r\n");
-        chunkedLength = utils::string::toIntHex(bufC.hexa) + 2;
+        chunkedLength = utils::string::toIntHex(bufC.hexa);
         bufC.hexa.clear();
         bufC.temp.resize(bufC.temp.size() + chunkedLength);
         chunkIsReady = true;
@@ -194,16 +194,13 @@ bool Client::readChunkedBody() {
         if (bufC.chunk.find("\r\n") == std::string::npos)
             throw HttpResponseException(400);
         chunkIsReady = false;
-        if (chunkedLength == 2) {
+        if (chunkedLength == 0) {
             bufC.chunk.clear();
             chunkedRequest = false;
             return true;
         }
         utils::strTrimV2(bufC.chunk, "\r\n");
         bufC.body += bufC.chunk;
-        std::cout << "===============> " << bufC.body
-                << "chunkedLength: " << chunkedLength
-                  << " <===============" << std::endl;
         bufC.chunk.clear();
     }
     return false;

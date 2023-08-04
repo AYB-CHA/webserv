@@ -55,7 +55,8 @@ void CGIResolver::buildCGIEnv() {
     this->env["REQUEST_METHOD"] = this->request.getMethod();
     this->env["SCRIPT_FILENAME"] = this->CGI_file;
     this->env["CONTENT_TYPE"] = this->request.getHeader("Content-Type");
-    this->env["CONTENT_LENGTH"] = this->request.getHeader("Content-Length");
+    this->env["CONTENT_LENGTH"] =
+        utils::string::fromInt(this->client.getPostBody().length());
     this->env["PATH_INFO"] = this->request.getEndpoint();
     // Only needed if the cgi is complied with force-cgi-redirect enabled;
     this->env["REDIRECT_STATUS"] = "200";
@@ -63,6 +64,7 @@ void CGIResolver::buildCGIEnv() {
              this->request.getHeaders().begin();
          it != this->request.getHeaders().end(); it++) {
         this->env["HTTP_" + utils::string::toUpperCase(it->first)] = it->second;
+        std::cout << it->first << ": " << it->second << std::endl;
     }
 }
 

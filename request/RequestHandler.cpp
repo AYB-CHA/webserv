@@ -73,6 +73,7 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
 
     if (checkForExtension(extension)) {
 
+        std::cout << "-" << client.getPostBody() << '-' << std::endl;
         CGIResolver cgi(this->getCgiPathFromExtension(extension), file,
                         this->request, client);
         client.setCgiFd(cgi.getReadEnd());
