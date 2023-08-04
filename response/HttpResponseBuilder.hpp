@@ -13,6 +13,9 @@ class HttpResponseBuilder {
 
   public:
     HttpResponseBuilder();
+    HttpResponseBuilder(const HttpResponseBuilder& o);
+    HttpResponseBuilder& operator=(const HttpResponseBuilder& o);
+
     HttpResponseBuilder *setStatuscode(int);
 
     HttpResponseBuilder *setHeader(const std::string &, const std::string &);

@@ -8,18 +8,20 @@ class HttpRequest {
     std::string method;
     std::string endpoint;
     std::string queries;
-    std::multimap<std::string, std::string> headers;
+    std::map<std::string, std::string> headers;
     std::string body;
 
   public:
     HttpRequest();
+    HttpRequest(const HttpRequest& o);
+    HttpRequest& operator=(const HttpRequest& o);
     ~HttpRequest();
 
   public:
     const std::string &getMethod() const;
     const std::string &getEndpoint() const;
     const std::string &getQueries() const;
-    const std::multimap<std::string, std::string> &getHeaders() const;
+    const std::map<std::string, std::string> &getHeaders() const;
     const std::string getHeader(const std::string &key) const;
     const std::string &getBody();
 
