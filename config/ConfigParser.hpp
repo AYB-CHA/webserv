@@ -21,8 +21,8 @@ private:
     std::vector<std::string> parseParameters();
 
     // UTILS
-    token_type      consumeSrvKeyword();
-    token_type      consumeLocKeyword();
+    Token           consumeSrvKeyword();
+    Token           consumeLocKeyword();
     Token           consume(token_type);
     bool            check(token_type type);
 public:

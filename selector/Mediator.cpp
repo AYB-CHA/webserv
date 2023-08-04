@@ -42,6 +42,7 @@ void    Mediator::addClient(int fd, Server& server) {
 
 void    Mediator::removeClient(int fd) {
     std::cout << "Client has left. id: " << fd << std::endl;
+    fd_clients[fd].clear();
     fd_clients.erase(fd);
     try {
         selector.popFd(fd);

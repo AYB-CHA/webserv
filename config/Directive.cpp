@@ -3,10 +3,7 @@
 #include <memory>
 #include <vector>
 
-Directive::Directive(std::string name, std::vector<std::string> parameters, BlockDirective *block)
-    : name(name), parameters(parameters), block(block) {}
-
-Directive::Directive(token_type token, std::vector<std::string> parameters, BlockDirective *block)
+Directive::Directive(Token token, std::vector<std::string> parameters, BlockDirective *block)
     : token(token), parameters(parameters), block(block) {}
 
 Directive::Directive(const Directive& o) : token(o.token), name(o.name), parameters(o.parameters) {
@@ -14,7 +11,7 @@ Directive::Directive(const Directive& o) : token(o.token), name(o.name), paramet
 }
 
 token_type  Directive::getType() {
-    return this->token;
+    return this->token.getType();
 }
 
 std::string Directive::getName() {
@@ -29,8 +26,12 @@ BlockDirective* Directive::getBlock() {
     return this->block;
 }
 
+std::string Directive::getLine() {
+    return this->token.getLine();
+}
+
 void    Directive::debug() {
-    std::cout << "Directive name: {" << Token::Literal(this->token) << "} ";
+    std::cout << "Directive name: {" << this->token.getLiteral() << "} ";
     std::cout << "Parameters:";
     for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) {
         std::cout << "(" << *it << ")";

@@ -17,6 +17,15 @@ std::string utils::string::toHex(int number) {
     return result;
 }
 
+int utils::string::toIntHex(const std::string& string) {
+    std::stringstream ss;
+    int result;
+
+    ss << std::hex << string;
+    ss >> result;
+    return result;
+}
+
 int utils::string::toInt(const std::string &string) {
     int integer;
 

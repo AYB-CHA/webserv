@@ -43,7 +43,7 @@ std::vector<std::string> ConfigParser::parseParameters() {
     return result;
 }
 
-token_type  ConfigParser::consumeSrvKeyword() {
+Token ConfigParser::consumeSrvKeyword() {
     if (!tokens.size()) throw std::runtime_error("Expected directive.");
 
     Token token = tokens.front(); tokens.pop_front();
@@ -51,10 +51,10 @@ token_type  ConfigParser::consumeSrvKeyword() {
     if (Config::srvkeywords.find(token.getLiteral()) == Config::srvkeywords.end())
         throw std::runtime_error(std::string("Invalid directive at token: '") + token.getLiteral()
                                  + "' at line: " + token.getLine());
-    return token.getType();
+    return token;
 }
 
-token_type  ConfigParser::consumeLocKeyword() {
+Token ConfigParser::consumeLocKeyword() {
     if (!tokens.size()) throw std::runtime_error("Expected directive.");
 
     Token token = tokens.front(); tokens.pop_front();
@@ -62,11 +62,11 @@ token_type  ConfigParser::consumeLocKeyword() {
     if (Config::lockeywords.find(token.getLiteral()) == Config::lockeywords.end())
         throw std::runtime_error(std::string("Invalid directive at token: '") + token.getLiteral()
                                  + "' at line: " + token.getLine());
-    return token.getType();
+    return token;
 }
 
 Directive   ConfigParser::parseSimpleDirective() {
-    token_type token = consumeSrvKeyword();
+    Token token = consumeSrvKeyword();
     std::vector<std::string> parameters = parseParameters();
 
     consume(SEMICOLON);
@@ -75,7 +75,7 @@ Directive   ConfigParser::parseSimpleDirective() {
 }
 
 Directive   ConfigParser::parseLocDirective() {
-    token_type token = consumeLocKeyword();
+    Token token = consumeLocKeyword();
     std::vector<std::string> parameters = parseParameters();
 
     consume(SEMICOLON);
@@ -84,7 +84,7 @@ Directive   ConfigParser::parseLocDirective() {
 }
 
 Directive   ConfigParser::parseLocation() {
-    token_type token = consumeSrvKeyword();
+    Token token = consumeSrvKeyword();
     std::vector<std::string> parameters = parseParameters();
     std::vector<Directive> directives;
 
@@ -98,7 +98,7 @@ Directive   ConfigParser::parseLocation() {
 }
 
 Directive  ConfigParser::parseServer() {
-    token_type token = consume(SERVER).getType();
+    Token token = consume(SERVER);
     std::vector<Directive> directives;
 
     consume(LEFT_CURLY);
