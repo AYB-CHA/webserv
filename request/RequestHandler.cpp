@@ -73,7 +73,7 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
 
     if (checkForExtension(extension)) {
 
-        std::cout << "-" << client.getPostBody() << '-' << std::endl;
+        // std::cout << "-" << client.getPostBody() << '-' << std::endl;
         CGIResolver cgi(this->getCgiPathFromExtension(extension), file,
                         this->request, client);
         client.setCgiFd(cgi.getReadEnd());
@@ -146,7 +146,7 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
 
 void RequestHandler::checkConfAndAccess(Client &client) {
     file = request.getEndpoint();
-    std::cout << "end point: " << file << std::endl;
+    // std::cout << "end point: " << file << std::endl;
 
     this->matchLocState = matchLocation(file, client.getServer());
     if (this->matchLocState) {
@@ -158,9 +158,9 @@ void RequestHandler::checkConfAndAccess(Client &client) {
         file = "." + client.getServer().getRoot() + file;
     }
 
-    std::cout << "-->file: " << file << std::endl;
-    std::cout << "-->function state: " << std::boolalpha << this->matchLocState
-              << std::endl;
+    // std::cout << "-->file: " << file << std::endl;
+    // std::cout << "-->function state: " << std::boolalpha << this->matchLocState
+              // << std::endl;
     if (access(file.c_str(), F_OK) == -1)
         throw HttpResponseException(404);
     if (access(file.c_str(), R_OK == -1))
@@ -289,13 +289,13 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
                 }
                 // list.pop_back();
 
-                std::cout << "tmp: " << tmp << " | i=  " << i
-                          << " | size: " << list.size() << std::endl;
+                // std::cout << "tmp: " << tmp << " | i=  " << i
+                //           << " | size: " << list.size() << std::endl;
 
                 std::string prefix = *itr1;
                 utils::strTrimV2(prefix, "/");
                 prefix.insert(prefix.begin(), '/');
-                std::cout << "prefix modified: " << prefix << std::endl;
+                // std::cout << "prefix modified: " << prefix << std::endl;
                 if (tmp == prefix || prefix == "/") {
                     found = true;
                     holder = prefix;
@@ -308,8 +308,8 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
                 return true;
             }
         }
-        std::cout << "================ Location ==================="
-                  << std::endl;
+        // std::cout << "================ Location ==================="
+        //           << std::endl;
     }
 
     return found;
