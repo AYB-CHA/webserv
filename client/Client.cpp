@@ -302,7 +302,8 @@ void Client::updateTimeout() {
 }
 
 bool Client::shouldBeClosed() const {
-    return (this->connectionClose && bufC.write.empty() && bodyFd == -1) ||
+    return (this->connectionClose && bufC.write.empty()
+        && bodyFd == -1 && cgiFd == -1) ||
            (timeDifference() > max_timeout);
 }
 
@@ -337,9 +338,6 @@ void Client::clear() {
     if (bodyFd != -1)
         close(bodyFd);
     bodyFd = -1;
-    if (cgiFd != -1)
-        close(cgiFd);
-    cgiFd = -1;
     file_offset = 0;
 }
 
