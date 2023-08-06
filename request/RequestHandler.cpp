@@ -1,9 +1,10 @@
 #include "RequestHandler.hpp"
+#include "../cgi/CgiResolver.hpp"
+#include "../client/Client.hpp"
 #include "../response/HttpResponseException.hpp"
 #include "../response/Mime.hpp"
-#include "../utils/string.hpp"
-#include "../client/Client.hpp"
 #include "../selector/Mediator.hpp"
+#include "../utils/string.hpp"
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
@@ -19,19 +20,21 @@
 
 RequestHandler::RequestHandler() : handled(false) {}
 
-RequestHandler::RequestHandler(const RequestHandler& o)
-    : response(o.response), request(o.request),
-    servers(o.servers), fd(o.fd), handled(o.handled), file(o.file),
-    targetLoc(o.targetLoc), matchLocState(o.matchLocState) {}
+RequestHandler::RequestHandler(const RequestHandler &o)
+    : response(o.response), request(o.request), servers(o.servers), fd(o.fd),
+      handled(o.handled), file(o.file), targetLoc(o.targetLoc),
+      matchLocState(o.matchLocState) {}
 
-RequestHandler::RequestHandler(HttpRequest &request, std::vector<Server>& servers) {
+RequestHandler::RequestHandler(HttpRequest &request,
+                               std::vector<Server> &servers) {
     this->request = request;
     fd = -1;
     this->servers = servers;
 }
 
-RequestHandler& RequestHandler::operator=(const RequestHandler& o) {
-    if (this == &o) return *this;
+RequestHandler &RequestHandler::operator=(const RequestHandler &o) {
+    if (this == &o)
+        return *this;
 
     this->response = o.response;
     this->request = o.request;
@@ -47,39 +50,48 @@ RequestHandler& RequestHandler::operator=(const RequestHandler& o) {
 
 RequestHandler::~RequestHandler() {}
 
-void RequestHandler::init(Client& client) {
+void RequestHandler::init(Client &client) {
     Server srv;
 
     std::string hostHeader = request.getHeader("Host");
     srv = validServerName(hostHeader);
     client.setServer(srv);
     client.setMethod(request.getMethod());
-    client.setContentLength(utils::string::toInt(request.getHeader("Content-Length")));
+    client.setContentLength(
+        utils::string::toInt(request.getHeader("Content-Length")));
+    if (request.getHeader("Transfer-Encoding") == "chunked") {
+        client.setChunkedRequest(true);
+    }
     // client setMaxBodySize();
 }
 
-void RequestHandler::fileRequested() {
-        struct stat data;
-        stat(file.c_str(), &data);
+void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
+    struct stat data;
+    stat(file.c_str(), &data);
 
-        if (checkForExtension(file)) {
-            // instance of cgi
-            // client.setCgiFd(cgi.readEnd());
-            // mediator.addCgi(cgi);
-            return;
-        }
+    std::string extension = file.substr(file.find_last_of('.'));
 
-        off_t length = data.st_size;
+    if (checkForExtension(extension)) {
 
-        this->fd = open(file.c_str(), O_RDONLY);
-        std::cout << "len: " << length << std::endl;
-        // std::cout << "fd: " << fd << std::endl;
-        response.setStatuscode(200)
-            ->setHeader("Content-Type", this->getFileMimeType(file))
-            ->setHeader("Content-Length", utils::string::fromInt(length));
+        std::cout << "-" << client.getPostBody() << '-' << std::endl;
+        CGIResolver cgi(this->getCgiPathFromExtension(extension), file,
+                        this->request, client);
+        client.setCgiFd(cgi.getReadEnd());
+        mediator.addCGI(cgi.getReadEnd());
+        return;
+    }
+
+    off_t length = data.st_size;
+
+    this->fd = open(file.c_str(), O_RDONLY);
+    response.setStatuscode(200)
+        ->setHeader("Content-Type", this->getFileMimeType(file))
+        ->setHeader("Content-Length", utils::string::fromInt(length));
+    client.storeResponse(this->getResponse());
+    client.setFileFd(this->getFd());
 }
 
-void RequestHandler::handleGET(Client& client, Mediator& mediator) {
+void RequestHandler::handleGET(Client &client, Mediator &mediator) {
     (void)mediator;
 
     if (request.getHeader("Connection") == "close")
@@ -91,27 +103,36 @@ void RequestHandler::handleGET(Client& client, Mediator& mediator) {
     struct stat data;
     stat(file.c_str(), &data);
 
-    //check for the existence of the dir
+    // check for the existence of the dir
     if (S_ISDIR(data.st_mode)) {
-        listDirectory();
+        listDirectory(client, mediator);
+        return;
     } else {
-        fileRequested();
+        fileRequested(client, mediator);
     }
-
-    client.storeResponse(this->getResponse());
-    client.setFileFd(this->getFd());
 }
 
-bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
-    (void)client;
-    (void)mediator;
-
-
+void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
     checkConfAndAccess(client);
     validMethod("POST", client);
 
-    // if cgi meaning if the extension matches a cgi and we have to go through it
-    // if (cgi()) {
+    struct stat data;
+    stat(file.c_str(), &data);
+
+    if (S_ISDIR(data.st_mode)) {
+        this->responseFromIndexes(client, mediator);
+    } else {
+        fileRequested(client, mediator);
+        return;
+    }
+
+    // client.storeResponse(this->getResponse());
+    // client.setFileFd(this->getFd());
+
+    // fileRequested(client, mediator);
+
+    // if cgi meaning if the extension matches a cgi and we have to go through
+    // it if (cgi()) {
     //   if (request.getMethod() == "POST") {
     //    pushStatusLine, headers (chunked transfer encoding) and \r\n\r\n
     //  }
@@ -121,10 +142,9 @@ bool RequestHandler::handlePOST(Client &client, Mediator& mediator) {
     // } else {
     //  client.setBodyFd(file) // if the file exists etc
     // }
-    return true;
 }
 
-void RequestHandler::checkConfAndAccess(Client& client) {
+void RequestHandler::checkConfAndAccess(Client &client) {
     file = request.getEndpoint();
     std::cout << "end point: " << file << std::endl;
 
@@ -139,14 +159,16 @@ void RequestHandler::checkConfAndAccess(Client& client) {
     }
 
     std::cout << "-->file: " << file << std::endl;
-    std::cout << "-->function state: " << std::boolalpha << this->matchLocState << std::endl;
+    std::cout << "-->function state: " << std::boolalpha << this->matchLocState
+              << std::endl;
     if (access(file.c_str(), F_OK) == -1)
         throw HttpResponseException(404);
     if (access(file.c_str(), R_OK == -1))
         throw HttpResponseException(403);
 }
 
-void RequestHandler::createContainer(std::string& container, std::string::size_type& index) {
+void RequestHandler::createContainer(std::string &container,
+                                     std::string::size_type &index) {
     std::fstream strm("./root/listDir.html", std::ios::in);
     if (!strm.is_open())
         throw HttpResponseException(500);
@@ -166,10 +188,10 @@ void RequestHandler::createContainer(std::string& container, std::string::size_t
     container.erase(index, s1.length());
 }
 
-void RequestHandler::fillContainer(std::string& container, std::string::size_type& index) {
+void RequestHandler::fillContainer(std::string &container,
+                                   std::string::size_type &index) {
 
     DIR *d = opendir(file.c_str());
-    std::cout << "_____________________________________" << std::endl;
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
         std::string s(de->d_name);
@@ -177,11 +199,17 @@ void RequestHandler::fillContainer(std::string& container, std::string::size_typ
         std::cout << "file name: " << s << std::endl;
 
         if (DT_DIR == de->d_type && s == "..")
-            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/arrow.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+            item = std::string("\t\t\t<li style=\"list-style-image: "
+                               "url('/images/arrow.png')\"><a href=\"") +
+                   s + "\">" + s + "</a>" + "</li>\n";
         else if (DT_DIR == de->d_type) {
-            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/folder.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+            item = std::string("\t\t\t<li style=\"list-style-image: "
+                               "url('/images/folder.png')\"><a href=\"") +
+                   s + "\">" + s + "</a>" + "</li>\n";
         } else {
-            item = std::string("\t\t\t<li style=\"list-style-image: url('/images/file.png')\"><a href=\"") + s + "\">" + s + "</a>" + "</li>\n";
+            item = std::string("\t\t\t<li style=\"list-style-image: "
+                               "url('/images/file.png')\"><a href=\"") +
+                   s + "\">" + s + "</a>" + "</li>\n";
         }
 
         container.insert(index, item);
@@ -189,11 +217,9 @@ void RequestHandler::fillContainer(std::string& container, std::string::size_typ
     }
 }
 
-void RequestHandler::listDirectory () {
+void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
     if (this->matchLocState) {
-        std::cout << std::endl << std::endl<< ">> autoindex value: " << this->targetLoc.getAutoindex() << std::endl;
         if (this->targetLoc.getAutoindex()) {
-
             std::string container;
             std::string::size_type index = 0;
 
@@ -201,36 +227,44 @@ void RequestHandler::listDirectory () {
             fillContainer(container, index);
 
             response.setStatuscode(200)
-            ->setHeader("Content-Type", this->getFileMimeType("test.html"))
-            ->pushBody(container);
+                ->setHeader("Content-Type", this->getFileMimeType(".html"))
+                ->pushBody(container);
+            client.storeResponse(this->getResponse());
+            client.setFileFd(this->getFd());
+            return;
 
-        } else {
-            std::vector<std::string> indexes = this->targetLoc.getIndex();
-            forEach (std::vector<std::string>, indexes, itr) {
-                std::string holder = this->file + "/" + *itr;
-                if (access(holder.c_str(), F_OK | R_OK) == 0) {
-                    this->file = holder;
-                    fileRequested();
-                }
-            }
-            if (indexes.empty())
-                throw HttpResponseException(404);
-        }
+        } else
+            this->responseFromIndexes(client, mediator);
     } else
         throw HttpResponseException(404);
 }
 
-bool RequestHandler::checkForExtension(std::string file) {
-    std::vector<std::string> v = utils::split(file, ".");
-    std::string afterLPoint = "." + v.back();
+bool RequestHandler::checkForExtension(const std::string &extension) {
     try {
-        this->targetLoc.getCgiPath().at(afterLPoint);
+        this->targetLoc.getCgiPath().at(extension);
         return true;
-    } catch(const std::exception& e) {
+    } catch (const std::exception &e) {
         return false;
     }
 }
 
+void RequestHandler::responseFromIndexes(Client &client, Mediator &mediator) {
+    std::vector<std::string> indexes = this->targetLoc.getIndex();
+    forEach(std::vector<std::string>, indexes, itr) {
+        std::string holder = this->file + "/" + *itr;
+        if (access(holder.c_str(), F_OK | R_OK) == 0) {
+            this->file = holder;
+            fileRequested(client, mediator);
+            return;
+        }
+    }
+    throw HttpResponseException(404);
+}
+
+const std::string &
+RequestHandler::getCgiPathFromExtension(const std::string &extension) {
+    return this->targetLoc.getCgiPath().find(extension)->second;
+}
 
 std::string RequestHandler::getResponse() { return response.build(); }
 
@@ -244,18 +278,19 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
     bool found = false;
     std::string holder = "";
 
-    forEach (std::vector<Location>, locations, itr) {
-        forEachConst (std::vector<std::string>, itr->getPrefix(), itr1) {
+    forEach(std::vector<Location>, locations, itr) {
+        forEachConst(std::vector<std::string>, itr->getPrefix(), itr1) {
             std::vector<std::string> list = utils::split(endpoint, "/");
             for (size_t i = 0; i < list.size(); i++) {
-
                 std::string tmp = "";
-                for (std::vector<std::string>::iterator itr2 = list.begin(); itr2 != list.begin() + i + 1; itr2++) {
+                for (std::vector<std::string>::iterator itr2 = list.begin();
+                     itr2 != list.begin() + i + 1; itr2++) {
                     tmp += "/" + *itr2;
                 }
                 // list.pop_back();
 
-                std::cout << "tmp: " << tmp << " | i=  " << i << " | size: " << list.size() << std::endl;
+                std::cout << "tmp: " << tmp << " | i=  " << i
+                          << " | size: " << list.size() << std::endl;
 
                 std::string prefix = *itr1;
                 utils::strTrimV2(prefix, "/");
@@ -273,16 +308,19 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
                 return true;
             }
         }
-        std::cout << "================ Location ===================" << std::endl;
+        std::cout << "================ Location ==================="
+                  << std::endl;
     }
 
     return found;
 }
 
-Server& RequestHandler::validServerName(std::string serverName) {
-    for (std::vector<Server>::iterator itr = servers.begin(); itr != servers.end(); itr++) {
+Server &RequestHandler::validServerName(std::string serverName) {
+    for (std::vector<Server>::iterator itr = servers.begin();
+         itr != servers.end(); itr++) {
         std::vector<std::string> server_names = itr->getServerNames();
-        for (std::vector<std::string>::iterator itr1 = server_names.begin(); itr1 != server_names.end(); itr1++) {
+        for (std::vector<std::string>::iterator itr1 = server_names.begin();
+             itr1 != server_names.end(); itr1++) {
             if (serverName == *itr1) {
                 return *itr;
             }
@@ -291,16 +329,11 @@ Server& RequestHandler::validServerName(std::string serverName) {
     return *(servers.begin());
 }
 
-
 int RequestHandler::getFd() { return this->fd; }
 
-void    RequestHandler::setInitialized(bool handled) {
-    this->handled = handled;
-}
+void RequestHandler::setInitialized(bool handled) { this->handled = handled; }
 
-bool    RequestHandler::hasBeenInitialized() const {
-    return handled;
-}
+bool RequestHandler::hasBeenInitialized() const { return handled; }
 
 std::string
 RequestHandler::getFileMimeType(const std::string &file_name) const {
@@ -308,7 +341,7 @@ RequestHandler::getFileMimeType(const std::string &file_name) const {
     return Mime::getInstance()->getMimeType(extention);
 }
 
-void RequestHandler::validMethod(const std::string& method, Client& c) {
+void RequestHandler::validMethod(const std::string &method, Client &c) {
     if (this->matchLocState) {
         if (!targetLoc.getAllowedMethods().at(method))
             throw HttpResponseException(405);

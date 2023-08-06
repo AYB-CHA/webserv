@@ -1,14 +1,14 @@
 #include "Client.hpp"
-#include "../response/HttpResponseException.hpp"
 #include "../request/HttpRequestParser.hpp"
+#include "../response/HttpResponseException.hpp"
+#include "../server/utils.hpp"
+#include "../utils/string.hpp"
 #include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <sys/select.h>
 #include <sys/socket.h>
-#include "../utils/string.hpp"
-#include "../server/utils.hpp"
 #include <unistd.h>
 int sendFile(int fileFd, int socketFd, off_t *offset, size_t count);
 
@@ -17,34 +17,33 @@ const int Client::max_sendfile = 1000000;
 
 Client::Client()
     : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
-      connectionClose(false), clientMaxBodySize(1024),
-      contentLength(0), headersSent(false), chunkedRequest(false),
-      chunkIsReady(false)
-{
+      connectionClose(false), clientMaxBodySize(1024), contentLength(0),
+      headersSent(false), chunkedRequest(false), chunkIsReady(false) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(int socketFd, Server server)
     : socketFd(socketFd), bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
-      connectionClose(false), clientMaxBodySize(1024),
-      contentLength(0), headersSent(false), chunkedRequest(false),
-      chunkIsReady(false), server(server)
-{
+      connectionClose(false), clientMaxBodySize(1024), contentLength(0),
+      headersSent(false), chunkedRequest(false), chunkIsReady(false),
+      server(server) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(const Client &client)
-    : requestHandler(client.requestHandler),
-      socketFd(client.socketFd), bodyFd(client.bodyFd), cgiFd(client.cgiFd),
-      bufC(client.bufC), method(client.method),
-      file_offset(client.file_offset), connectionClose(client.connectionClose),
-      clientMaxBodySize(client.clientMaxBodySize), contentLength(client.contentLength),
-      lastTimeRW(client.lastTimeRW), headersSent(client.headersSent), 
-      chunkedRequest(client.chunkedRequest), chunkIsReady(client.chunkIsReady),
-      chunkedLength(client.chunkedLength), server(client.server) {}
+    : requestHandler(client.requestHandler), socketFd(client.socketFd),
+      bodyFd(client.bodyFd), cgiFd(client.cgiFd), bufC(client.bufC),
+      method(client.method), file_offset(client.file_offset),
+      connectionClose(client.connectionClose),
+      clientMaxBodySize(client.clientMaxBodySize),
+      contentLength(client.contentLength), lastTimeRW(client.lastTimeRW),
+      headersSent(client.headersSent), chunkedRequest(client.chunkedRequest),
+      chunkIsReady(client.chunkIsReady), chunkedLength(client.chunkedLength),
+      server(client.server) {}
 
-Client& Client::operator=(const Client& o) {
-    if (this == &o) return *this;
+Client &Client::operator=(const Client &o) {
+    if (this == &o)
+        return *this;
 
     this->requestHandler = o.requestHandler;
     this->socketFd = o.socketFd;
@@ -54,7 +53,7 @@ Client& Client::operator=(const Client& o) {
     this->method = o.method;
     this->file_offset = o.file_offset;
     this->connectionClose = o.connectionClose;
-    this-> clientMaxBodySize = o.clientMaxBodySize;
+    this->clientMaxBodySize = o.clientMaxBodySize;
     this->contentLength = o.contentLength;
     this->lastTimeRW = o.lastTimeRW;
     this->headersSent = o.headersSent;
@@ -89,7 +88,7 @@ bool Client::readOutputCGI() {
     return readCGIBody();
 }
 
-void Client::handleRequest(std::vector<Server> servers, Mediator& mediator) {
+void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
     if (!requestHandler.hasBeenInitialized()) {
         HttpRequest request;
         HttpRequestParser parser(request, this->getRequest());
@@ -111,7 +110,7 @@ void Client::handleRequest(std::vector<Server> servers, Mediator& mediator) {
     // }
 }
 
-bool    Client::writeFromBuffer() {
+bool Client::writeFromBuffer() {
     const char *string = bufC.write.c_str();
     size_t length = bufC.write.length();
 
@@ -128,7 +127,7 @@ bool    Client::writeFromBuffer() {
     return false;
 }
 
-bool    Client::writeFromFile() {
+bool Client::writeFromFile() {
     int bytes_sent = sendFile(bodyFd, socketFd, &file_offset, max_sendfile);
     if (bytes_sent > 0)
         updateTimeout();
@@ -139,7 +138,7 @@ bool    Client::writeFromFile() {
     return false;
 }
 
-bool    Client::readContentLengthBody() {
+bool Client::readContentLengthBody() {
     const size_t previousSize = bufC.temp.size();
 
     bufC.temp.resize(bufC.temp.size() + contentLength);
@@ -161,7 +160,7 @@ bool    Client::readContentLengthBody() {
     return false;
 }
 
-bool    Client::readChunkedHexa() {
+bool Client::readChunkedHexa() {
     char buf[1];
 
     int len = read(socketFd, buf, 1);
@@ -173,7 +172,7 @@ bool    Client::readChunkedHexa() {
     bufC.hexa += std::string(buf, len);
     if (bufC.hexa.find("\r\n") != std::string::npos) {
         utils::strTrimV2(bufC.hexa, "\r\n");
-        chunkedLength = utils::string::toIntHex(bufC.hexa) + 2;
+        chunkedLength = utils::string::toIntHex(bufC.hexa);
         bufC.hexa.clear();
         bufC.temp.resize(bufC.temp.size() + chunkedLength);
         chunkIsReady = true;
@@ -181,10 +180,10 @@ bool    Client::readChunkedHexa() {
     return false;
 }
 
-bool    Client::readChunkedBody() {
+bool Client::readChunkedBody() {
     if (!chunkIsReady)
         return readChunkedHexa();
-    char buf[1024];
+    char buf[chunkedLength - bufC.chunk.length() + 2];
     int len = read(socketFd, buf, chunkedLength - bufC.chunk.length() + 2);
     if (len == -1 || len == 0) {
         connectionClose = true;
@@ -207,7 +206,7 @@ bool    Client::readChunkedBody() {
     return false;
 }
 
-bool    Client::readBody() {
+bool Client::readBody() {
     if (chunkedRequest == true)
         return readChunkedBody();
     return readContentLengthBody();
@@ -242,7 +241,8 @@ bool Client::readCGIHeaders() {
     }
     bufC.headers += std::string(buf, 1);
     if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
-        bufC.write += bufC.headers;
+        bufC.write +=
+            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" + bufC.headers;
         headersSent = true;
     }
     return false;
@@ -255,7 +255,8 @@ bool Client::readCGIBody() {
         throw HttpResponseException(500);
     }
     std::string readString = std::string(buf, len);
-    std::string append = utils::string::toHex(len) + "\r\n" + readString + "\r\n";
+    std::string append =
+        utils::string::toHex(len) + "\r\n" + readString + "\r\n";
     bufC.write += append;
     if (len == 0) {
         headersSent = false;
@@ -280,15 +281,11 @@ std::string Client::getRequest() {
     return ret;
 }
 
-std::string Client::getMethod() const {
-    return this->method;
-}
+std::string Client::getMethod() const { return this->method; }
 
 Server &Client::getServer() { return this->server; }
 
-std::string Client::getPostBody() {
-    return this->bufC.body;
-}
+std::string Client::getPostBody() { return this->bufC.body; }
 
 unsigned int Client::timeDifference() const {
     timeval current;
@@ -317,7 +314,7 @@ void Client::setFileFd(int fd) { this->bodyFd = fd; }
 
 void Client::setCgiFd(int fd) { this->cgiFd = fd; }
 
-void Client::setMethod(const std::string& method) { this->method = method; }
+void Client::setMethod(const std::string &method) { this->method = method; }
 
 void Client::setContentLength(off_t length) { this->contentLength = length; }
 

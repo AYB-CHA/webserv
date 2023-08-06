@@ -5,17 +5,17 @@
 #include "../response/HttpResponseBuilder.hpp"
 #include "../response/HttpResponseException.hpp"
 #include <algorithm>
+#include <csignal>
 #include <cstddef>
 #include <stdexcept>
 #include <sys/errno.h>
 #include <sys/socket.h>
-#include <csignal>
 
-Multiplexer::Multiplexer(std::vector<Server> servers) : servers(servers), mediator(servers) {}
+Multiplexer::Multiplexer(std::vector<Server> servers)
+    : servers(servers), mediator(servers) {}
 
-void    Multiplexer::acceptConnections() {
-    for (SIter it = ready_servers.begin(); it != ready_servers.end();
-    ++it) {
+void Multiplexer::acceptConnections() {
+    for (SIter it = ready_servers.begin(); it != ready_servers.end(); ++it) {
         int fd = accept((*it)->getSocketFd(), NULL, NULL);
         if (fd == -1) {
             if (errno != EWOULDBLOCK) {
@@ -27,7 +27,7 @@ void    Multiplexer::acceptConnections() {
     }
 }
 
-void    Multiplexer::writeResponses() {
+void Multiplexer::writeResponses() {
     for (CIter it = write_clients.begin(); it != write_clients.end(); ++it) {
         bool bufferisEmpty = (*it)->writeChunk();
         if (!bufferisEmpty) {
@@ -39,20 +39,20 @@ void    Multiplexer::writeResponses() {
     }
 }
 
-void    Multiplexer::readRequests() {
+void Multiplexer::readRequests() {
     for (CIter it = read_clients.begin(); it != read_clients.end(); ++it) {
         try {
             if (!(*it)->readRequest()) {
                 continue;
             }
             (*it)->handleRequest(servers, mediator);
-        } catch (HttpResponseException& e) {
+        } catch (HttpResponseException &e) {
             (*it)->storeResponse(e.build());
         }
     }
 }
 
-void    Multiplexer::readFromPipes() {
+void Multiplexer::readFromPipes() {
     for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
         try {
             if ((*it)->readOutputCGI() == true) {
@@ -60,7 +60,7 @@ void    Multiplexer::readFromPipes() {
                 (*it)->setMethod("GET");
                 (*it)->setCgiFd(-1);
             };
-        } catch (HttpResponseException& e) {
+        } catch (HttpResponseException &e) {
             (*it)->storeResponse(e.build());
         }
     }
@@ -69,14 +69,16 @@ void    Multiplexer::readFromPipes() {
 void Multiplexer::run() {
     signal(SIGPIPE, SIG_IGN);
     for (;;) {
-        mediator.getBatch(ready_servers, read_clients, write_clients, cgi_pipes);
+        mediator.getBatch(ready_servers, read_clients, write_clients,
+                          cgi_pipes);
 
         acceptConnections();
         readFromPipes();
         writeResponses();
         readRequests();
         mediator.filterClients();
-        for (std::vector<Client>::iterator it = new_clients.begin(); it != new_clients.end(); ++it) {
+        for (std::vector<Client>::iterator it = new_clients.begin();
+             it != new_clients.end(); ++it) {
             mediator.addClient(it->getSocketFd(), it->getServer());
         }
         new_clients.clear();
