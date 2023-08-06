@@ -285,7 +285,7 @@ std::string Client::getMethod() const { return this->method; }
 
 Server &Client::getServer() { return this->server; }
 
-std::string Client::getPostBody() { return this->bufC.body; }
+const std::string& Client::getPostBody() { return this->bufC.body; }
 
 unsigned int Client::timeDifference() const {
     timeval current;
