@@ -68,7 +68,7 @@ public:
     std::string getMethod() const;
     std::string getRequest();
     Server& getServer();
-    std::string getPostBody();
+    const std::string& getPostBody();
     bool    shouldBeClosed() const;
 
     void    setServer(Server server);
