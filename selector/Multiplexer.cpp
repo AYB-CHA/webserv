@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <sys/errno.h>
+#include <sys/signal.h>
 #include <sys/socket.h>
 
 Multiplexer::Multiplexer(std::vector<Server> servers)
@@ -67,6 +68,7 @@ void Multiplexer::readFromPipes() {
 }
 
 void Multiplexer::run() {
+    signal(SIGCHLD, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
     for (;;) {
         mediator.getBatch(ready_servers, read_clients, write_clients,
