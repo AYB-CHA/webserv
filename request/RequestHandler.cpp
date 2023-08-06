@@ -289,13 +289,13 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
                 }
                 // list.pop_back();
 
-                std::cout << "tmp: " << tmp << " | i=  " << i
-                          << " | size: " << list.size() << std::endl;
+                // std::cout << "tmp: " << tmp << " | i=  " << i
+                //           << " | size: " << list.size() << std::endl;
 
                 std::string prefix = *itr1;
                 utils::strTrimV2(prefix, "/");
                 prefix.insert(prefix.begin(), '/');
-                std::cout << "prefix modified: " << prefix << std::endl;
+                // std::cout << "prefix modified: " << prefix << std::endl;
                 if (tmp == prefix || prefix == "/") {
                     found = true;
                     holder = prefix;
