@@ -57,12 +57,30 @@ void RequestHandler::init(Client &client) {
     srv = validServerName(hostHeader);
     client.setServer(srv);
     client.setMethod(request.getMethod());
+
     client.setContentLength(
         utils::string::toInt(request.getHeader("Content-Length")));
+
+    std::string extension = this->request.getEndpoint().substr(
+        this->request.getEndpoint().find_last_of('.'));
+
     if (request.getHeader("Transfer-Encoding") == "chunked") {
         client.setChunkedRequest(true);
+    } else if (request.getHeader("Content-Type") != "") {
+        std::string header_value = this->request.getHeader("Content-Type");
+        std::string::size_type semicolon_pos = header_value.find(';');
+        std::string content_type = header_value.substr(0, semicolon_pos);
+
+        if (content_type == "multipart/form-data") {
+            std::string::size_type boundary_pos = semicolon_pos + 1;
+            if (content_type[boundary_pos] == ' ')
+                boundary_pos++;
+            boundary_pos += 10;
+            std::string boundary = header_value.substr(boundary_pos);
+            client.setFormData(true);
+            client.setFormDataBoundary(boundary);
+        }
     }
-    // client setMaxBodySize();
 }
 
 void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
@@ -159,8 +177,9 @@ void RequestHandler::checkConfAndAccess(Client &client) {
     }
 
     // std::cout << "-->file: " << file << std::endl;
-    // std::cout << "-->function state: " << std::boolalpha << this->matchLocState
-              // << std::endl;
+    // std::cout << "-->function state: " << std::boolalpha <<
+    // this->matchLocState
+    // << std::endl;
     if (access(file.c_str(), F_OK) == -1)
         throw HttpResponseException(404);
     if (access(file.c_str(), R_OK == -1))
