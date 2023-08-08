@@ -257,7 +257,9 @@ bool Client::readBody() {
         return readChunkedBody();
     else if (formData == true) {
         if (this->readFormData() == true) {
-            throw HttpResponseException(201);
+            HttpResponseBuilder response;
+            response.setStatuscode(201);
+            this->bufC.write = response.build();
         }
         return false;
     }
