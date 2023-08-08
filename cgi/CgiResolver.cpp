@@ -13,10 +13,12 @@ CGIResolver::CGIResolver(const std::string &CGI_path,
 }
 
 void CGIResolver::runCGI() {
+
+    std::cerr << "running CGI \n";
+    std::cerr << this->client.getMethod() << std::endl;
     if (pipe(this->read_pipes) == -1 || pipe(this->write_pipes) == -1)
         throw HttpResponseException(500);
-    write(this->write_pipes[1], this->client.getPostBody().c_str(),
-          this->client.getPostBody().length());
+
     pid_t pid = fork();
     if (pid == -1)
         throw HttpResponseException(500);
@@ -31,7 +33,7 @@ void CGIResolver::runCGI() {
             this->write_CGI_error_output();
 
         const char *bin = this->CGI_path.c_str();
-        char *args[] = {(char *)bin, NULL};
+        char *args[] = {(char *)bin, (char *)this->CGI_file.c_str(), NULL};
         char **env = new char *[this->env.size() + 1];
         env[this->env.size()] = NULL;
         std::map<std::string, std::string>::const_iterator it =
@@ -43,6 +45,8 @@ void CGIResolver::runCGI() {
         execve(bin, args, env);
         this->write_CGI_error_output();
     }
+    write(this->write_pipes[1], this->client.getPostBody().c_str(),
+          this->client.getPostBody().length());
     if (close(this->read_pipes[1]) == -1 || close(this->write_pipes[1]) == -1 ||
         close(this->write_pipes[0]) == -1)
         throw HttpResponseException(500);
