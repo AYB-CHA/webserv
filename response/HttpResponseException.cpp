@@ -14,4 +14,8 @@ std::string HttpResponseException::build() const {
         ->build();
 }
 
+unsigned int HttpResponseException::getStatusCode() {
+    return this->status_code;
+}
+
 HttpResponseException::~HttpResponseException() throw() {}

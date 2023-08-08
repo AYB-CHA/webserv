@@ -8,5 +8,6 @@ class HttpResponseException : public std::exception {
   public:
     HttpResponseException(unsigned int status_code);
     std::string build() const;
+    unsigned int getStatusCode();
     ~HttpResponseException() throw();
 };

@@ -399,4 +399,6 @@ void Client::clear() {
     file_offset = 0;
 }
 
+RequestHandler &Client::getRequestHandler() { return this->requestHandler; }
+
 Client::~Client() {}

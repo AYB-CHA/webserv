@@ -4,6 +4,8 @@
 #include "../request/RequestHandler.hpp"
 #include "../response/HttpResponseBuilder.hpp"
 #include "../response/HttpResponseException.hpp"
+#include "../response/Mime.hpp"
+#include "../utils/string.hpp"
 #include <algorithm>
 #include <csignal>
 #include <cstddef>
@@ -48,8 +50,8 @@ void Multiplexer::readRequests() {
             }
             (*it)->handleRequest(servers, mediator);
         } catch (HttpResponseException &e) {
-            // if ()
-            (*it)->storeResponse(e.build());
+            // (*it)->storeResponse(e.build());
+            this->showErrorPage(e, *it);
         }
     }
 }
@@ -63,9 +65,40 @@ void Multiplexer::readFromPipes() {
                 (*it)->setCgiFd(-1);
             };
         } catch (HttpResponseException &e) {
-            (*it)->storeResponse(e.build());
+            // (*it)->storeResponse(e.build());
+            this->showErrorPage(e, *it);
         }
     }
+}
+
+void Multiplexer::showErrorPage(HttpResponseException &e,
+                                Client *client) const {
+    const std::map<int, std::string> &error_pages =
+        (client->getRequestHandler().matchedLocation())
+            ? client->getRequestHandler().getLocation().getErrorPage()
+            : client->getServer().getErrorPage();
+    if (error_pages.find(e.getStatusCode()) != error_pages.end()) {
+        std::string file_path = error_pages.at(e.getStatusCode());
+        int fd = open(file_path.c_str(), O_RDONLY);
+        if (fd != -1) {
+            HttpResponseBuilder builder;
+            std::string extention =
+                file_path.substr(file_path.find_last_of('.') + 1);
+            struct stat data;
+            fstat(fd, &data);
+            std::cout << "file size: " << data.st_size << std::endl;
+            builder.setStatuscode(200)
+                ->setHeader("Content-Type",
+                            Mime::getInstance()->getMimeType(extention))
+                ->setHeader("Content-Length",
+                            ::utils::string::fromInt(data.st_size));
+
+            client->storeResponse(builder.build());
+            client->setFileFd(fd);
+            return;
+        }
+    }
+    client->storeResponse(e.build());
 }
 
 void Multiplexer::run() {

@@ -73,6 +73,7 @@ class Client {
     std::string getMethod() const;
     std::string getRequest();
     Server &getServer();
+    RequestHandler &getRequestHandler();
     const std::string &getPostBody();
     bool shouldBeClosed() const;
 
