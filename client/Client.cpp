@@ -95,7 +95,7 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
         requestHandler = RequestHandler(request, servers);
         requestHandler.init(*this);
         requestHandler.setInitialized(true);
-        if (method == "POST")
+        if (method == "POST" && contentLength != 0)
             return;
     }
     requestHandler.setInitialized(false);
@@ -185,7 +185,8 @@ bool Client::readChunkedBody() {
         return readChunkedHexa();
     std::vector<char> buf;
     buf.resize(chunkedLength - bufC.chunk.length() + 2);
-    int len = read(socketFd, buf.data(), chunkedLength - bufC.chunk.length() + 2);
+    int len =
+        read(socketFd, buf.data(), chunkedLength - bufC.chunk.length() + 2);
     if (len == -1 || len == 0) {
         connectionClose = true;
         return false;
@@ -286,7 +287,7 @@ std::string Client::getMethod() const { return this->method; }
 
 Server &Client::getServer() { return this->server; }
 
-const std::string& Client::getPostBody() { return this->bufC.body; }
+const std::string &Client::getPostBody() { return this->bufC.body; }
 
 unsigned int Client::timeDifference() const {
     timeval current;
@@ -303,8 +304,8 @@ void Client::updateTimeout() {
 }
 
 bool Client::shouldBeClosed() const {
-    return (this->connectionClose && bufC.write.empty()
-        && bodyFd == -1 && cgiFd == -1) ||
+    return (this->connectionClose && bufC.write.empty() && bodyFd == -1 &&
+            cgiFd == -1) ||
            (timeDifference() > max_timeout);
 }
 

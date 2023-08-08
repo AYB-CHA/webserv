@@ -70,10 +70,9 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     stat(file.c_str(), &data);
 
     std::string extension = file.substr(file.find_last_of('.'));
-
+    // std::cout << "POST" << std::endl;
     if (checkForExtension(extension)) {
 
-        // std::cout << "-" << client.getPostBody() << '-' << std::endl;
         CGIResolver cgi(this->getCgiPathFromExtension(extension), file,
                         this->request, client);
         client.setCgiFd(cgi.getReadEnd());
@@ -159,8 +158,9 @@ void RequestHandler::checkConfAndAccess(Client &client) {
     }
 
     // std::cout << "-->file: " << file << std::endl;
-    // std::cout << "-->function state: " << std::boolalpha << this->matchLocState
-              // << std::endl;
+    // std::cout << "-->function state: " << std::boolalpha <<
+    // this->matchLocState
+    // << std::endl;
     if (access(file.c_str(), F_OK) == -1)
         throw HttpResponseException(404);
     if (access(file.c_str(), R_OK == -1))
