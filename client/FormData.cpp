@@ -4,8 +4,9 @@
 #include "../server/utils.hpp"
 #include <fstream>
 
-FormData::FormData(const std::string &to_process)
-    : i(2), its_file(false), to_process(to_process) {}
+FormData::FormData(const std::string &to_process,
+                   const std::string &upload_path)
+    : i(2), its_file(false), to_process(to_process), upload_path(upload_path) {}
 
 void FormData::processHeaders() {
     for (;;) {
@@ -60,8 +61,7 @@ void FormData::processBoundary() {
 }
 
 void FormData::uploadFile() {
-    std::string file_path = "/tmp/UPLOAD/" + filename;
-    std::cout << filename << std::endl;
+    std::string file_path = this->upload_path + "/" + filename;
     std::ofstream upload_file_stream(file_path);
     if (!upload_file_stream)
         throw HttpResponseException(403);

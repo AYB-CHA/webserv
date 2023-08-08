@@ -8,19 +8,21 @@ Server::Server() {
     // form base class
     this->autoindex = true;
     this->root = "./";
-    this->upload_path = "/upload/clientFile/";
+    this->upload_path = "/tmp/";
     this->client_max_body_size = pow(2, 30);
 }
 
-Server::Server(const Server& o) : AContext(o), port(o.port), host(o.host),
-    server_names(o.server_names), redirect(o.redirect), location(o.location),
-    host_add(o.host_add), socket_fd(o.socket_fd), host_add_len(o.host_add_len) {}
+Server::Server(const Server &o)
+    : AContext(o), port(o.port), host(o.host), server_names(o.server_names),
+      redirect(o.redirect), location(o.location), host_add(o.host_add),
+      socket_fd(o.socket_fd), host_add_len(o.host_add_len) {}
 
 Server::~Server() {}
 
-Server& Server::operator=(const Server& o) {
+Server &Server::operator=(const Server &o) {
 
-    if (this == &o) return *this;
+    if (this == &o)
+        return *this;
 
     this->root = o.root;
     this->upload_path = o.upload_path;

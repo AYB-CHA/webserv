@@ -8,9 +8,10 @@ class FormData {
     std::string filename;
     std::string content_disposition_value;
     const std::string &to_process;
+    const std::string &upload_path;
 
   public:
-    FormData(const std::string &);
+    FormData(const std::string &, const std::string &upload_path);
     void processBoundary();
     ~FormData();
 

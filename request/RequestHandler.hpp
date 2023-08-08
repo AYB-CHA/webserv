@@ -18,6 +18,7 @@ class RequestHandler {
 
     //------- new attr
     std::string file;
+    std::string extension;
     Location targetLoc;
     bool matchLocState;
     // struct stat data;
@@ -52,6 +53,8 @@ class RequestHandler {
     void handlePOST(Client &client, Mediator &mediator);
     const std::string &getCgiPathFromExtension(const std::string &extension);
     void responseFromIndexes(Client &client, Mediator &mediator);
+    const Location &getLocation();
+    bool matchedLocation();
 };
 
 #define forEach(type, iterable, name)                                          \

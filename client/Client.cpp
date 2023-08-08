@@ -189,7 +189,12 @@ bool Client::readFormData() {
         if (to_process.length() != 0) {
             if (to_process.find("\r\n") != 0)
                 throw HttpResponseException(400);
-            FormData processor(to_process);
+            const std::string &upload_path =
+                (this->requestHandler.matchedLocation())
+                    ? this->requestHandler.getLocation().getUploadPath()
+                    : this->server.getUploadPath();
+
+            FormData processor(to_process, upload_path);
             processor.processBoundary();
         }
         bufC.formData.erase(0, 2 + this->formDataBoundary.length() +
