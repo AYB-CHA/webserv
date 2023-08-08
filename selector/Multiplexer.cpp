@@ -48,6 +48,7 @@ void Multiplexer::readRequests() {
             }
             (*it)->handleRequest(servers, mediator);
         } catch (HttpResponseException &e) {
+            // if ()
             (*it)->storeResponse(e.build());
         }
     }

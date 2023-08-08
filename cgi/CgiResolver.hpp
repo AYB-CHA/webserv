@@ -33,4 +33,5 @@ class CGIResolver {
     void buildCGIEnv();
     bool validCGI() const;
     void write_CGI_error_output();
+    void close_pipes();
 };
