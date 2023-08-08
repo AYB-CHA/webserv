@@ -11,6 +11,7 @@ void FormData::processHeaders() {
     for (;;) {
         std::string::size_type rc_pos = to_process.find("\r\n", i);
         std::string line = to_process.substr(i, rc_pos - i);
+
         i += line.length() + 2;
 
         if (line == "")
@@ -44,7 +45,6 @@ void FormData::processDispositionHeader() {
             throw HttpResponseException(400);
         value.pop_back();
         value.erase(value.begin());
-        std::cout << *it << std::endl;
         if (key == "filename") {
             filename = value;
             its_file = true;

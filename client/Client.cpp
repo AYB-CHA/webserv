@@ -170,33 +170,31 @@ bool Client::readContentLengthBody() {
 
 bool Client::readFormData() {
 
-    char *buffer = new char[contentLength + 1];
+    char *buffer = new char[contentLength];
     int len = read(socketFd, buffer, contentLength);
-    // std::cout << strerror(errno) << std::endl;
-    buffer[len + 1] = '\0';
-    // this->bufC.formData += buffer;
-    std::cout << buffer << std::endl;
+    if (len == -1 || len == 0) {
+        connectionClose = true;
+        return false;
+    }
+    this->bufC.formData += std::string(buffer, len);
     delete[] buffer;
     contentLength -= len;
 
-    // std::string::size_type boundary_pos;
+    std::string::size_type boundary_pos;
 
-    // while ((boundary_pos = bufC.formData.find("--" + this->formDataBoundary))
-    // !=
-    //        std::string::npos) {
-    //     std::string to_process = this->bufC.formData.substr(0, boundary_pos);
-    //     if (to_process.length() != 0) {
-    //         std::cout << "=================" << std::endl;
-    //         std::cout << to_process << std::endl;
-    //         std::cout << "=================" << std::endl;
-    //         if (to_process.find("\r\n") != 0)
-    //             throw HttpResponseException(400);
-    //         // FormData processor(to_process);
-    //         // processor.processBoundary();
-    //     }
-    //     bufC.formData.erase(0, 2 + this->formDataBoundary.length() +
-    //                                to_process.length());
-    // }
+    while ((boundary_pos = bufC.formData.find("--" + this->formDataBoundary)) !=
+           std::string::npos) {
+        std::string to_process = this->bufC.formData.substr(0, boundary_pos);
+
+        if (to_process.length() != 0) {
+            if (to_process.find("\r\n") != 0)
+                throw HttpResponseException(400);
+            FormData processor(to_process);
+            processor.processBoundary();
+        }
+        bufC.formData.erase(0, 2 + this->formDataBoundary.length() +
+                                   to_process.length());
+    }
     return contentLength == 0;
 }
 
@@ -253,11 +251,10 @@ bool Client::readBody() {
     if (chunkedRequest == true)
         return readChunkedBody();
     else if (formData == true) {
-        if (this->readFormData()) {
-            formData = false;
+        if (this->readFormData() == true) {
             throw HttpResponseException(201);
         }
-        return true;
+        return false;
     }
     return readContentLengthBody();
 }
