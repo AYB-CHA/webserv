@@ -101,7 +101,7 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
         requestHandler = RequestHandler(request, servers);
         requestHandler.init(*this);
         requestHandler.setInitialized(true);
-        if (method == "POST" && contentLength != 0)
+        if (method == "POST" && contentLength != 0 && chunkedRequest == false)
             return;
     }
 
