@@ -3,13 +3,16 @@
 #include "../response/HttpResponseException.hpp"
 #include "../server/utils.hpp"
 #include "../utils/string.hpp"
+#include "FormData.hpp"
 #include <cstddef>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 int sendFile(int fileFd, int socketFd, off_t *offset, size_t count);
 
 const unsigned int Client::max_timeout = 30;
@@ -18,15 +21,16 @@ const int Client::max_sendfile = 1000000;
 Client::Client()
     : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024), contentLength(0),
-      headersSent(false), chunkedRequest(false), chunkIsReady(false) {
+      headersSent(false), chunkedRequest(false), formData(false),
+      chunkIsReady(false) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(int socketFd, Server server)
     : socketFd(socketFd), bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024), contentLength(0),
-      headersSent(false), chunkedRequest(false), chunkIsReady(false),
-      server(server) {
+      headersSent(false), chunkedRequest(false), formData(false),
+      chunkIsReady(false), server(server) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
@@ -38,6 +42,7 @@ Client::Client(const Client &client)
       clientMaxBodySize(client.clientMaxBodySize),
       contentLength(client.contentLength), lastTimeRW(client.lastTimeRW),
       headersSent(client.headersSent), chunkedRequest(client.chunkedRequest),
+      formData(client.formData), formDataBoundary(client.formDataBoundary),
       chunkIsReady(client.chunkIsReady), chunkedLength(client.chunkedLength),
       server(client.server) {}
 
@@ -61,7 +66,8 @@ Client &Client::operator=(const Client &o) {
     this->chunkIsReady = o.chunkIsReady;
     this->chunkedLength = o.chunkedLength;
     this->server = o.server;
-
+    this->formData = o.formData;
+    this->formDataBoundary = o.formDataBoundary;
     return *this;
 }
 
@@ -76,7 +82,7 @@ bool Client::writeChunk() {
 
 bool Client::readRequest() {
     if (method == "POST") {
-        return readBody();
+        return (readBody());
     }
     return readStatusHeaders();
 }
@@ -98,11 +104,13 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
         if (method == "POST" && contentLength != 0)
             return;
     }
+
     requestHandler.setInitialized(false);
     if (method == "GET") {
         requestHandler.handleGET(*this, mediator);
     }
     if (method == "POST") {
+        this->setMethod("GET");
         requestHandler.handlePOST(*this, mediator);
     }
     // if (method == "DELETE") {
@@ -160,6 +168,41 @@ bool Client::readContentLengthBody() {
     return false;
 }
 
+bool Client::readFormData() {
+
+    char *buffer = new char[contentLength];
+    int len = read(socketFd, buffer, contentLength);
+    if (len == -1 || len == 0) {
+        connectionClose = true;
+        return false;
+    }
+    this->bufC.formData += std::string(buffer, len);
+    delete[] buffer;
+    contentLength -= len;
+
+    std::string::size_type boundary_pos;
+
+    while ((boundary_pos = bufC.formData.find("--" + this->formDataBoundary)) !=
+           std::string::npos) {
+        std::string to_process = this->bufC.formData.substr(0, boundary_pos);
+
+        if (to_process.length() != 0) {
+            if (to_process.find("\r\n") != 0)
+                throw HttpResponseException(400);
+            const std::string &upload_path =
+                (this->requestHandler.matchedLocation())
+                    ? this->requestHandler.getLocation().getUploadPath()
+                    : this->server.getUploadPath();
+
+            FormData processor(to_process, upload_path);
+            processor.processBoundary();
+        }
+        bufC.formData.erase(0, 2 + this->formDataBoundary.length() +
+                                   to_process.length());
+    }
+    return contentLength == 0;
+}
+
 bool Client::readChunkedHexa() {
     char buf[1];
 
@@ -209,8 +252,17 @@ bool Client::readChunkedBody() {
 }
 
 bool Client::readBody() {
+    // std::cout << formData << std::endl;
     if (chunkedRequest == true)
         return readChunkedBody();
+    else if (formData == true) {
+        if (this->readFormData() == true) {
+            HttpResponseBuilder response;
+            response.setStatuscode(201);
+            this->bufC.write = response.build();
+        }
+        return false;
+    }
     return readContentLengthBody();
 }
 
@@ -324,6 +376,10 @@ void Client::setContentLength(off_t length) { this->contentLength = length; }
 void Client::setConnectionClose(bool close) { this->connectionClose = close; }
 
 void Client::setChunkedRequest(bool chunked) { this->chunkedRequest = chunked; }
+void Client::setFormData(bool val) { this->formData = val; }
+void Client::setFormDataBoundary(const std::string &boundary) {
+    this->formDataBoundary = boundary;
+}
 
 void Client::storeResponse(const std::string &response) {
     clear();
@@ -341,6 +397,37 @@ void Client::clear() {
         close(bodyFd);
     bodyFd = -1;
     file_offset = 0;
+}
+
+RequestHandler &Client::getRequestHandler() { return this->requestHandler; }
+
+void Client::showErrorPage(HttpResponseException &e) {
+    const std::map<int, std::string> &error_pages =
+        (this->getRequestHandler().matchedLocation())
+            ? this->getRequestHandler().getLocation().getErrorPage()
+            : this->getServer().getErrorPage();
+
+    if (error_pages.find(e.getStatusCode()) != error_pages.end()) {
+        std::string file_path = error_pages.at(e.getStatusCode());
+        int fd = open(file_path.c_str(), O_RDONLY);
+        if (fd != -1) {
+            HttpResponseBuilder builder;
+            std::string extention =
+                file_path.substr(file_path.find_last_of('.') + 1);
+            struct stat data;
+            fstat(fd, &data);
+            builder.setStatuscode(200)
+                ->setHeader("Content-Type",
+                            Mime::getInstance()->getMimeType(extention))
+                ->setHeader("Content-Length",
+                            ::utils::string::fromInt(data.st_size));
+
+            this->storeResponse(builder.build());
+            this->setFileFd(fd);
+            return;
+        }
+    }
+    this->storeResponse(e.build());
 }
 
 Client::~Client() {}

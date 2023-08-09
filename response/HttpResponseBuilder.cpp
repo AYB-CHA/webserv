@@ -43,6 +43,12 @@ HttpResponseBuilder *HttpResponseBuilder::setStatuscode(int status_code) {
     case 502:
         this->status_code_phrase = "Bad Gateway";
         break;
+    case 201:
+        this->status_code_phrase = "Created";
+        break;
+    case 403:
+        this->status_code_phrase = "Forbidden";
+        break;
     default:
         this->status_code_phrase = "Must be implemented!!";
         break;

@@ -6,8 +6,7 @@
     // echo "Hello, World!";
 ?>
 
-<form action="/post.php" method="POST" enctype="multipart/form-data">
-    <input type="text" name="name">
+<form action="/index.html" method="POST" enctype="multipart/form-data">
     <input type="file" name="myfile">
     <br>
     <button>SEND</button>

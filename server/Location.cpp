@@ -6,13 +6,16 @@ Location::Location() {
     // from base class
     this->autoindex = true;
     this->root = "";
-    this->upload_path = "/upload/clientFile/";
+    this->upload_path = "/tmp";
     this->client_max_body_size = pow(2, 30);
 }
-Location::Location(const Location& o) : AContext(o), prefix(o.prefix), cgi_path(o.cgi_path), redirect(o.redirect) {}
+Location::Location(const Location &o)
+    : AContext(o), prefix(o.prefix), cgi_path(o.cgi_path),
+      redirect(o.redirect) {}
 
-Location& Location::operator=(const Location& o) {
-    if (this == &o) return *this;
+Location &Location::operator=(const Location &o) {
+    if (this == &o)
+        return *this;
 
     this->root = o.root;
     this->upload_path = o.upload_path;
@@ -31,23 +34,18 @@ Location& Location::operator=(const Location& o) {
 
 Location::~Location() {}
 
-const std::vector<std::string>& Location::getPrefix(void) const {
-	return this->prefix;
+const std::vector<std::string> &Location::getPrefix(void) const {
+    return this->prefix;
 }
-const std::map<std::string, std::string>& Location::getCgiPath(void) const {
-	return this->cgi_path;
+const std::map<std::string, std::string> &Location::getCgiPath(void) const {
+    return this->cgi_path;
 }
-const std::string& Location::getRedirect(void) const {
-	return this->redirect;
-}
+const std::string &Location::getRedirect(void) const { return this->redirect; }
 
 void Location::setPrefix(std::vector<std::string> prefix) {
-	this->prefix = prefix;
+    this->prefix = prefix;
 }
 void Location::setCgiPath(std::string extension, std::string path) {
-	this->cgi_path[extension] = path;
+    this->cgi_path[extension] = path;
 }
-void Location::setRedirection(std::string redir) {
-	this->redirect = redir;
-}
-
+void Location::setRedirection(std::string redir) { this->redirect = redir; }

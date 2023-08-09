@@ -4,6 +4,7 @@
 #include "../request/RequestHandler.hpp"
 #include "../response/HttpResponseBuilder.hpp"
 #include "../response/HttpResponseException.hpp"
+#include "../utils/string.hpp"
 #include <algorithm>
 #include <csignal>
 #include <cstddef>
@@ -48,7 +49,7 @@ void Multiplexer::readRequests() {
             }
             (*it)->handleRequest(servers, mediator);
         } catch (HttpResponseException &e) {
-            (*it)->storeResponse(e.build());
+            (*it)->showErrorPage(e);
         }
     }
 }
@@ -62,7 +63,7 @@ void Multiplexer::readFromPipes() {
                 (*it)->setCgiFd(-1);
             };
         } catch (HttpResponseException &e) {
-            (*it)->storeResponse(e.build());
+            (*it)->showErrorPage(e);
         }
     }
 }

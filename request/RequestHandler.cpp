@@ -57,26 +57,52 @@ void RequestHandler::init(Client &client) {
     srv = validServerName(hostHeader);
     client.setServer(srv);
     client.setMethod(request.getMethod());
+    this->matchLocState = matchLocation(file, client.getServer());
+
+    this->extension = this->request.getEndpoint().substr(
+        this->request.getEndpoint().find_last_of('.'));
     client.setContentLength(
         utils::string::toInt(request.getHeader("Content-Length")));
+
     if (request.getHeader("Transfer-Encoding") == "chunked") {
         client.setChunkedRequest(true);
     }
-    // client setMaxBodySize();
+
+    if (checkForExtension(this->extension)) {
+        return;
+    }
+
+    if (request.getHeader("Content-Type") != "") {
+        std::string header_value = this->request.getHeader("Content-Type");
+        std::string::size_type semicolon_pos = header_value.find(';');
+        std::string content_type = header_value.substr(0, semicolon_pos);
+
+        if (content_type == "multipart/form-data") {
+            std::string::size_type boundary_pos = semicolon_pos + 1;
+            if (content_type[boundary_pos] == ' ')
+                boundary_pos++;
+            boundary_pos += 10;
+            std::string boundary = header_value.substr(boundary_pos);
+            client.setFormData(true);
+            client.setFormDataBoundary(boundary);
+        }
+    }
 }
 
 void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     struct stat data;
     stat(file.c_str(), &data);
 
-    std::string extension = file.substr(file.find_last_of('.'));
-    // std::cout << "POST" << std::endl;
-    if (checkForExtension(extension)) {
+    // std::string extension = file.substr(file.find_last_of('.'));
 
-        CGIResolver cgi(this->getCgiPathFromExtension(extension), file,
+    if (checkForExtension(this->extension)) {
+
+        // std::cout << "-" << client.getPostBody() << '-' << std::endl;
+        CGIResolver cgi(this->getCgiPathFromExtension(this->extension), file,
                         this->request, client);
         client.setCgiFd(cgi.getReadEnd());
         mediator.addCGI(cgi.getReadEnd());
+        std::cout << cgi.getReadEnd() << std::endl;
         return;
     }
 
@@ -147,7 +173,6 @@ void RequestHandler::checkConfAndAccess(Client &client) {
     file = request.getEndpoint();
     // std::cout << "end point: " << file << std::endl;
 
-    this->matchLocState = matchLocation(file, client.getServer());
     if (this->matchLocState) {
         std::string LocationRoot = this->targetLoc.getRoot();
         if (LocationRoot.empty())
@@ -351,3 +376,6 @@ void RequestHandler::validMethod(const std::string &method, Client &c) {
         }
     }
 }
+
+const Location &RequestHandler::getLocation() { return this->targetLoc; }
+bool RequestHandler::matchedLocation() { return this->matchLocState; }
