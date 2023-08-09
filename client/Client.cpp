@@ -238,7 +238,7 @@ bool Client::readChunkedBody() {
     }
     bufC.chunk += std::string(buf.data(), len);
     if (bufC.chunk.length() == chunkedLength + 2) {
-        if (bufC.chunk.find("\r\n") == std::string::npos)
+        if (bufC.chunk.find("\r\n") == std::string::npos) // check find("\r\n") != bufC.chunk.size() - 2
             throw HttpResponseException(400);
         chunkIsReady = false;
         if (chunkedLength == 0) {
