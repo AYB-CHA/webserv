@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../request/RequestHandler.hpp"
+#include "../response/HttpResponseException.hpp"
+#include "../response/Mime.hpp"
 #include "../server/Server.hpp"
 #include <cerrno>
 #include <exception>
@@ -93,6 +95,7 @@ class Client {
     bool readRequest();
     void handleRequest(std::vector<Server> servers, Mediator &mediator);
     void storeResponse(const std::string &response);
+    void showErrorPage(HttpResponseException &e);
     void reset();
     void clear();
 

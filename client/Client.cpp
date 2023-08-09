@@ -401,4 +401,33 @@ void Client::clear() {
 
 RequestHandler &Client::getRequestHandler() { return this->requestHandler; }
 
+void Client::showErrorPage(HttpResponseException &e) {
+    const std::map<int, std::string> &error_pages =
+        (this->getRequestHandler().matchedLocation())
+            ? this->getRequestHandler().getLocation().getErrorPage()
+            : this->getServer().getErrorPage();
+
+    if (error_pages.find(e.getStatusCode()) != error_pages.end()) {
+        std::string file_path = error_pages.at(e.getStatusCode());
+        int fd = open(file_path.c_str(), O_RDONLY);
+        if (fd != -1) {
+            HttpResponseBuilder builder;
+            std::string extention =
+                file_path.substr(file_path.find_last_of('.') + 1);
+            struct stat data;
+            fstat(fd, &data);
+            builder.setStatuscode(200)
+                ->setHeader("Content-Type",
+                            Mime::getInstance()->getMimeType(extention))
+                ->setHeader("Content-Length",
+                            ::utils::string::fromInt(data.st_size));
+
+            this->storeResponse(builder.build());
+            this->setFileFd(fd);
+            return;
+        }
+    }
+    this->storeResponse(e.build());
+}
+
 Client::~Client() {}

@@ -23,7 +23,6 @@ class Multiplexer {
     void writeResponses();
     void readFromPipes();
     void readRequests();
-    void showErrorPage(HttpResponseException &e, Client *client) const;
 
   public:
     Multiplexer(std::vector<Server> servers);
