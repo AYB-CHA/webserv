@@ -15,6 +15,7 @@ class RequestHandler {
     std::vector<Server> servers;
     int fd;
     bool handled;
+    bool list_dir;
 
     //------- new attr
     std::string file;
