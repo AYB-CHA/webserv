@@ -169,15 +169,13 @@ bool Client::readContentLengthBody() {
 }
 
 bool Client::readFormData() {
-
-    char *buffer = new char[contentLength];
-    int len = read(socketFd, buffer, contentLength);
+    std::vector<char> buf(contentLength);
+    int len = read(socketFd, buf.data(), contentLength);
     if (len == -1 || len == 0) {
         connectionClose = true;
         return false;
     }
-    this->bufC.formData += std::string(buffer, len);
-    delete[] buffer;
+    this->bufC.formData += std::string(buf.data(), len);
     contentLength -= len;
 
     std::string::size_type boundary_pos;
