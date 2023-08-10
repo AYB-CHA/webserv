@@ -50,6 +50,44 @@ RequestHandler &RequestHandler::operator=(const RequestHandler &o) {
 
 RequestHandler::~RequestHandler() {}
 
+bool RequestHandler::isDirChecks(Client &client) {
+    struct stat data;
+    stat(file.c_str(), &data);
+    if (!S_ISDIR(data.st_mode))
+        return false;
+    if (this->matchLocState == true) {
+        if (this->targetLoc.getAutoindex() == true) {
+            this->list_dir = true;
+            return true;
+        } else {
+            if (setIndexFile(this->targetLoc.getIndex()))
+                return false;
+            this->file.clear();
+        }
+    } else {
+        if (client.getServer().getAutoindex()) {
+            this->list_dir = true;
+            return true;
+        } else {
+            if (setIndexFile(client.getServer().getIndex()))
+                return false;
+            this->file.clear();
+        }
+    }
+    return false;
+}
+
+bool RequestHandler::setIndexFile(const std::vector<std::string> &indexes) {
+    forEachConst(std::vector<std::string>, indexes, itr) {
+        std::string holder = this->file + "/" + *itr;
+        if (access(holder.c_str(), F_OK | R_OK) == 0) {
+            this->file = holder;
+            return true;
+        }
+    }
+    return false;
+}
+
 void RequestHandler::init(Client &client) {
     Server srv;
 
@@ -65,32 +103,12 @@ void RequestHandler::init(Client &client) {
     client.setContentLength(
         utils::string::toInt(request.getHeader("Content-Length")));
 
-    struct stat data;
-    stat(file.c_str(), &data);
+    if (isDirChecks(client))
+        return;
 
-    if (S_ISDIR(data.st_mode)) {
-        if (this->matchLocState) {
-            if (this->targetLoc.getAutoindex()) {
-                this->list_dir = true;
-                return;
-            } else {
-                std::vector<std::string> indexes = this->targetLoc.getIndex();
-                forEach(std::vector<std::string>, indexes, itr) {
-                    std::string holder = this->file + "/" + *itr;
-                    if (access(holder.c_str(), F_OK | R_OK) == 0) {
-                        this->file = holder;
-                        goto check;
-                    }
-                }
-                this->file.clear();
-                return;
-            }
-        }
-    }
-check:
     std::string::size_type dot = file.find_last_of('.');
     if (dot != std::string::npos)
-        this->extension = file.substr();
+        this->extension = file.substr(dot);
 
     if (request.getHeader("Transfer-Encoding") == "chunked") {
         client.setChunkedRequest(true);
@@ -211,20 +229,15 @@ void RequestHandler::fillContainer(std::string &container,
         std::string item;
         std::string s(de->d_name);
 
-        std::cout << "file name: " << s << std::endl;
-
         if (DT_DIR == de->d_type && s == "..")
-            item = std::string("\t\t\t<li style=\"list-style-image: "
-                               "url('/images/arrow.png')\"><a href=\"") +
-                   s + "\">" + s + "</a>" + "</li>\n";
+            item = std::string("\t\t\t<li ><a href=\"") + s + "\">" + s +
+                   "</a>" + "</li>\n";
         else if (DT_DIR == de->d_type) {
-            item = std::string("\t\t\t<li style=\"list-style-image: "
-                               "url('/images/folder.png')\"><a href=\"") +
-                   s + "\">" + s + "</a>" + "</li>\n";
+            item = std::string("\t\t\t<li\"><a href=\"") + s + "\">" + s +
+                   "</a>" + "</li>\n";
         } else {
-            item = std::string("\t\t\t<li style=\"list-style-image: "
-                               "url('/images/file.png')\"><a href=\"") +
-                   s + "\">" + s + "</a>" + "</li>\n";
+            item = std::string("\t\t\t<li\"><a href=\"") + s + "\">" + s +
+                   "</a>" + "</li>\n";
         }
 
         container.insert(index, item);
@@ -248,6 +261,7 @@ void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
 }
 
 bool RequestHandler::checkForExtension(const std::string &extension) {
+
     try {
         this->targetLoc.getCgiPath().at(extension);
         return true;
