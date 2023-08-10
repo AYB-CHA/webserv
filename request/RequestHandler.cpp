@@ -133,6 +133,9 @@ void RequestHandler::init(Client &client) {
             client.setFormDataBoundary(boundary);
         }
     }
+    if (client.getFormDataStatus() && client.getChunkedRequestStatus()) {
+        throw HttpResponseException(501);
+    }
 }
 
 void RequestHandler::fileRequested(Client &client, Mediator &mediator) {

@@ -74,7 +74,6 @@ void CGIResolver::buildCGIEnv() {
              this->request.getHeaders().begin();
          it != this->request.getHeaders().end(); it++) {
         this->env["HTTP_" + utils::string::toUpperCase(it->first)] = it->second;
-        // std::cout << it->first << ": " << it->second << std::endl;
     }
 }
 
