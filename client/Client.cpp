@@ -101,7 +101,7 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
         requestHandler = RequestHandler(request, servers);
         requestHandler.init(*this);
         requestHandler.setInitialized(true);
-        if (method == "POST" && contentLength != 0 && chunkedRequest == false)
+        if (method == "POST" && (contentLength != 0 || chunkedRequest == false))
             return;
     }
 
@@ -218,7 +218,6 @@ bool Client::readChunkedHexa() {
     if (bufC.hexa.find("\r\n") != std::string::npos) {
         if (bufC.hexa.find("\r\n") != bufC.hexa.size() -2) {
             bufC.hexa.clear();
-            bufC.temp.clear();
             throw HttpResponseException(400);
         }
         utils::strTrimV2(bufC.hexa, "\r\n");
