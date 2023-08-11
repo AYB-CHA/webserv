@@ -112,8 +112,12 @@ void RequestHandler::init(Client &client) {
     client.setContentLength(
         utils::string::toInt(request.getHeader("Content-Length")));
 
-    if (isDirChecks(client))
+    if (isDirChecks(client)) {
+        if (*(request.getEndpoint().rbegin()) != '/') {
+            throw HttpResponseException(307, request.getEndpoint() + "/");
+        }
         return;
+    }
 
     // std::cout << "FILE: " << file << std::endl;
     // std::cout << "isMatched: " << matchLocState << std::endl;
