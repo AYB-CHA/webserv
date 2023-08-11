@@ -216,12 +216,15 @@ bool Client::readChunkedHexa() {
         throw HttpResponseException(413);
     }
     if (bufC.hexa.find("\r\n") != std::string::npos) {
-        if (bufC.hexa.find("\r\n") != bufC.hexa.size() -2)
+        if (bufC.hexa.find("\r\n") != bufC.hexa.size() -2) {
+            bufC.hexa.clear();
+            bufC.temp.clear();
             throw HttpResponseException(400);
+        }
         utils::strTrimV2(bufC.hexa, "\r\n");
         chunkedLength = utils::string::toIntHex(bufC.hexa);
         bufC.hexa.clear();
-        bufC.temp.resize(bufC.temp.size() + chunkedLength);
+        bufC.temp.resize(bufC.temp.size() + chunkedLength); // wtf?
         chunkIsReady = true;
     }
     return false;
