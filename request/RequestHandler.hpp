@@ -34,7 +34,7 @@ class RequestHandler {
     void fileRequested(Client &client, Mediator &mediator);
 
     Server &validServerName(std::string serverName);
-    bool matchLocation(std::string endpoint, const Server &serv);
+    bool matchLocation(const std::string& endpoint, const Server &serv);
     // Location matchLocation(std::string endpoint, std::vector<Location>&
     // locations);
   public:
