@@ -59,7 +59,7 @@ void Multiplexer::readFromPipes() {
         try {
             if ((*it)->readOutputCGI() == true) {
                 mediator.removeCGI((*it)->getCgiFd());
-                (*it)->setMethod("GET");
+                (*it)->setMethod("GET"); // This might be useless
                 (*it)->setCgiFd(-1);
             };
         } catch (HttpResponseException &e) {
