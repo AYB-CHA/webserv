@@ -4,7 +4,10 @@ AContext::AContext() {
     this->allowed_methods["GET"] = false;
     this->allowed_methods["POST"] = false;
     this->allowed_methods["DELETE"] = false;
-
+    this->root = "/www";
+    this->client_max_body_size = pow(2, 30);
+    this->autoindex = false;
+    this->upload_path = "/tmp";
 }
 AContext::AContext(const AContext& o) : root(o.root), upload_path(o.upload_path), allowed_methods(o.allowed_methods),
     index(o.index), error_page(o.error_page), client_max_body_size(o.client_max_body_size), autoindex(o.autoindex){}
@@ -16,13 +19,25 @@ const std::string& AContext::getRoot(void) const {
 const std::string& AContext::getUploadPath(void) const {
 	return this->upload_path;
 }
-const std::map<std::string, bool>&  AContext::getAllowedMethods(void) const {
+const std::map<std::string, bool>&  AContext::getAllowedMethods(void) {
+    if (this->allowed_methods["GET"] == false
+        && this->allowed_methods["POST"] == false
+        && this->allowed_methods["DELETE"] == false) {
+        this->allowed_methods["GET"] = true;
+    }
 	return this->allowed_methods;
 }
-const std::vector<std::string> &AContext::getIndex(void) const {
+const std::vector<std::string> &AContext::getIndex(void) {
+    if (this->index.empty()) {
+        this->index.push_back("index.html");
+        this->index.push_back("home.html");
+        this->index.push_back("default.html");
+    }
 	return this->index;
 }
-const std::map<int, std::string>& AContext::getErrorPage(void) const {
+const std::map<int, std::string>& AContext::getErrorPage(void) {
+    if (this->error_page.find(404) == this->error_page.end())
+        this->error_page[404] = "404.html";
 	return this->error_page;
 }
 const long& AContext::getClientMaxBodySize(void) const {
