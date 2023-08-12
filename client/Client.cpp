@@ -327,7 +327,9 @@ bool Client::operator==(const Client &o) const {
 
 int Client::getSocketFd() const { return this->socketFd; }
 
-int Client::getCgiFd() const { return this->cgiReadFd; }
+int Client::getCgiReadFd() const { return this->cgiReadFd; }
+
+int Client::getCgiWriteFd() const { return this->cgiWriteFd; }
 
 std::string Client::getRequest() {
     std::string ret = bufC.read;

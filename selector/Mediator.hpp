@@ -21,5 +21,5 @@ public:
     void    addCGI(int fd);
     void    removeCGI(int fd);
 
-    void    getBatch(std::vector<Server*>&,std::vector<Client*>&,std::vector<Client*>&,std::vector<Client*>&);
+    void    getBatch(std::vector<Server*>&,std::vector<Client*>&,std::vector<Client*>&,std::vector<Client*>&, std::vector<Client*>&);
 };
