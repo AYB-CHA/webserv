@@ -233,7 +233,7 @@ bool Client::readChunkedHexa() {
         utils::strTrimV2(bufC.hexa, "\r\n");
         chunkedLength = utils::string::toIntHex(bufC.hexa);
         bufC.hexa.clear();
-        bufC.temp.resize(bufC.temp.size() + chunkedLength); // wtf?
+        // bufC.temp.resize(bufC.temp.size() + chunkedLength); // wtf?
         chunkIsReady = true;
     }
     return false;

@@ -82,6 +82,9 @@ void Multiplexer::writeToPipes() {
             if ((*it)->getCgiWriteFd() != -1)
                 mediator.removeWriteCGI((*it)->getCgiWriteFd());
             (*it)->setCgiWriteFd(-1);
+            if ((*it)->getCgiReadFd() != -1)
+                mediator.removeReadCGI((*it)->getCgiReadFd());
+            (*it)->setCgiReadFd(-1);
         }
     }
 }
