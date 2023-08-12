@@ -31,7 +31,8 @@ class Client {
 
     int socketFd;
     int bodyFd;
-    int cgiFd;
+    int cgiReadFd;
+    int cgiWriteFd;
 
     BufferContainer bufC;
     std::string method;
@@ -82,7 +83,8 @@ class Client {
     void setServer(Server server);
     void setFd(int fd);
     void setFileFd(int fd);
-    void setCgiFd(int fd);
+    void setCgiReadFd(int fd);
+    void setCgiWriteFd(int fd);
     void setMethod(const std::string &method);
     void setContentLength(off_t length);
     void setConnectionClose(bool close);
