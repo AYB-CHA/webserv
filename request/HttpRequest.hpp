@@ -3,6 +3,11 @@
 #include <map>
 #include <vector>
 
+struct URL {
+    std::string path;
+    std::string pathinfo;
+};
+
 class HttpRequest {
   protected:
     std::string method;
@@ -29,6 +34,7 @@ class HttpRequest {
     void setQueries(const std::string &queries);
     void setMethod(std::string &method);
     void setEndpoint(const std::string &endpoint);
+    void setPathInfo(const std::string& pathinfo);
     void setHeader(std::string &key, std::string &value);
     void pushBody(std::string &content);
 };
