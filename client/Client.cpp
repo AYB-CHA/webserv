@@ -19,7 +19,7 @@ const unsigned int Client::max_timeout = 30;
 const int Client::max_sendfile = 1000000;
 
 Client::Client()
-    : bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
+    : bodyFd(-1), cgiReadFd(-1), cgiWriteFd(-1), method("GET"), file_offset(0),
       connectionClose(false), clientMaxBodySize(1024), contentLength(0),
       headersSent(false), chunkedRequest(false), formData(false),
       chunkIsReady(false) {
@@ -27,8 +27,8 @@ Client::Client()
 }
 
 Client::Client(int socketFd, Server server)
-    : socketFd(socketFd), bodyFd(-1), cgiFd(-1), method("GET"), file_offset(0),
-      connectionClose(false), clientMaxBodySize(1024), contentLength(0),
+    : socketFd(socketFd), bodyFd(-1), cgiReadFd(-1), cgiWriteFd(-1), method("GET"),
+      file_offset(0), connectionClose(false), clientMaxBodySize(1024), contentLength(0),
       headersSent(false), chunkedRequest(false), formData(false),
       chunkIsReady(false), server(server) {
     gettimeofday(&lastTimeRW, NULL);
@@ -36,9 +36,9 @@ Client::Client(int socketFd, Server server)
 
 Client::Client(const Client &client)
     : requestHandler(client.requestHandler), socketFd(client.socketFd),
-      bodyFd(client.bodyFd), cgiFd(client.cgiFd), bufC(client.bufC),
-      method(client.method), file_offset(client.file_offset),
-      connectionClose(client.connectionClose),
+      bodyFd(client.bodyFd), cgiReadFd(client.cgiReadFd), cgiWriteFd(client.cgiWriteFd),
+      bufC(client.bufC), method(client.method),
+      file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize),
       contentLength(client.contentLength), lastTimeRW(client.lastTimeRW),
       headersSent(client.headersSent), chunkedRequest(client.chunkedRequest),
@@ -53,7 +53,8 @@ Client &Client::operator=(const Client &o) {
     this->requestHandler = o.requestHandler;
     this->socketFd = o.socketFd;
     this->bodyFd = o.bodyFd;
-    this->cgiFd = o.cgiFd;
+    this->cgiReadFd = o.cgiReadFd;
+    this->cgiWriteFd = o.cgiWriteFd;
     this->bufC = o.bufC;
     this->method = o.method;
     this->file_offset = o.file_offset;
@@ -92,6 +93,15 @@ bool Client::readOutputCGI() {
         return readCGIHeaders();
     }
     return readCGIBody();
+}
+
+bool Client::writeBodyCGI() {
+    int len = write(cgiWriteFd, bufC.body.c_str(), bufC.body.length());
+    if (len == -1) {
+        throw HttpResponseException(500);
+    }
+    bufC.body = bufC.body.substr(len);
+    return bufC.body.empty();
 }
 
 void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
@@ -299,7 +309,7 @@ bool Client::readStatusHeaders() {
 
 bool Client::readCGIHeaders() {
     char buf[1];
-    int len = read(cgiFd, buf, 1);
+    int len = read(cgiReadFd, buf, 1);
     if (len <= 0) {
         throw HttpResponseException(500);
     }
@@ -314,7 +324,7 @@ bool Client::readCGIHeaders() {
 
 bool Client::readCGIBody() {
     char buf[1024];
-    int len = read(cgiFd, buf, 1024);
+    int len = read(cgiReadFd, buf, 1024);
     if (len == -1) {
         throw HttpResponseException(500);
     }
@@ -336,7 +346,9 @@ bool Client::operator==(const Client &o) const {
 
 int Client::getSocketFd() const { return this->socketFd; }
 
-int Client::getCgiFd() const { return this->cgiFd; }
+int Client::getCgiReadFd() const { return this->cgiReadFd; }
+
+int Client::getCgiWriteFd() const { return this->cgiWriteFd; }
 
 std::string Client::getRequest() {
     std::string ret = bufC.read;
@@ -367,7 +379,7 @@ void Client::updateTimeout() {
 
 bool Client::shouldBeClosed() const {
     return (this->connectionClose && bufC.write.empty() && bodyFd == -1 &&
-            cgiFd == -1) ||
+            cgiReadFd == -1 /* && cgiWriteFd == -1 */) ||
            (timeDifference() > max_timeout);
 }
 
@@ -377,7 +389,9 @@ void Client::setFd(int fd) { this->socketFd = fd; }
 
 void Client::setFileFd(int fd) { this->bodyFd = fd; }
 
-void Client::setCgiFd(int fd) { this->cgiFd = fd; }
+void Client::setCgiReadFd(int fd) { this->cgiReadFd = fd; }
+
+void Client::setCgiWriteFd(int fd) { this->cgiWriteFd = fd; }
 
 void Client::setMethod(const std::string &method) { this->method = method; }
 
@@ -397,7 +411,7 @@ void Client::storeResponse(const std::string &response) {
 }
 
 void Client::reset() {
-    if (bufC.write.empty() && bodyFd == -1 && cgiFd == -1)
+    if (bufC.write.empty() && bodyFd == -1 && cgiReadFd == -1)
         *this = Client(socketFd, server);
 }
 

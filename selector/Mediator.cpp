@@ -10,22 +10,38 @@ Mediator::Mediator(std::vector<Server> &init) {
     for (std::vector<Server>::iterator it = init.begin(); it != init.end();
          ++it) {
         fd_servers[it->getSocketFd()] = *it;
-        selector.pushFd(it->getSocketFd(), false);
+        selector.pushFd(it->getSocketFd(), Selector::SEL_RDWR);
     }
 }
 
-void Mediator::addCGI(int fd) {
-    fd_pipes.push_back(fd);
-    selector.pushFd(fd, true);
+void Mediator::addReadCGI(int fd) {
+    fd_readpipes.push_back(fd);
+    selector.pushFd(fd, Selector::SEL_RDONLY);
 }
 
-void Mediator::removeCGI(int fd) {
+void Mediator::addWriteCGI(int fd) {
+    fd_writepipes.push_back(fd);
+    selector.pushFd(fd, Selector::SEL_WRONLY);
+}
+
+void Mediator::removeReadCGI(int fd) {
     std::vector<int>::iterator it =
-        std::find(fd_pipes.begin(), fd_pipes.end(), fd);
-    if (it == fd_pipes.end()) {
+        std::find(fd_readpipes.begin(), fd_readpipes.end(), fd);
+    if (it == fd_readpipes.end()) {
         throw std::runtime_error("Pipe file descriptor was not found");
     }
-    fd_pipes.erase(it);
+    fd_readpipes.erase(it);
+    selector.popFd(fd);
+    close(fd);
+}
+
+void Mediator::removeWriteCGI(int fd) {
+    std::vector<int>::iterator it =
+        std::find(fd_writepipes.begin(), fd_writepipes.end(), fd);
+    if (it == fd_writepipes.end()) {
+        throw std::runtime_error("Pipe file descriptor was not found");
+    }
+    fd_writepipes.erase(it);
     selector.popFd(fd);
     close(fd);
 }
@@ -37,14 +53,14 @@ void Mediator::addClient(int fd, Server &server) {
     }
     std::cout << "Client has joined. id: " << fd << std::endl;
     fd_clients[fd] = Client(fd, server);
-    selector.pushFd(fd, false);
+    selector.pushFd(fd, Selector::SEL_RDWR);
     std::cout << "Num of clients: " << fd_clients.size() << std::endl;
 }
 
 void Mediator::removeClient(int fd) {
     std::cout << "Client has left. id: " << fd << std::endl;
-    if (fd_clients[fd].getCgiFd() != -1)
-        removeCGI(fd_clients[fd].getCgiFd());
+    if (fd_clients[fd].getCgiReadFd() != -1)
+        removeReadCGI(fd_clients[fd].getCgiReadFd());
     fd_clients[fd].clear();
     fd_clients.erase(fd);
     try {
@@ -73,11 +89,13 @@ void Mediator::filterClients() {
 void Mediator::getBatch(std::vector<Server *> &servers,
                         std::vector<Client *> &rclients,
                         std::vector<Client *> &wclients,
-                        std::vector<Client *> &pipes) {
+                        std::vector<Client *> &inpipes,
+                        std::vector<Client *> &outpipes) {
     servers.clear();
     rclients.clear();
     wclients.clear();
-    pipes.clear();
+    inpipes.clear();
+    outpipes.clear();
 
     if (selector.poll() == -1)
         throw std::runtime_error(std::string("select() failed: ") +
@@ -93,8 +111,8 @@ void Mediator::getBatch(std::vector<Server *> &servers,
         else {
             for (std::map<int, Client>::iterator it = fd_clients.begin();
                  it != fd_clients.end(); ++it) {
-                if (it->second.getCgiFd() == fd) {
-                    pipes.push_back(&it->second);
+                if (it->second.getCgiReadFd() == fd) {
+                    inpipes.push_back(&it->second);
                     break;
                 }
             }
@@ -106,6 +124,16 @@ void Mediator::getBatch(std::vector<Server *> &servers,
             break;
         if (fd_servers.find(fd) != fd_servers.end())
             throw std::runtime_error("server socket failed.");
-        wclients.push_back(&fd_clients[fd]);
+        if (fd_clients.find(fd) != fd_clients.end())
+            wclients.push_back(&fd_clients[fd]);
+        else {
+            for (std::map<int, Client>::iterator it = fd_clients.begin();
+                 it != fd_clients.end(); ++it) {
+                if (it->second.getCgiWriteFd() == fd) {
+                    outpipes.push_back(&it->second);
+                    break;
+                }
+            }
+        }
     }
 }

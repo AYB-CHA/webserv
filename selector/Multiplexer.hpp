@@ -13,15 +13,17 @@ class Multiplexer {
     typedef std::vector<Client *>::iterator CIter;
     std::vector<Client> new_clients;
     std::vector<Server *> ready_servers;
-    std::vector<Client *> cgi_pipes;
+    std::vector<Client *> cgi_inpipes;
+    std::vector<Client *> cgi_outpipes;
     std::vector<Client *> write_clients;
     std::vector<Client *> read_clients;
     std::vector<Server> servers;
     Mediator mediator;
 
     void acceptConnections();
-    void writeResponses();
+    void writeToPipes();
     void readFromPipes();
+    void writeResponses();
     void readRequests();
 
   public:

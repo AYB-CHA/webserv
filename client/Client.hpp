@@ -31,7 +31,8 @@ class Client {
 
     int socketFd;
     int bodyFd;
-    int cgiFd;
+    int cgiReadFd;
+    int cgiWriteFd;
 
     BufferContainer bufC;
     std::string method;
@@ -71,7 +72,8 @@ class Client {
     bool operator==(const Client &o) const;
 
     int getSocketFd() const;
-    int getCgiFd() const;
+    int getCgiReadFd() const;
+    int getCgiWriteFd() const;
     std::string getMethod() const;
     std::string getRequest();
     Server &getServer();
@@ -82,7 +84,8 @@ class Client {
     void setServer(Server server);
     void setFd(int fd);
     void setFileFd(int fd);
-    void setCgiFd(int fd);
+    void setCgiReadFd(int fd);
+    void setCgiWriteFd(int fd);
     void setMethod(const std::string &method);
     void setContentLength(off_t length);
     void setConnectionClose(bool close);
@@ -90,6 +93,7 @@ class Client {
     void setFormData(bool val);
     void setFormDataBoundary(const std::string &boundary);
 
+    bool writeBodyCGI();
     bool readOutputCGI();
     bool writeChunk();
     bool readRequest();

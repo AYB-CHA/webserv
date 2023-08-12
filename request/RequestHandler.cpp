@@ -151,9 +151,12 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     if (checkForExtension(this->extension)) {
         CGIResolver cgi(this->getCgiPathFromExtension(this->extension), file,
                         this->request, client);
-        client.setCgiFd(cgi.getReadEnd());
-        mediator.addCGI(cgi.getReadEnd());
-        std::cout << cgi.getReadEnd() << std::endl;
+        client.setCgiReadFd(cgi.getReadEnd());
+        client.setCgiWriteFd(cgi.getWriteEnd());
+        mediator.addReadCGI(cgi.getReadEnd());
+        mediator.addWriteCGI(cgi.getWriteEnd());
+        // std::cout << cgi.getReadEnd() << std::endl;
+        // std::cout << cgi.getWriteEnd() << std::endl;
         return;
     }
 
