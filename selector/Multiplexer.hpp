@@ -21,8 +21,9 @@ class Multiplexer {
     Mediator mediator;
 
     void acceptConnections();
-    void writeResponses();
+    void writeToPipes();
     void readFromPipes();
+    void writeResponses();
     void readRequests();
 
   public:

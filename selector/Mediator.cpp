@@ -14,18 +14,34 @@ Mediator::Mediator(std::vector<Server> &init) {
     }
 }
 
-void Mediator::addCGI(int fd) {
-    fd_pipes.push_back(fd);
+void Mediator::addReadCGI(int fd) {
+    fd_readpipes.push_back(fd);
     selector.pushFd(fd, Selector::SEL_RDONLY);
 }
 
-void Mediator::removeCGI(int fd) {
+void Mediator::addWriteCGI(int fd) {
+    fd_writepipes.push_back(fd);
+    selector.pushFd(fd, Selector::SEL_WRONLY);
+}
+
+void Mediator::removeReadCGI(int fd) {
     std::vector<int>::iterator it =
-        std::find(fd_pipes.begin(), fd_pipes.end(), fd);
-    if (it == fd_pipes.end()) {
+        std::find(fd_readpipes.begin(), fd_readpipes.end(), fd);
+    if (it == fd_readpipes.end()) {
         throw std::runtime_error("Pipe file descriptor was not found");
     }
-    fd_pipes.erase(it);
+    fd_readpipes.erase(it);
+    selector.popFd(fd);
+    close(fd);
+}
+
+void Mediator::removeWriteCGI(int fd) {
+    std::vector<int>::iterator it =
+        std::find(fd_writepipes.begin(), fd_writepipes.end(), fd);
+    if (it == fd_writepipes.end()) {
+        throw std::runtime_error("Pipe file descriptor was not found");
+    }
+    fd_writepipes.erase(it);
     selector.popFd(fd);
     close(fd);
 }
@@ -44,7 +60,7 @@ void Mediator::addClient(int fd, Server &server) {
 void Mediator::removeClient(int fd) {
     std::cout << "Client has left. id: " << fd << std::endl;
     if (fd_clients[fd].getCgiReadFd() != -1)
-        removeCGI(fd_clients[fd].getCgiReadFd());
+        removeReadCGI(fd_clients[fd].getCgiReadFd());
     fd_clients[fd].clear();
     fd_clients.erase(fd);
     try {
