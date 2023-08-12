@@ -137,7 +137,7 @@ void redirect_check(std::vector<std::string> params, AContext &base) {
 }
 
 void autoindex_check(std::vector<std::string> params, AContext &base) {
-    if (params.size() != 1 && (params[0] != "true" || params[0] != "false"))
+    if (params.size() != 1 || (params[0] != "true" && params[0] != "false"))
         throw std::runtime_error("Configuration error.");
     if (params[0] == "true")
         base.setAutoindex(true);

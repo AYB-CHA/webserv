@@ -123,9 +123,9 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
         this->setMethod("GET");
         requestHandler.handlePOST(*this, mediator);
     }
-    // if (method == "DELETE") {
-    //     requestHandler.handleDELETE(*this, mediator);
-    // }
+    if (method == "DELETE") {
+        requestHandler.handleDELETE(*this);
+    }
 }
 
 bool Client::writeFromBuffer() {

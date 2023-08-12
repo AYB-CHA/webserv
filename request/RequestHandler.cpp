@@ -81,9 +81,11 @@ bool RequestHandler::setIndexFile(const std::vector<std::string> &indexes) {
     forEachConst(std::vector<std::string>, indexes, itr) {
         std::string holder = this->file + "/" + *itr;
         if (access(holder.c_str(), F_OK | R_OK) == 0) {
+            // std::cout << "chihaja" << std::endl;
             this->file = holder;
             return true;
         }
+        // std::cout << holder<< std::endl;
     }
     return false;
 }
@@ -97,14 +99,32 @@ void RequestHandler::init(Client &client) {
     srv = validServerName(hostHeader);
     client.setServer(srv);
     client.setMethod(request.getMethod());
-    this->matchLocState = matchLocation(file, client.getServer());
+    this->matchLocState = matchLocation(request.getEndpoint(), client.getServer());
+
+    if (client.getMethod() == "DELETE")
+        return;
+
     checkConfAndAccess(client);
+
+
+    if (matchLocState && !this->targetLoc.getRedirect().empty()) {
+        std::cout << "REDIRECTION" << std::endl;
+        setInitialized(false);
+        throw HttpResponseException(307, targetLoc.getRedirect());
+    }
 
     client.setContentLength(
         utils::string::toInt(request.getHeader("Content-Length")));
 
-    if (isDirChecks(client))
+    if (isDirChecks(client)) {
+        if (*(request.getEndpoint().rbegin()) != '/') {
+            throw HttpResponseException(307, request.getEndpoint() + "/");
+        }
         return;
+    }
+
+    // std::cout << "FILE: " << file << std::endl;
+    // std::cout << "isMatched: " << matchLocState << std::endl;
 
     std::string::size_type dot = file.find_last_of('.');
     if (dot != std::string::npos)
@@ -193,6 +213,35 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
         fileRequested(client, mediator);
 }
 
+void RequestHandler::DeleteFiles(const std::string& path) {
+    struct stat buff;
+    stat(path.c_str(), &buff);
+    if (S_ISDIR(buff.st_mode)) {
+        DIR *d = opendir(path.c_str());
+        for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
+            std::string s(de->d_name, de->d_namlen);
+            if (s != ".." &&s != ".") {
+                s = std::string(path) + "/" + s;
+                DeleteFiles(s);
+            }
+        }
+        closedir(d);
+    }
+
+    std::cout << "fileName:" << path << std::endl;
+    // remove(path.c_str());
+}
+
+void RequestHandler::handleDELETE(Client &client) {
+    if (request.getHeader("Connection") == "close")
+        client.setConnectionClose(true);
+
+    validMethod("DELETE", client);
+    // DELETE THE FILE
+    std::string delete_me = targetLoc.getRoot() + this->request.getEndpoint();
+    DeleteFiles(delete_me);
+}
+
 void RequestHandler::checkConfAndAccess(Client &client) {
     file = request.getEndpoint();
 
@@ -200,9 +249,9 @@ void RequestHandler::checkConfAndAccess(Client &client) {
         std::string LocationRoot = this->targetLoc.getRoot();
         if (LocationRoot.empty())
             LocationRoot = client.getServer().getRoot();
-        file = "." + LocationRoot + file;
+        file = LocationRoot + file;
     } else {
-        file = "." + client.getServer().getRoot() + file;
+        file = client.getServer().getRoot() + file;
     }
 }
 
@@ -233,7 +282,7 @@ void RequestHandler::fillContainer(std::string &container,
     DIR *d = opendir(file.c_str());
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
-        std::string s(de->d_name);
+        std::string s(de->d_name, de->d_namlen);
 
         if (DT_DIR == de->d_type && s == "..")
             item = std::string("<li><a href=\"") + s + "\">" + s +
@@ -249,6 +298,7 @@ void RequestHandler::fillContainer(std::string &container,
         container.insert(index, item);
         index += item.length();
     }
+    closedir(d);
 }
 
 void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
@@ -283,7 +333,7 @@ RequestHandler::getCgiPathFromExtension(const std::string &extension) {
 
 std::string RequestHandler::getResponse() { return response.build(); }
 
-bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
+bool RequestHandler::matchLocation(const std::string& endpoint, const Server &serv) {
 
     std::vector<Location> locations = serv.getLocation();
     if (locations.empty()) {
@@ -296,6 +346,7 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
     forEach(std::vector<Location>, locations, itr) {
         forEachConst(std::vector<std::string>, itr->getPrefix(), itr1) {
             std::vector<std::string> list = utils::split(endpoint, "/");
+        // std::cout << "i'm here"<< "| size: " << list.size() << "| endpoint: " << endpoint << std::endl;
             for (size_t i = 0; i < list.size(); i++) {
                 std::string tmp = "";
                 for (std::vector<std::string>::iterator itr2 = list.begin();
@@ -304,11 +355,19 @@ bool RequestHandler::matchLocation(std::string endpoint, const Server &serv) {
                 }
                 std::string prefix = *itr1;
                 utils::strTrimV2(prefix, "/");
-                prefix.insert(prefix.begin(), '/');
+                // prefix.insert(prefix.begin(), '/');
+
+                prefix = "/" + prefix;
+
+                // std::cout << ">>>>>>tmp: " << tmp << std::endl;
+                // std::cout << ">>>>>>prefix: " << prefix << std::endl;
+
+
                 if (tmp == prefix || prefix == "/") {
                     found = true;
                     holder = prefix;
                     this->targetLoc = *itr;
+                    return true;
                 }
             }
             if (list.empty() && *itr1 == "/") {
