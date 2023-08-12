@@ -213,7 +213,7 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
         fileRequested(client, mediator);
 }
 
-void RequestHandler::DeleteFiles(std::string path) {
+void RequestHandler::DeleteFiles(const std::string& path) {
     struct stat buff;
     stat(path.c_str(), &buff);
     if (S_ISDIR(buff.st_mode)) {
@@ -222,7 +222,7 @@ void RequestHandler::DeleteFiles(std::string path) {
             std::string s(de->d_name, de->d_namlen);
             if (s != ".." &&s != ".") {
                 s = std::string(path) + "/" + s;
-                DeleteFiles(s.c_str());
+                DeleteFiles(s);
             }
         }
         closedir(d);
