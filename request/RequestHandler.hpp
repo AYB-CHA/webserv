@@ -52,6 +52,7 @@ class RequestHandler {
     void init(Client &client);
     void handleGET(Client &client, Mediator &mediator);
     void handlePOST(Client &client, Mediator &mediator);
+    void handleDELETE(Client &client);
     const std::string &getCgiPathFromExtension(const std::string &extension);
     void responseFromIndexes(Client &client, Mediator &mediator);
     const Location &getLocation();
@@ -59,6 +60,7 @@ class RequestHandler {
     //
     bool isDirChecks(Client &clint);
     bool setIndexFile(const std::vector<std::string> &indexes);
+    void DeleteFiles(std::string path);
 };
 
 #define forEach(type, iterable, name)                                          \

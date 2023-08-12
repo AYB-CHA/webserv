@@ -100,6 +100,10 @@ void RequestHandler::init(Client &client) {
     client.setServer(srv);
     client.setMethod(request.getMethod());
     this->matchLocState = matchLocation(request.getEndpoint(), client.getServer());
+
+    if (client.getMethod() == "DELETE")
+        return;
+
     checkConfAndAccess(client);
 
 
@@ -206,6 +210,34 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
         fileRequested(client, mediator);
 }
 
+void RequestHandler::DeleteFiles(std::string path) {
+    struct stat buff;
+    stat(path.c_str(), &buff);
+    if (S_ISDIR(buff.st_mode)) {
+        DIR *d = opendir(path.c_str());
+        for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
+            std::string s(de->d_name, de->d_namlen);
+            if (s != ".." &&s != ".") {
+                s = std::string(path) + "/" + s;
+                DeleteFiles(s.c_str());
+            }
+        }
+    }
+
+    std::cout << "fileName:" << path << std::endl;
+    // remove(path.c_str());
+}
+
+void RequestHandler::handleDELETE(Client &client) {
+    if (request.getHeader("Connection") == "close")
+        client.setConnectionClose(true);
+
+    validMethod("DELETE", client);
+    // DELETE THE FILE
+    std::string delete_me = targetLoc.getRoot() + this->request.getEndpoint();
+    DeleteFiles(delete_me);
+}
+
 void RequestHandler::checkConfAndAccess(Client &client) {
     file = request.getEndpoint();
 
@@ -213,9 +245,9 @@ void RequestHandler::checkConfAndAccess(Client &client) {
         std::string LocationRoot = this->targetLoc.getRoot();
         if (LocationRoot.empty())
             LocationRoot = client.getServer().getRoot();
-        file = "." + LocationRoot + file;
+        file = LocationRoot + file;
     } else {
-        file = "." + client.getServer().getRoot() + file;
+        file = client.getServer().getRoot() + file;
     }
 }
 
@@ -246,7 +278,7 @@ void RequestHandler::fillContainer(std::string &container,
     DIR *d = opendir(file.c_str());
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
-        std::string s(de->d_name);
+        std::string s(de->d_name, de->d_namlen);
 
         if (DT_DIR == de->d_type && s == "..")
             item = std::string("\t\t\t<li ><a href=\"") + s + "\">" + s +
