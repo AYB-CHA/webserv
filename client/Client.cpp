@@ -95,6 +95,15 @@ bool Client::readOutputCGI() {
     return readCGIBody();
 }
 
+bool Client::writeBodyCGI() {
+    int len = write(cgiWriteFd, bufC.body.c_str(), bufC.body.length());
+    if (len == -1) {
+        throw HttpResponseException(500);
+    }
+    bufC.body = bufC.body.substr(len);
+    return bufC.body.empty();
+}
+
 void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
     if (!requestHandler.hasBeenInitialized()) {
         HttpRequest request;

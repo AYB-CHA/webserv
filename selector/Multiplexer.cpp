@@ -67,6 +67,19 @@ void Multiplexer::readFromPipes() {
     }
 }
 
+void Multiplexer::writeToPipes() {
+    for (CIter it = cgi_outpipes.begin(); it != cgi_outpipes.end(); ++it) {
+        try {
+            if ((*it)->writeBodyCGI() == true) {
+                mediator.removeWriteCGI((*it)->getCgiWriteFd());
+                (*it)->setCgiWriteFd(-1);
+            };
+        } catch (HttpResponseException &e) {
+            (*it)->showErrorPage(e);
+        }
+    }
+}
+
 void Multiplexer::run() {
     signal(SIGCHLD, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);

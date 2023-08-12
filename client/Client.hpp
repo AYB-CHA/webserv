@@ -93,6 +93,7 @@ class Client {
     void setFormData(bool val);
     void setFormDataBoundary(const std::string &boundary);
 
+    bool writeBodyCGI();
     bool readOutputCGI();
     bool writeChunk();
     bool readRequest();
