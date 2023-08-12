@@ -26,6 +26,7 @@ class CGIResolver {
     CGIResolver(const std::string &CGI_path, const std::string &CGI_file,
                 HttpRequest &request, Client &client);
     int getReadEnd() const;
+    int getWriteEnd() const;
     ~CGIResolver();
 
   private:

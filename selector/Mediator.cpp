@@ -20,6 +20,7 @@ void Mediator::addReadCGI(int fd) {
 }
 
 void Mediator::addWriteCGI(int fd) {
+    std::cout << "Added write CGi" << std::endl;
     fd_writepipes.push_back(fd);
     selector.pushFd(fd, Selector::SEL_WRONLY);
 }
@@ -116,13 +117,6 @@ void Mediator::getBatch(std::vector<Server *> &servers,
                     break;
                 }
             }
-            for (std::map<int, Client>::iterator it = fd_clients.begin();
-                 it != fd_clients.end(); ++it) {
-                if (it->second.getCgiWriteFd() == fd) {
-                    outpipes.push_back(&it->second);
-                    break;
-                }
-            }
         }
     }
 
@@ -131,6 +125,16 @@ void Mediator::getBatch(std::vector<Server *> &servers,
             break;
         if (fd_servers.find(fd) != fd_servers.end())
             throw std::runtime_error("server socket failed.");
-        wclients.push_back(&fd_clients[fd]);
+        if (fd_clients.find(fd) != fd_clients.end())
+            wclients.push_back(&fd_clients[fd]);
+        else {
+            for (std::map<int, Client>::iterator it = fd_clients.begin();
+                 it != fd_clients.end(); ++it) {
+                if (it->second.getCgiWriteFd() == fd) {
+                    outpipes.push_back(&it->second);
+                    break;
+                }
+            }
+        }
     }
 }

@@ -96,6 +96,7 @@ bool Client::readOutputCGI() {
 }
 
 bool Client::writeBodyCGI() {
+    std::cout << "Writing to the pipe" << std::endl;
     int len = write(cgiWriteFd, bufC.body.c_str(), bufC.body.length());
     if (len == -1) {
         throw HttpResponseException(500);
@@ -369,7 +370,7 @@ void Client::updateTimeout() {
 
 bool Client::shouldBeClosed() const {
     return (this->connectionClose && bufC.write.empty() && bodyFd == -1 &&
-            cgiReadFd == -1) ||
+            cgiReadFd == -1 && cgiWriteFd == -1) ||
            (timeDifference() > max_timeout);
 }
 
