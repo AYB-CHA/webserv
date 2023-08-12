@@ -370,7 +370,7 @@ void Client::updateTimeout() {
 
 bool Client::shouldBeClosed() const {
     return (this->connectionClose && bufC.write.empty() && bodyFd == -1 &&
-            cgiReadFd == -1 && cgiWriteFd == -1) ||
+            cgiReadFd == -1 /* && cgiWriteFd == -1 */) ||
            (timeDifference() > max_timeout);
 }
 
