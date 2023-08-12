@@ -81,7 +81,7 @@ void Server::setUp() {
 void Server::createSocket() {
     this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (this->socket_fd == -1)
-        throw std::runtime_error("socket init: could't create socket for");
+        throw std::runtime_error("socket init: couldn't create socket for");
     fcntl(this->socket_fd, F_SETFL, O_NONBLOCK);
 }
 void Server::bindAddress() {
