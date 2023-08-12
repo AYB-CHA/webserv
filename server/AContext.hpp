@@ -20,9 +20,9 @@ class AContext {
 
     const std::string &getRoot(void) const;
     const std::string &getUploadPath(void) const;
-    const std::map<std::string, bool> &getAllowedMethods(void) const;
-    const std::vector<std::string> &getIndex(void) const;
-    const std::map<int, std::string> &getErrorPage(void) const;
+    const std::map<std::string, bool> &getAllowedMethods(void);
+    const std::vector<std::string> &getIndex(void);
+    const std::map<int, std::string> &getErrorPage(void);
     const long &getClientMaxBodySize(void) const;
     bool getAutoindex(void) const;
 

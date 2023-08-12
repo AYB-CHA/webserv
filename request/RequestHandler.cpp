@@ -171,9 +171,12 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     if (checkForExtension(this->extension)) {
         CGIResolver cgi(this->getCgiPathFromExtension(this->extension), file,
                         this->request, client);
-        client.setCgiFd(cgi.getReadEnd());
-        mediator.addCGI(cgi.getReadEnd());
-        std::cout << cgi.getReadEnd() << std::endl;
+        client.setCgiReadFd(cgi.getReadEnd());
+        client.setCgiWriteFd(cgi.getWriteEnd());
+        mediator.addReadCGI(cgi.getReadEnd());
+        mediator.addWriteCGI(cgi.getWriteEnd());
+        // std::cout << cgi.getReadEnd() << std::endl;
+        // std::cout << cgi.getWriteEnd() << std::endl;
         return;
     }
 
@@ -281,19 +284,20 @@ void RequestHandler::fillContainer(std::string &container,
         std::string s(de->d_name, de->d_namlen);
 
         if (DT_DIR == de->d_type && s == "..")
-            item = std::string("\t\t\t<li ><a href=\"") + s + "\">" + s +
-                   "</a>" + "</li>\n";
+            item = std::string("<li><a href=\"") + s + "\">" + s +
+                   "</a></li>\n";
         else if (DT_DIR == de->d_type) {
-            item = std::string("\t\t\t<li\"><a href=\"") + s + "\">" + s +
-                   "</a>" + "</li>\n";
+            item = std::string("<li><a href=\"") + s + "\">" + s +
+                   "</a></li>\n";
         } else {
-            item = std::string("\t\t\t<li\"><a href=\"") + s + "\">" + s +
-                   "</a>" + "</li>\n";
+            item = std::string("<li><a href=\"") + s + "\">" + s +
+                   "</a></li>\n";
         }
 
         container.insert(index, item);
         index += item.length();
     }
+    closedir(d);
 }
 
 void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
@@ -341,7 +345,7 @@ bool RequestHandler::matchLocation(const std::string& endpoint, const Server &se
     forEach(std::vector<Location>, locations, itr) {
         forEachConst(std::vector<std::string>, itr->getPrefix(), itr1) {
             std::vector<std::string> list = utils::split(endpoint, "/");
-        std::cout << "i'm here"<< "| size: " << list.size() << "| endpoint: " << endpoint << std::endl;
+        // std::cout << "i'm here"<< "| size: " << list.size() << "| endpoint: " << endpoint << std::endl;
             for (size_t i = 0; i < list.size(); i++) {
                 std::string tmp = "";
                 for (std::vector<std::string>::iterator itr2 = list.begin();
@@ -412,5 +416,5 @@ void RequestHandler::validMethod(const std::string &method, Client &c) {
     }
 }
 
-const Location &RequestHandler::getLocation() { return this->targetLoc; }
+Location &RequestHandler::getLocation() { return this->targetLoc; }
 bool RequestHandler::matchedLocation() { return this->matchLocState; }

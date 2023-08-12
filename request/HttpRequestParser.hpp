@@ -14,6 +14,7 @@ public:
 private:
   void parseRequestLine(const std::string &request_line);
   void parseHeaderLine(const std::string &header_line);
+  URL parseURI(const std::string& uri);
 
 private:
   bool isValidMethod(std::string &method);

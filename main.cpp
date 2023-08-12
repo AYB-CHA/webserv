@@ -8,15 +8,19 @@ void mem() { system("leaks webserv"); }
 
 int main(int ac, char **av) {
     atexit(mem);
-    if (ac != 2) {
+    if (ac > 2) {
         std::cerr << "Usage: " << av[0] << " [config-file]" << std::endl;
         return 1;
+    }
+    std::string configFile = "config.conf";
+    if (ac == 2) {
+        configFile = av[1];
     }
     std::vector<Directive> server_directives;
     std::vector<Server> servers;
     try {
         Config config;
-        config.init(av[1]);
+        config.init(configFile);
         server_directives = config.getServers();
     } catch (std::runtime_error &e) {
         std::cerr << "Parse error:" << std::endl;

@@ -55,7 +55,7 @@ class RequestHandler {
     void handleDELETE(Client &client);
     const std::string &getCgiPathFromExtension(const std::string &extension);
     void responseFromIndexes(Client &client, Mediator &mediator);
-    const Location &getLocation();
+    Location &getLocation();
     bool matchedLocation();
     //
     bool isDirChecks(Client &clint);

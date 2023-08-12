@@ -55,15 +55,33 @@ void Multiplexer::readRequests() {
 }
 
 void Multiplexer::readFromPipes() {
-    for (CIter it = cgi_pipes.begin(); it != cgi_pipes.end(); ++it) {
+    for (CIter it = cgi_inpipes.begin(); it != cgi_inpipes.end(); ++it) {
         try {
             if ((*it)->readOutputCGI() == true) {
-                mediator.removeCGI((*it)->getCgiFd());
-                (*it)->setMethod("GET");
-                (*it)->setCgiFd(-1);
+                mediator.removeReadCGI((*it)->getCgiReadFd());
+                (*it)->setCgiReadFd(-1);
             };
         } catch (HttpResponseException &e) {
             (*it)->showErrorPage(e);
+            if ((*it)->getCgiReadFd() != -1)
+                mediator.removeReadCGI((*it)->getCgiReadFd());
+            (*it)->setCgiReadFd(-1);
+        }
+    }
+}
+
+void Multiplexer::writeToPipes() {
+    for (CIter it = cgi_outpipes.begin(); it != cgi_outpipes.end(); ++it) {
+        try {
+            if ((*it)->writeBodyCGI() == true) {
+                mediator.removeWriteCGI((*it)->getCgiWriteFd());
+                (*it)->setCgiWriteFd(-1);
+            };
+        } catch (HttpResponseException &e) {
+            (*it)->showErrorPage(e);
+            if ((*it)->getCgiWriteFd() != -1)
+                mediator.removeWriteCGI((*it)->getCgiWriteFd());
+            (*it)->setCgiWriteFd(-1);
         }
     }
 }
@@ -73,9 +91,10 @@ void Multiplexer::run() {
     signal(SIGPIPE, SIG_IGN);
     for (;;) {
         mediator.getBatch(ready_servers, read_clients, write_clients,
-                          cgi_pipes);
+                          cgi_inpipes, cgi_outpipes);
 
         acceptConnections();
+        writeToPipes();
         readFromPipes();
         writeResponses();
         readRequests();
