@@ -81,7 +81,7 @@ bool RequestHandler::setIndexFile(const std::vector<std::string> &indexes) {
     forEachConst(std::vector<std::string>, indexes, itr) {
         std::string holder = this->file + "/" + *itr;
         if (access(holder.c_str(), F_OK | R_OK) == 0) {
-            std::cout << "chihaja" << std::endl;
+            // std::cout << "chihaja" << std::endl;
             this->file = holder;
             return true;
         }
