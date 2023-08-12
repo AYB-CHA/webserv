@@ -63,6 +63,9 @@ void Multiplexer::readFromPipes() {
             };
         } catch (HttpResponseException &e) {
             (*it)->showErrorPage(e);
+            if ((*it)->getCgiReadFd() != -1)
+                mediator.removeReadCGI((*it)->getCgiReadFd());
+            (*it)->setCgiReadFd(-1);
         }
     }
 }
@@ -77,6 +80,9 @@ void Multiplexer::writeToPipes() {
             };
         } catch (HttpResponseException &e) {
             (*it)->showErrorPage(e);
+            if ((*it)->getCgiWriteFd() != -1)
+                mediator.removeWriteCGI((*it)->getCgiWriteFd());
+            (*it)->setCgiWriteFd(-1);
         }
     }
 }
