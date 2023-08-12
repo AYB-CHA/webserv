@@ -5,6 +5,9 @@ AContext::AContext() {
     this->allowed_methods["POST"] = false;
     this->allowed_methods["DELETE"] = false;
     this->root = "/www";
+    this->client_max_body_size = pow(2, 30);
+    this->autoindex = false;
+    this->upload_path = "/tmp";
 }
 AContext::AContext(const AContext& o) : root(o.root), upload_path(o.upload_path), allowed_methods(o.allowed_methods),
     index(o.index), error_page(o.error_page), client_max_body_size(o.client_max_body_size), autoindex(o.autoindex){}

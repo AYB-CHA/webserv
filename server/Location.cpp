@@ -2,11 +2,6 @@
 
 Location::Location() {
     this->redirect = "";
-
-    // from base class
-    this->autoindex = true;
-    this->upload_path = "/tmp";
-    this->client_max_body_size = pow(2, 30);
 }
 Location::Location(const Location &o)
     : AContext(o), prefix(o.prefix), cgi_path(o.cgi_path),

@@ -233,14 +233,14 @@ void RequestHandler::fillContainer(std::string &container,
         std::string s(de->d_name);
 
         if (DT_DIR == de->d_type && s == "..")
-            item = std::string("\t\t\t<li ><a href=\"") + s + "\">" + s +
-                   "</a>" + "</li>\n";
+            item = std::string("<li><a href=\"") + s + "\">" + s +
+                   "</a></li>\n";
         else if (DT_DIR == de->d_type) {
-            item = std::string("\t\t\t<li\"><a href=\"") + s + "\">" + s +
-                   "</a>" + "</li>\n";
+            item = std::string("<li><a href=\"") + s + "\">" + s +
+                   "</a></li>\n";
         } else {
-            item = std::string("\t\t\t<li\"><a href=\"") + s + "\">" + s +
-                   "</a>" + "</li>\n";
+            item = std::string("<li><a href=\"") + s + "\">" + s +
+                   "</a></li>\n";
         }
 
         container.insert(index, item);
