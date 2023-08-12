@@ -98,6 +98,7 @@ class Client {
     void showErrorPage(HttpResponseException &e);
     void reset();
     void clear();
-
+    bool getChunkedRequestStatus() const;
+    bool getFormDataStatus() const;
     ~Client();
 };

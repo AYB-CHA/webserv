@@ -15,6 +15,7 @@ class RequestHandler {
     std::vector<Server> servers;
     int fd;
     bool handled;
+    bool list_dir;
 
     //------- new attr
     std::string file;
@@ -55,6 +56,9 @@ class RequestHandler {
     void responseFromIndexes(Client &client, Mediator &mediator);
     const Location &getLocation();
     bool matchedLocation();
+    //
+    bool isDirChecks(Client &clint);
+    bool setIndexFile(const std::vector<std::string> &indexes);
 };
 
 #define forEach(type, iterable, name)                                          \
