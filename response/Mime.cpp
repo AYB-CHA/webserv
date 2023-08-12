@@ -36,3 +36,7 @@ const std::string &Mime::getMimeType(const std::string &extention) {
         return this->types[extention];
     return this->default_ext;
 }
+Mime::~Mime() {
+    if (Mime::self != NULL)
+        delete Mime::self;
+}

@@ -430,4 +430,7 @@ void Client::showErrorPage(HttpResponseException &e) {
     this->storeResponse(e.build());
 }
 
+bool Client::getChunkedRequestStatus() const { return this->chunkedRequest; }
+bool Client::getFormDataStatus() const { return this->formData; }
+
 Client::~Client() {}

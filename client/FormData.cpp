@@ -46,7 +46,7 @@ void FormData::processDispositionHeader() {
             throw HttpResponseException(400);
         value.pop_back();
         value.erase(value.begin());
-        if (key == "filename") {
+        if (key == "filename" && !value.empty()) {
             filename = value;
             its_file = true;
         }

@@ -49,6 +49,9 @@ HttpResponseBuilder *HttpResponseBuilder::setStatuscode(int status_code) {
     case 403:
         this->status_code_phrase = "Forbidden";
         break;
+    case 501:
+        this->status_code_phrase = "Not Implemented";
+        break;
     default:
         this->status_code_phrase = "Must be implemented!!";
         break;

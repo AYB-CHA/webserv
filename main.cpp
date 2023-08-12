@@ -4,7 +4,10 @@
 #include <cstdlib>
 #include <stdexcept>
 
+void mem() { system("leaks webserv"); }
+
 int main(int ac, char **av) {
+    atexit(mem);
     if (ac != 2) {
         std::cerr << "Usage: " << av[0] << " [config-file]" << std::endl;
         return 1;
@@ -15,13 +18,11 @@ int main(int ac, char **av) {
         Config config;
         config.init(av[1]);
         server_directives = config.getServers();
-    } catch (std::runtime_error& e) {
+    } catch (std::runtime_error &e) {
         std::cerr << "Parse error:" << std::endl;
         std::cerr << e.what() << std::endl;
         return 1;
     }
-
-
 
     try {
         servers = validator(server_directives);
