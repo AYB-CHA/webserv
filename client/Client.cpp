@@ -305,8 +305,8 @@ bool Client::readCGIHeaders() {
     }
     bufC.headers += std::string(buf, 1);
     if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
-        bufC.write +=
-            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" + bufC.headers;
+        bufC.write = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" + bufC.headers;
+        bufC.headers.clear();
         headersSent = true;
     }
     return false;
