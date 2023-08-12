@@ -5,7 +5,6 @@ Location::Location() {
 
     // from base class
     this->autoindex = true;
-    this->root = "";
     this->upload_path = "/tmp";
     this->client_max_body_size = pow(2, 30);
 }

@@ -355,5 +355,5 @@ void RequestHandler::validMethod(const std::string &method, Client &c) {
     }
 }
 
-const Location &RequestHandler::getLocation() { return this->targetLoc; }
+Location &RequestHandler::getLocation() { return this->targetLoc; }
 bool RequestHandler::matchedLocation() { return this->matchLocState; }
