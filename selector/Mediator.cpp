@@ -20,7 +20,6 @@ void Mediator::addReadCGI(int fd) {
 }
 
 void Mediator::addWriteCGI(int fd) {
-    std::cout << "Added write CGi" << std::endl;
     fd_writepipes.push_back(fd);
     selector.pushFd(fd, Selector::SEL_WRONLY);
 }

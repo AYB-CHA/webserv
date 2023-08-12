@@ -1,13 +1,13 @@
 #include "HttpRequest.hpp"
 
 HttpRequest::HttpRequest() {}
-HttpRequest::HttpRequest(const HttpRequest& o): method(o.method), endpoint(o.endpoint), queries(o.queries),
+HttpRequest::HttpRequest(const HttpRequest& o): method(o.method), url(o.url), queries(o.queries),
 headers(o.headers), body(o.body) {}
 HttpRequest& HttpRequest::operator=(const HttpRequest& o) {
     if (this == &o) return *this;
 
     this->method = o.method;
-    this->endpoint = o.endpoint;
+    this->url = o.url;
     this->queries = o.queries;
     this->headers = o.headers;
     this->body = o.body;
@@ -18,7 +18,7 @@ HttpRequest::~HttpRequest() {}
 
 const std::string &HttpRequest::getMethod() const { return this->method; }
 
-const std::string &HttpRequest::getEndpoint() const { return this->endpoint; }
+const std::string &HttpRequest::getEndpoint() const { return this->url.endpoint; }
 const std::string HttpRequest::getHeader(const std::string &key) const {
     std::map<std::string, std::string>::const_iterator it;
     it = this->headers.find(key);
@@ -30,8 +30,12 @@ const std::string HttpRequest::getHeader(const std::string &key) const {
 
 void HttpRequest::setMethod(std::string &method) { this->method = method; }
 
+void HttpRequest::setPathInfo(const std::string& pathinfo) {
+    this->url.pathinfo = pathinfo;
+}
+
 void HttpRequest::setEndpoint(const std::string &endpoint) {
-    this->endpoint = endpoint;
+    this->url.endpoint = endpoint;
 }
 
 void HttpRequest::setHeader(std::string &key, std::string &value) {

@@ -73,7 +73,6 @@ void Multiplexer::readFromPipes() {
 void Multiplexer::writeToPipes() {
     for (CIter it = cgi_outpipes.begin(); it != cgi_outpipes.end(); ++it) {
         try {
-            std::cout << "WRITING ThrOugh PIPE" << std::endl;
             if ((*it)->writeBodyCGI() == true) {
                 mediator.removeWriteCGI((*it)->getCgiWriteFd());
                 (*it)->setCgiWriteFd(-1);

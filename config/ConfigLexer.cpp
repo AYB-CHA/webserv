@@ -2,6 +2,7 @@
 #include "Config.hpp"
 #include "Token.hpp"
 #include <fstream>
+#include <stdexcept>
 
 ConfigLexer::ConfigLexer() : line(1) {
     // SERVER KEYWORDS
@@ -32,8 +33,8 @@ void    ConfigLexer::scanFile(std::string file_name) {
     std::fstream file(file_name.c_str());
 
     if (!file) {
-        std::cout << "Error: couldn't open file '" << file_name << "'." << std::endl;
-        return;
+        std::string errMsg = "Couldn't open file '" + file_name + "'";
+        throw std::runtime_error(errMsg);
     }
 
     while (true) {

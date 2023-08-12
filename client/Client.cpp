@@ -96,7 +96,6 @@ bool Client::readOutputCGI() {
 }
 
 bool Client::writeBodyCGI() {
-    std::cout << "Writing to the pipe" << std::endl;
     int len = write(cgiWriteFd, bufC.body.c_str(), bufC.body.length());
     if (len == -1) {
         throw HttpResponseException(500);
@@ -112,7 +111,7 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
         requestHandler = RequestHandler(request, servers);
         requestHandler.init(*this);
         requestHandler.setInitialized(true);
-        if (method == "POST" && contentLength != 0)
+        if (method == "POST" && (contentLength != 0 || chunkedRequest == false))
             return;
     }
 
@@ -180,15 +179,13 @@ bool Client::readContentLengthBody() {
 }
 
 bool Client::readFormData() {
-
-    char *buffer = new char[contentLength];
-    int len = read(socketFd, buffer, contentLength);
+    std::vector<char> buf(contentLength);
+    int len = read(socketFd, buf.data(), contentLength);
     if (len == -1 || len == 0) {
         connectionClose = true;
         return false;
     }
-    this->bufC.formData += std::string(buffer, len);
-    delete[] buffer;
+    this->bufC.formData += std::string(buf.data(), len);
     contentLength -= len;
 
     std::string::size_type boundary_pos;
@@ -224,11 +221,19 @@ bool Client::readChunkedHexa() {
     }
 
     bufC.hexa += std::string(buf, len);
+    if (bufC.hexa.size() > static_cast<size_t>(clientMaxBodySize)) {
+        bufC.hexa.clear();
+        throw HttpResponseException(413);
+    }
     if (bufC.hexa.find("\r\n") != std::string::npos) {
+        if (bufC.hexa.find("\r\n") != bufC.hexa.size() -2) {
+            bufC.hexa.clear();
+            throw HttpResponseException(400);
+        }
         utils::strTrimV2(bufC.hexa, "\r\n");
         chunkedLength = utils::string::toIntHex(bufC.hexa);
         bufC.hexa.clear();
-        bufC.temp.resize(bufC.temp.size() + chunkedLength);
+        bufC.temp.resize(bufC.temp.size() + chunkedLength); // wtf?
         chunkIsReady = true;
     }
     return false;
@@ -247,7 +252,7 @@ bool Client::readChunkedBody() {
     }
     bufC.chunk += std::string(buf.data(), len);
     if (bufC.chunk.length() == chunkedLength + 2) {
-        if (bufC.chunk.find("\r\n") == std::string::npos)
+        if (bufC.chunk.find("\r\n") == std::string::npos || bufC.chunk.find("\r\n") != bufC.chunk.size() - 2)
             throw HttpResponseException(400);
         chunkIsReady = false;
         if (chunkedLength == 0) {
@@ -257,6 +262,10 @@ bool Client::readChunkedBody() {
         }
         utils::strTrimV2(bufC.chunk, "\r\n");
         bufC.body += bufC.chunk;
+        if (bufC.body.size() > static_cast<size_t>(clientMaxBodySize)) {
+            bufC.body.clear();
+            throw HttpResponseException(413);
+        }
         bufC.chunk.clear();
     }
     return false;
@@ -306,8 +315,8 @@ bool Client::readCGIHeaders() {
     }
     bufC.headers += std::string(buf, 1);
     if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
-        bufC.write +=
-            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" + bufC.headers;
+        bufC.write = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" + bufC.headers;
+        bufC.headers.clear();
         headersSent = true;
     }
     return false;
