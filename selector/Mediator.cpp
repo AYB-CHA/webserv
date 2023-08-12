@@ -61,6 +61,8 @@ void Mediator::removeClient(int fd) {
     std::cout << "Client has left. id: " << fd << std::endl;
     if (fd_clients[fd].getCgiReadFd() != -1)
         removeReadCGI(fd_clients[fd].getCgiReadFd());
+    if (fd_clients[fd].getCgiWriteFd() != -1)
+        removeReadCGI(fd_clients[fd].getCgiWriteFd());
     fd_clients[fd].clear();
     fd_clients.erase(fd);
     try {
