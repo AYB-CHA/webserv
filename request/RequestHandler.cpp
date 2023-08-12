@@ -85,7 +85,7 @@ bool RequestHandler::setIndexFile(const std::vector<std::string> &indexes) {
             this->file = holder;
             return true;
         }
-        std::cout << holder<< std::endl;
+        // std::cout << holder<< std::endl;
     }
     return false;
 }
@@ -225,6 +225,7 @@ void RequestHandler::DeleteFiles(std::string path) {
                 DeleteFiles(s.c_str());
             }
         }
+        closedir(d);
     }
 
     std::cout << "fileName:" << path << std::endl;
