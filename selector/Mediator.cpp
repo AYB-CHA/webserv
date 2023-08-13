@@ -52,10 +52,6 @@ void Mediator::addClient(int fd, Server &server) {
         return;
     }
     std::cout << "Client has joined. id: " << fd << std::endl;
-    if (fd > 7) {
-        std::cout << "Too many clients have connected, memory OUT!" << std::endl;
-        throw std::bad_alloc();
-    }
     fd_clients[fd] = Client(fd, server);
     selector.pushFd(fd, Selector::SEL_RDWR);
     std::cout << "Num of clients: " << fd_clients.size() << std::endl;
