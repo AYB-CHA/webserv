@@ -42,4 +42,5 @@ class HttpRequest {
     const std::string &getMultipartDataBoundary();
   public:
     bool isMultipartData();
+    bool isChunked();
 };

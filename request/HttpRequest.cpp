@@ -75,4 +75,8 @@ bool HttpRequest::isMultipartData()
     return false;
 }
 
+bool HttpRequest::isChunked(){
+    return this->getHeader("Transfer-Encoding") == "chunked";
+}
+
 const std::string &HttpRequest::getMultipartDataBoundary(){ return this->multipart_data_boundary; }
