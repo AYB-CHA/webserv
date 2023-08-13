@@ -52,12 +52,11 @@ void CGIResolver::runCGI() {
         execve(bin, args, env);
         this->write_CGI_error_output();
     }
-    // write(this->write_pipes[1], this->client.getPostBody().c_str(),
-    //       this->client.getPostBody().length());
-    if (close(this->read_pipes[1]) == -1 || /* close(this->write_pipes[1]) == -1 || */
-        close(this->write_pipes[0]) == -1)
+    if (close(this->read_pipes[1]) == -1 || close(this->write_pipes[0]) == -1)
         throw HttpResponseException(500);
     if (fcntl(this->read_pipes[0], F_SETFL, O_NONBLOCK) == -1)
+        throw HttpResponseException(500);
+    if (fcntl(this->write_pipes[1], F_SETFL, O_NONBLOCK) == -1)
         throw HttpResponseException(500);
 }
 
