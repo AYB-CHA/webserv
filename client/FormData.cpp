@@ -62,13 +62,14 @@ void FormData::processBoundary() {
 
 void FormData::uploadFile() {
     std::string file_path = this->upload_path + "/" + filename;
-    std::ofstream upload_file_stream(file_path.c_str());
-    if (!upload_file_stream)
+    std::ofstream upload_file(file_path.c_str());
+
+    if (!upload_file)
         throw HttpResponseException(403);
-    upload_file_stream.write(to_process.data() + i,
+    upload_file.write(to_process.data() + i,
                              to_process.length() - i - 2);
-    upload_file_stream.close();
-    if (!upload_file_stream)
+    upload_file.close();
+    if (!upload_file)
         throw HttpResponseException(500);
 }
 FormData::~FormData() {}
