@@ -27,8 +27,8 @@ class RequestHandler {
     // -------- new fun
     void checkConfAndAccess(Client &client);
     void listDirectory(Client &client, Mediator &mediator);
-    void createContainer(std::string &container, std::string::size_type &index);
-    void fillContainer(std::string &container, std::string::size_type &index);
+    // void createContainer(std::string &container, std::string::size_type &index);
+    void fillContainer(std::string &container);
     void validMethod(const std::string &method, Client &c);
     bool checkForExtension(const std::string &extension);
     void fileRequested(Client &client, Mediator &mediator);

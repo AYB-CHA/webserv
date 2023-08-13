@@ -81,7 +81,6 @@ bool RequestHandler::setIndexFile(const std::vector<std::string> &indexes) {
     forEachConst(std::vector<std::string>, indexes, itr) {
         std::string holder = this->file + "/" + *itr;
         if (access(holder.c_str(), F_OK | R_OK) == 0) {
-            // std::cout << "chihaja" << std::endl;
             this->file = holder;
             return true;
         }
@@ -228,8 +227,8 @@ void RequestHandler::DeleteFiles(const std::string& path) {
         closedir(d);
     }
 
-    std::cout << "fileName:" << path << std::endl;
-    // remove(path.c_str());
+    // std::cout << "fileName:" << path << std::endl;
+    remove(path.c_str());
 }
 
 void RequestHandler::handleDELETE(Client &client) {
@@ -255,59 +254,29 @@ void RequestHandler::checkConfAndAccess(Client &client) {
     }
 }
 
-void RequestHandler::createContainer(std::string &container,
-                                     std::string::size_type &index) {
-    std::fstream strm("./www/listDir.html", std::ios::in);
-    if (!strm.is_open())
-        throw HttpResponseException(500);
-
-    char c;
-    while (!strm.eof()) {
-        strm.get(c);
-        container.push_back(c);
-    }
-    strm.close();
-
-    std::string s1("{content}");
-    index = container.find(s1);
-    if (index == std::string::npos) {
-        throw HttpResponseException(500);
-    }
-    container.erase(index, s1.length());
-}
-
-void RequestHandler::fillContainer(std::string &container,
-                                   std::string::size_type &index) {
+void RequestHandler::fillContainer(std::string &container) {
 
     DIR *d = opendir(file.c_str());
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
         std::string s(de->d_name, de->d_namlen);
 
-        if (DT_DIR == de->d_type && s == "..")
+        if (s != ".." && s != ".")
             item = std::string("<li><a href=\"") + s + "\">" + s +
                    "</a></li>\n";
-        else if (DT_DIR == de->d_type) {
-            item = std::string("<li><a href=\"") + s + "\">" + s +
-                   "</a></li>\n";
-        } else {
-            item = std::string("<li><a href=\"") + s + "\">" + s +
-                   "</a></li>\n";
-        }
-
-        container.insert(index, item);
-        index += item.length();
+        container += item;
     }
     closedir(d);
 }
 
 void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
     (void)mediator;
-    std::string container;
-    std::string::size_type index = 0;
+    std::string container = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n\
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
+        <title>list Dir</title>\n</head>\n<body>\n<div>\n<h2>List of files: </h2>\n<ul>\n";
 
-    createContainer(container, index);
-    fillContainer(container, index);
+    fillContainer(container);
+    container += "</ul>\n</div>\n</body>\n</html>\n";
 
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(".html"))
