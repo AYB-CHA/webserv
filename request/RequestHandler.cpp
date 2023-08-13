@@ -138,21 +138,27 @@ void RequestHandler::init(Client &client) {
         return;
     }
 
-    if (request.getHeader("Content-Type") != "") {
-        std::string header_value = this->request.getHeader("Content-Type");
-        std::string::size_type semicolon_pos = header_value.find(';');
-        std::string content_type = header_value.substr(0, semicolon_pos);
+    // if (request.getHeader("Content-Type") != "") {
+    //     std::string header_value = this->request.getHeader("Content-Type");
+    //     std::string::size_type semicolon_pos = header_value.find(';');
+    //     std::string content_type = header_value.substr(0, semicolon_pos);
 
-        if (content_type == "multipart/form-data") {
-            std::string::size_type boundary_pos = semicolon_pos + 1;
-            if (content_type[boundary_pos] == ' ')
-                boundary_pos++;
-            boundary_pos += 10;
-            std::string boundary = header_value.substr(boundary_pos);
-            client.setFormData(true);
-            client.setFormDataBoundary(boundary);
-        }
+    //     if (content_type == "multipart/form-data") {
+    //         std::string::size_type boundary_pos = semicolon_pos + 1;
+    //         if (content_type[boundary_pos] == ' ')
+    //             boundary_pos++;
+    //         boundary_pos += 10;
+    //         std::string boundary = header_value.substr(boundary_pos);
+    //         client.setFormData(true);
+    //         client.setFormDataBoundary(boundary);
+    //     }
+    // }
+    if (request.isMultipartData())
+    {
+        client.setFormData(true);
+        client.setFormDataBoundary(request.getMultipartDataBoundary());
     }
+
     if (client.getFormDataStatus() && client.getChunkedRequestStatus()) {
         throw HttpResponseException(501);
     }
