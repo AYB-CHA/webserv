@@ -212,7 +212,7 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
         fileRequested(client, mediator);
 }
 
-void RequestHandler::DeleteFiles(const std::string& path) {
+void RequestHandler::DeleteFiles(const std::string& path, std::vector<std::string>& list) {
     struct stat buff;
     stat(path.c_str(), &buff);
     if (S_ISDIR(buff.st_mode)) {
@@ -221,14 +221,13 @@ void RequestHandler::DeleteFiles(const std::string& path) {
             std::string s(de->d_name, de->d_namlen);
             if (s != ".." &&s != ".") {
                 s = std::string(path) + "/" + s;
-                DeleteFiles(s);
+                DeleteFiles(s, list);
             }
         }
         closedir(d);
     }
 
-    // std::cout << "fileName:" << path << std::endl;
-    remove(path.c_str());
+    list.push_back(path);
 }
 
 void RequestHandler::handleDELETE(Client &client) {
@@ -238,7 +237,19 @@ void RequestHandler::handleDELETE(Client &client) {
     validMethod("DELETE", client);
     // DELETE THE FILE
     std::string delete_me = targetLoc.getRoot() + this->request.getEndpoint();
-    DeleteFiles(delete_me);
+
+    std::vector<std::string> list;
+    DeleteFiles(delete_me, list);
+    for (size_t i = 0; i < list.size(); i++) {
+        if (access(list[i].c_str(), F_OK) != 0)
+            throw HttpResponseException(404);
+        if (access(list[i].c_str(), W_OK) != 0)
+            throw HttpResponseException(403);
+    }
+    for (size_t i = 0; i < list.size(); i++)
+        remove(list[i].c_str());
+
+    throw HttpResponseException(204);
 }
 
 void RequestHandler::checkConfAndAccess(Client &client) {
