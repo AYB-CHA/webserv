@@ -30,7 +30,7 @@ class RequestHandler {
     void createContainer(std::string &container, std::string::size_type &index);
     void fillContainer(std::string &container, std::string::size_type &index);
     void validMethod(const std::string &method, Client &c);
-    bool checkForExtension(const std::string &extension);
+    bool isCGI(const std::string &extension);
     void fileRequested(Client &client, Mediator &mediator);
 
     Server &validServerName(std::string serverName);
