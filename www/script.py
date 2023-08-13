@@ -2,7 +2,7 @@ import cgi
 
 form = cgi.FieldStorage()
 
-name = form["name"].value
+name = str(form.getfirst("name"))
 
 string = """<html>
     <h1> Hello """ + name + """ </h1>

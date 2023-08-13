@@ -73,6 +73,8 @@ Client &Client::operator=(const Client &o) {
 }
 
 bool Client::writeChunk() {
+    if (bufC.write.empty() && cgiReadFd != -1)
+        return false;
     if (bufC.write.empty() && bodyFd == -1)
         return true;
     if (!bufC.write.empty()) {
