@@ -110,9 +110,6 @@ void RequestHandler::init(Client &client) {
         return;
     }
 
-    // std::cout << "FILE: " << file << std::endl;
-    // std::cout << "isMatched: " << matchLocState << std::endl;
-
     std::string::size_type dot = file.find_last_of('.');
     if (dot != std::string::npos)
         this->extension = file.substr(dot);
@@ -122,7 +119,6 @@ void RequestHandler::init(Client &client) {
     if (isCGI(this->extension)) {
         return;
     }
-
 
     if (request.isMultipartData())
     {
@@ -170,7 +166,7 @@ void RequestHandler::handleGET(Client &client, Mediator &mediator) {
     if (request.getHeader("Connection") == "close")
         client.setConnectionClose(true);
     if (this->list_dir)
-        listDirectory(client, mediator);
+        listDirectory(client);
     else
         fileRequested(client, mediator);
 }
@@ -180,7 +176,7 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
         client.setConnectionClose(true);
 
     if (this->list_dir)
-        listDirectory(client, mediator);
+        listDirectory(client);
     else
         fileRequested(client, mediator);
 }
@@ -229,30 +225,7 @@ void RequestHandler::checkConfAndAccess(Client &client) {
     }
 }
 
-void RequestHandler::createContainer(std::string &container,
-                                     std::string::size_type &index) {
-    std::fstream strm("./www/listDir.html", std::ios::in);
-    if (!strm.is_open())
-        throw HttpResponseException(500);
-
-    char c;
-    while (!strm.eof()) {
-        strm.get(c);
-        container.push_back(c);
-    }
-    strm.close();
-
-    std::string s1("{content}");
-    index = container.find(s1);
-    if (index == std::string::npos) {
-        throw HttpResponseException(500);
-    }
-    container.erase(index, s1.length());
-}
-
-void RequestHandler::fillContainer(std::string &container,
-                                   std::string::size_type &index) {
-
+void RequestHandler::fillContainer(std::string &container) {
     DIR *d = opendir(file.c_str());
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
@@ -261,32 +234,21 @@ void RequestHandler::fillContainer(std::string &container,
             #elif __APPLE__
                 std::string s(de->d_name, de->d_namlen);
             #endif
-
-        if (DT_DIR == de->d_type && s == "..")
-            item = std::string("<li><a href=\"") + s + "\">" + s +
-                   "</a></li>\n";
-        else if (DT_DIR == de->d_type) {
-            item = std::string("<li><a href=\"") + s + "\">" + s +
-                   "</a></li>\n";
-        } else {
-            item = std::string("<li><a href=\"") + s + "\">" + s +
-                   "</a></li>\n";
-        }
-
-        container.insert(index, item);
-        index += item.length();
+        if (s == "." || s == "..")
+            continue ;
+        container += "<li><a href='" + s + "'>" + s + "</a></li>\n";
     }
     closedir(d);
 }
 
-void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
-    (void)mediator;
+void RequestHandler::listDirectory(Client &client) {
     std::string container;
-    std::string::size_type index = 0;
-
-    createContainer(container, index);
-    fillContainer(container, index);
-
+    container = "<html><title>" + this->request.getEndpoint() + "</title><body>";
+    container += "<h3>Index of: " + this->request.getEndpoint() + "</h3>";
+    container += "<ul>";
+    fillContainer(container);
+    container += "</ul>";
+    container += "</body></html>";
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(".html"))
         ->pushBody(container);
