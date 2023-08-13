@@ -36,6 +36,8 @@ void FormData::processDispositionHeader() {
     if (header_parts.empty() || header_parts[0] != "form-data")
         throw HttpResponseException(400);
     header_parts.erase(header_parts.begin());
+    std::cout << "nice worke: \n";
+
     forEach(std::vector<std::string>, header_parts, it) {
         std::string::size_type equal_pos = it->find('=');
         if (equal_pos == std::string::npos)
@@ -44,7 +46,7 @@ void FormData::processDispositionHeader() {
         std::string value = it->substr(equal_pos + 1);
         if (value[0] != '"' || value[value.size() - 1] != '"')
             throw HttpResponseException(400);
-        value.erase(value.end());
+        value.erase(value.end() - 1);
         value.erase(value.begin());
         if (key == "filename" && !value.empty()) {
             filename = value;
