@@ -55,24 +55,14 @@ bool RequestHandler::isDirChecks(Client &client) {
     stat(file.c_str(), &data);
     if (!S_ISDIR(data.st_mode))
         return false;
-    if (this->matchLocState == true) {
-        if (this->targetLoc.getAutoindex() == true) {
-            this->list_dir = true;
-            return true;
-        } else {
-            if (setIndexFile(this->targetLoc.getIndex()))
-                return false;
-            this->file.clear();
-        }
+    AContext *loader = this->matchLocState ? dynamic_cast<AContext*>(&this->targetLoc) : dynamic_cast<AContext*>(&client.getServer());
+    if (loader->getAutoindex()) {
+        this->list_dir = true;
+        return true;
     } else {
-        if (client.getServer().getAutoindex()) {
-            this->list_dir = true;
-            return true;
-        } else {
-            if (setIndexFile(client.getServer().getIndex()))
-                return false;
-            this->file.clear();
-        }
+        if (setIndexFile(loader->getIndex()))
+            return false;
+        this->file.clear();
     }
     return false;
 }
