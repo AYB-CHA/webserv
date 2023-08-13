@@ -1,6 +1,7 @@
 #include "CgiResolver.hpp"
 #include "../response/HttpResponseException.hpp"
 #include "../utils/string.hpp"
+#include <sys/fcntl.h>
 
 CGIResolver::CGIResolver(const std::string &CGI_path,
                          const std::string &CGI_file, HttpRequest &request,
@@ -67,7 +68,7 @@ void CGIResolver::buildCGIEnv() {
     this->env["CONTENT_TYPE"] = this->request.getHeader("Content-Type");
     this->env["CONTENT_LENGTH"] =
         utils::string::fromInt(this->client.getPostBody().length());
-    this->env["PATH_INFO"] = this->request.getEndpoint();
+    this->env["PATH_INFO"] = this->request.getPathInfo();
     // Only needed if the cgi is complied with force-cgi-redirect enabled;
     this->env["REDIRECT_STATUS"] = "200";
     for (std::multimap<std::string, std::string>::const_iterator it =
