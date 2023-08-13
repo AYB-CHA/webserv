@@ -7,7 +7,7 @@
 ?>
 
 <form action="/" method="POST" >
-    <input type="text" name="myfile">
+    <input type="text" name="name">
     <br>
     <button>SEND</button>
 </form>
