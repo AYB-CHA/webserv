@@ -90,22 +90,25 @@ void Multiplexer::writeToPipes() {
 }
 
 void Multiplexer::run() {
-    signal(SIGCHLD, SIG_IGN);
-    signal(SIGPIPE, SIG_IGN);
-    for (;;) {
-        mediator.getBatch(ready_servers, read_clients, write_clients,
-                          cgi_inpipes, cgi_outpipes);
+    try {
+        for (;;) {
+            mediator.getBatch(ready_servers, read_clients, write_clients,
+                              cgi_inpipes, cgi_outpipes);
 
-        acceptConnections();
-        writeToPipes();
-        readFromPipes();
-        writeResponses();
-        readRequests();
-        mediator.filterClients();
-        for (std::vector<Client>::iterator it = new_clients.begin();
-             it != new_clients.end(); ++it) {
-            mediator.addClient(it->getSocketFd(), it->getServer());
+            acceptConnections();
+            writeToPipes();
+            readFromPipes();
+            writeResponses();
+            readRequests();
+            mediator.filterClients();
+            for (std::vector<Client>::iterator it = new_clients.begin();
+                 it != new_clients.end(); ++it) {
+                mediator.addClient(it->getSocketFd(), it->getServer());
+            }
+            new_clients.clear();
         }
-        new_clients.clear();
+    } catch (const std::bad_alloc& e) {
+        mediator.clearAll();
+        throw std::bad_alloc();
     }
 }

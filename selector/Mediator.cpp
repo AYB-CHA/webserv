@@ -52,6 +52,10 @@ void Mediator::addClient(int fd, Server &server) {
         return;
     }
     std::cout << "Client has joined. id: " << fd << std::endl;
+    if (fd > 7) {
+        std::cout << "Too many clients have connected, memory OUT!" << std::endl;
+        throw std::bad_alloc();
+    }
     fd_clients[fd] = Client(fd, server);
     selector.pushFd(fd, Selector::SEL_RDWR);
     std::cout << "Num of clients: " << fd_clients.size() << std::endl;
@@ -92,8 +96,10 @@ void Mediator::clearAll() {
     std::vector<int> clientFds;
     for (std::map<int, Client>::iterator it = fd_clients.begin(); it != fd_clients.end(); ++it)
         clientFds.push_back(it->first);
-    for (std::vector<int>::iterator it = clientFds.begin(); it != clientFds.end(); ++it)
+    for (std::vector<int>::iterator it = clientFds.begin(); it != clientFds.end(); ++it) {
         removeClient(*it);
+        close(*it);
+    }
 }
 
 void Mediator::getBatch(std::vector<Server *> &servers,
