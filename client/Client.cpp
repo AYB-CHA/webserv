@@ -440,7 +440,7 @@ void Client::showErrorPage(HttpResponseException &e) {
                 file_path.substr(file_path.find_last_of('.') + 1);
             struct stat data;
             fstat(fd, &data);
-            builder.setStatuscode(200)
+            builder.setStatuscode(e.getStatusCode())
                 ->setHeader("Content-Type",
                             Mime::getInstance()->getMimeType(extention))
                 ->setHeader("Content-Length",
