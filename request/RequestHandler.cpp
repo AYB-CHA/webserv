@@ -227,7 +227,7 @@ void RequestHandler::DeleteFiles(const std::string& path) {
         closedir(d);
     }
 
-    std::cout << "fileName:" << path << std::endl;
+    // std::cout << "fileName:" << path << std::endl;
     remove(path.c_str());
 }
 
