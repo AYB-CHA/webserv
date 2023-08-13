@@ -451,6 +451,8 @@ void Client::showErrorPage(HttpResponseException &e) {
             return;
         }
     }
+    if (e.getStatusCode() >= 400 && e.getStatusCode() < 500)
+        this->setConnectionClose(true);
     this->storeResponse(e.build());
 }
 
