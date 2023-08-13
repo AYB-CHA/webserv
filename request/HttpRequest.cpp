@@ -18,6 +18,8 @@ HttpRequest::~HttpRequest() {}
 
 const std::string &HttpRequest::getMethod() const { return this->method; }
 
+const std::string& HttpRequest::getPathInfo() const { return this->url.pathinfo; }
+
 const std::string &HttpRequest::getEndpoint() const { return this->url.endpoint; }
 const std::string HttpRequest::getHeader(const std::string &key) const {
     std::map<std::string, std::string>::const_iterator it;

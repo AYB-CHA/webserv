@@ -1,6 +1,7 @@
 #include "CgiResolver.hpp"
 #include "../response/HttpResponseException.hpp"
 #include "../utils/string.hpp"
+#include <sys/fcntl.h>
 
 CGIResolver::CGIResolver(const std::string &CGI_path,
                          const std::string &CGI_file, HttpRequest &request,
@@ -51,12 +52,11 @@ void CGIResolver::runCGI() {
         execve(bin, args, env);
         this->write_CGI_error_output();
     }
-    // write(this->write_pipes[1], this->client.getPostBody().c_str(),
-    //       this->client.getPostBody().length());
-    if (close(this->read_pipes[1]) == -1 || /* close(this->write_pipes[1]) == -1 || */
-        close(this->write_pipes[0]) == -1)
+    if (close(this->read_pipes[1]) == -1 || close(this->write_pipes[0]) == -1)
         throw HttpResponseException(500);
     if (fcntl(this->read_pipes[0], F_SETFL, O_NONBLOCK) == -1)
+        throw HttpResponseException(500);
+    if (fcntl(this->write_pipes[1], F_SETFL, O_NONBLOCK) == -1)
         throw HttpResponseException(500);
 }
 
@@ -67,7 +67,7 @@ void CGIResolver::buildCGIEnv() {
     this->env["CONTENT_TYPE"] = this->request.getHeader("Content-Type");
     this->env["CONTENT_LENGTH"] =
         utils::string::fromInt(this->client.getPostBody().length());
-    this->env["PATH_INFO"] = this->request.getEndpoint();
+    this->env["PATH_INFO"] = this->request.getPathInfo();
     // Only needed if the cgi is complied with force-cgi-redirect enabled;
     this->env["REDIRECT_STATUS"] = "200";
     for (std::multimap<std::string, std::string>::const_iterator it =
