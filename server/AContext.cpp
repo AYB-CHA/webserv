@@ -38,7 +38,7 @@ const std::vector<std::string> &AContext::getIndex(void) {
 const std::map<int, std::string>& AContext::getErrorPage(void) {
     if (this->error_page.find(404) == this->error_page.end())
         this->error_page[404] = "404.html";
-	return this->error_page;
+    return this->error_page;
 }
 const long& AContext::getClientMaxBodySize(void) const {
 	return this->client_max_body_size;

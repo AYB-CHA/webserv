@@ -44,7 +44,7 @@ void FormData::processDispositionHeader() {
         std::string value = it->substr(equal_pos + 1);
         if (value[0] != '"' || value[value.size() - 1] != '"')
             throw HttpResponseException(400);
-        value.erase(value.end() -1);
+        value.erase(value.end());
         value.erase(value.begin());
         if (key == "filename" && !value.empty()) {
             filename = value;
@@ -62,11 +62,12 @@ void FormData::processBoundary() {
 
 void FormData::uploadFile() {
     std::string file_path = this->upload_path + "/" + filename;
-    std::ofstream upload_file_stream(file_path);
+    std::ofstream upload_file_stream(file_path.c_str());
     if (!upload_file_stream)
         throw HttpResponseException(403);
     upload_file_stream.write(to_process.data() + i,
                              to_process.length() - i - 2);
+    upload_file_stream.close();
     if (!upload_file_stream)
         throw HttpResponseException(500);
 }

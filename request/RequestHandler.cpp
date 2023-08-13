@@ -219,7 +219,11 @@ void RequestHandler::DeleteFiles(const std::string& path) {
     if (S_ISDIR(buff.st_mode)) {
         DIR *d = opendir(path.c_str());
         for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
-            std::string s(de->d_name, de->d_namlen);
+            #if __linux__
+            std::string s(de->d_name);
+            #elif __APPLE__
+                std::string s(de->d_name, de->d_namlen);
+            #endif
             if (s != ".." &&s != ".") {
                 s = std::string(path) + "/" + s;
                 DeleteFiles(s);
@@ -282,7 +286,11 @@ void RequestHandler::fillContainer(std::string &container,
     DIR *d = opendir(file.c_str());
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
-        std::string s(de->d_name, de->d_namlen);
+            #if __linux__
+                std::string s(de->d_name);
+            #elif __APPLE__
+                std::string s(de->d_name, de->d_namlen);
+            #endif
 
         if (DT_DIR == de->d_type && s == "..")
             item = std::string("<li><a href=\"") + s + "\">" + s +
