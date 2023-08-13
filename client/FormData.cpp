@@ -44,7 +44,7 @@ void FormData::processDispositionHeader() {
         std::string value = it->substr(equal_pos + 1);
         if (value[0] != '"' || value[value.size() - 1] != '"')
             throw HttpResponseException(400);
-        value.pop_back();
+        value.erase(value.end() -1);
         value.erase(value.begin());
         if (key == "filename" && !value.empty()) {
             filename = value;
