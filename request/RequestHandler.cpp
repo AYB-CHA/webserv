@@ -217,14 +217,17 @@ void RequestHandler::DeleteFiles(const std::string& path, std::vector<std::strin
     stat(path.c_str(), &buff);
     if (S_ISDIR(buff.st_mode)) {
         DIR *d = opendir(path.c_str());
-        for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
-            std::string s(de->d_name, de->d_namlen);
-            if (s != ".." &&s != ".") {
-                s = std::string(path) + "/" + s;
-                DeleteFiles(s, list);
+
+        if (d) {
+            for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
+                std::string s(de->d_name, de->d_namlen);
+                if (s != ".." &&s != ".") {
+                    s = std::string(path) + "/" + s;
+                    DeleteFiles(s, list);
+                }
             }
+            closedir(d);
         }
-        closedir(d);
     }
 
     list.push_back(path);
@@ -268,6 +271,8 @@ void RequestHandler::checkConfAndAccess(Client &client) {
 void RequestHandler::fillContainer(std::string &container) {
 
     DIR *d = opendir(file.c_str());
+    if (!d)
+        throw HttpResponseException(403);
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
         std::string s(de->d_name, de->d_namlen);
