@@ -19,12 +19,6 @@ Multiplexer::Multiplexer(std::vector<Server> servers)
 void Multiplexer::acceptConnections() {
     for (SIter it = ready_servers.begin(); it != ready_servers.end(); ++it) {
         int fd = accept((*it)->getSocketFd(), NULL, NULL);
-        if (fd == -1) {
-            if (errno != EWOULDBLOCK) {
-                throw std::runtime_error("accept() failed");
-            }
-            break;
-        }
         new_clients.push_back(Client(fd, **it));
     }
 }
