@@ -120,9 +120,10 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
 
     requestHandler.setInitialized(false);
     if (method != "DELETE") {
-        requestHandler.handleFileRequest(*this, mediator);
         this->setMethod("GET");
+        requestHandler.handleFileRequest(*this, mediator);
     } else {
+        this->setMethod("GET");
         requestHandler.handleDELETE(*this);
     }
 }
