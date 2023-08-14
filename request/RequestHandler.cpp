@@ -55,7 +55,9 @@ bool RequestHandler::isDirChecks(Client &client) {
     stat(file.c_str(), &data);
     if (!S_ISDIR(data.st_mode))
         return false;
-    AContext *loader = this->matchLocState ? dynamic_cast<AContext*>(&this->targetLoc) : dynamic_cast<AContext*>(&client.getServer());
+    AContext *loader = this->matchLocState
+                           ? dynamic_cast<AContext *>(&this->targetLoc)
+                           : dynamic_cast<AContext *>(&client.getServer());
     if (loader->getAutoindex()) {
         this->list_dir = true;
         return true;
@@ -87,13 +89,13 @@ void RequestHandler::init(Client &client) {
     srv = validServerName(hostHeader);
     client.setServer(srv);
     client.setMethod(request.getMethod());
-    this->matchLocState = matchLocation(request.getEndpoint(), client.getServer());
+    this->matchLocState =
+        matchLocation(request.getEndpoint(), client.getServer());
     validMethod(client.getMethod(), client);
     if (client.getMethod() == "DELETE")
         return;
 
     checkConfAndAccess(client);
-
 
     if (matchLocState && !this->targetLoc.getRedirect().empty()) {
         setInitialized(false);
@@ -120,8 +122,7 @@ void RequestHandler::init(Client &client) {
         return;
     }
 
-    if (request.isMultipartData())
-    {
+    if (request.isMultipartData()) {
         client.setFormData(true);
         client.setFormDataBoundary(request.getMultipartDataBoundary());
     }
@@ -181,27 +182,27 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
         fileRequested(client, mediator);
 }
 
-void RequestHandler::DeleteFiles(const std::string& path) {
+void RequestHandler::DeleteFiles(const std::string &path,
+                                 std::vector<std::string> &list) {
     struct stat buff;
     stat(path.c_str(), &buff);
     if (S_ISDIR(buff.st_mode)) {
         DIR *d = opendir(path.c_str());
         for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
-            #if __linux__
+#if __linux__
             std::string s(de->d_name);
-            #elif __APPLE__
-                std::string s(de->d_name, de->d_namlen);
-            #endif
-            if (s != ".." &&s != ".") {
+#elif __APPLE__
+            std::string s(de->d_name, de->d_namlen);
+#endif
+            if (s != ".." && s != ".") {
                 s = std::string(path) + "/" + s;
-                DeleteFiles(s);
+                DeleteFiles(s, list);
             }
+            closedir(d);
         }
-        closedir(d);
     }
 
-    std::cout << "fileName:" << path << std::endl;
-    // remove(path.c_str());
+    list.push_back(path);
 }
 
 void RequestHandler::handleDELETE(Client &client) {
@@ -209,7 +210,19 @@ void RequestHandler::handleDELETE(Client &client) {
         client.setConnectionClose(true);
     // DELETE THE FILE
     std::string delete_me = targetLoc.getRoot() + this->request.getEndpoint();
-    DeleteFiles(delete_me);
+
+    std::vector<std::string> list;
+    DeleteFiles(delete_me, list);
+    for (size_t i = 0; i < list.size(); i++) {
+        if (access(list[i].c_str(), F_OK) != 0)
+            throw HttpResponseException(404);
+        if (access(list[i].c_str(), W_OK) != 0)
+            throw HttpResponseException(403);
+    }
+    for (size_t i = 0; i < list.size(); i++)
+        remove(list[i].c_str());
+
+    throw HttpResponseException(204);
 }
 
 void RequestHandler::checkConfAndAccess(Client &client) {
@@ -227,28 +240,34 @@ void RequestHandler::checkConfAndAccess(Client &client) {
 
 void RequestHandler::fillContainer(std::string &container) {
     DIR *d = opendir(file.c_str());
+    if (!d)
+        throw HttpResponseException(403);
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
-            #if __linux__
-                std::string s(de->d_name);
-            #elif __APPLE__
-                std::string s(de->d_name, de->d_namlen);
-            #endif
+#if __linux__
+        std::string s(de->d_name);
+#elif __APPLE__
+        std::string s(de->d_name, de->d_namlen);
+#endif
         if (s == "." || s == "..")
-            continue ;
-        container += "<li><a href='" + s + "'>" + s + "</a></li>\n";
+            continue;
+        container += "<li><a href='" + s + "'>" + s + "</a></li>";
     }
     closedir(d);
 }
 
 void RequestHandler::listDirectory(Client &client) {
-    std::string container;
-    container = "<html><title>" + this->request.getEndpoint() + "</title><body>";
-    container += "<h3>Index of: " + this->request.getEndpoint() + "</h3>";
-    container += "<ul>";
+    std::string container =
+        "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>\
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>\
+        <title>" +
+        this->request.getEndpoint() +
+        "</title></head><body><div><h2>Index of: " +
+        this->request.getEndpoint() + "</h2><ul>";
+
     fillContainer(container);
-    container += "</ul>";
-    container += "</body></html>";
+    container += "</ul></div></body></html>";
+
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(".html"))
         ->pushBody(container);
@@ -273,7 +292,8 @@ RequestHandler::getCgiPathFromExtension(const std::string &extension) {
 
 std::string RequestHandler::getResponse() { return response.build(); }
 
-bool RequestHandler::matchLocation(const std::string& endpoint, const Server &serv) {
+bool RequestHandler::matchLocation(const std::string &endpoint,
+                                   const Server &serv) {
     std::vector<Location> locations = serv.getLocation();
     if (locations.empty()) {
         return false;

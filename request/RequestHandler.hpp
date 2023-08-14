@@ -59,7 +59,7 @@ class RequestHandler {
     //
     bool isDirChecks(Client &clint);
     bool setIndexFile(const std::vector<std::string> &indexes);
-    void DeleteFiles(const std::string& path);
+    void DeleteFiles(const std::string& path, std::vector<std::string>& list);
 };
 
 #define forEach(type, iterable, name)                                          \
