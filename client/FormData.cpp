@@ -36,7 +36,6 @@ void FormData::processDispositionHeader() {
     if (header_parts.empty() || header_parts[0] != "form-data")
         throw HttpResponseException(400);
     header_parts.erase(header_parts.begin());
-    std::cout << "nice worke: \n";
 
     forEach(std::vector<std::string>, header_parts, it) {
         std::string::size_type equal_pos = it->find('=');

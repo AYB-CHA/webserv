@@ -1,8 +1,12 @@
 import cgi
+import os
 
 form = cgi.FieldStorage()
+if os.environ['REQUEST_METHOD'] == 'POST':
+    name = form["name"].value
+else:
+    name = "World!"
 
-name = form["name"].value
 
 string = """<html>
     <h1> Hello """ + name + """ </h1>
