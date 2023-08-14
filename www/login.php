@@ -12,15 +12,24 @@
 
         if (!isset($_SESSION['login_status']))
             $_SESSION['login_status'] = false;
-
+        
         if ($_SERVER['REQUEST_METHOD'] == 'POST')
         {
-            if ($_POST['username'] == 'admin' && $_POST['password'] == 'admin')
+            if (isset($_POST['logout']))
+            {
+                $_SESSION['login_status'] = false;
+            }
+            elseif ($_POST['username'] == 'admin' && $_POST['password'] == 'admin')
+            {
                 $_SESSION['login_status'] = true;
+            }
         }
 
     if (isset($_SESSION['login_status']) && $_SESSION['login_status'] == true)
+    {
         echo "<h1>YOU ARE LOGGED IN</h1>";
+        echo "<form method='POST' action='/login.php'><button name='logout'>LOGOUT</button></form>";
+    }
     else
     {
         echo <<<EOF
