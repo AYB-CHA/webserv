@@ -162,20 +162,9 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     client.setFileFd(this->getFd());
 }
 
-void RequestHandler::handleGET(Client &client, Mediator &mediator) {
-
+void RequestHandler::handleFileRequest(Client &client, Mediator &mediator) {
     if (request.getHeader("Connection") == "close")
         client.setConnectionClose(true);
-    if (this->list_dir)
-        listDirectory(client);
-    else
-        fileRequested(client, mediator);
-}
-
-void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
-    if (request.getHeader("Connection") == "close")
-        client.setConnectionClose(true);
-
     if (this->list_dir)
         listDirectory(client);
     else
