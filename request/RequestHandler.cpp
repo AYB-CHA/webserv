@@ -103,7 +103,6 @@ void RequestHandler::init(Client &client) {
     checkConfAndAccess(client);
 
     if (matchLocState && !this->targetLoc.getRedirect().empty()) {
-        setInitialized(false);
         throw HttpResponseException(307, targetLoc.getRedirect());
     }
 

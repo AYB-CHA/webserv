@@ -114,7 +114,7 @@ void Client::handleRequest(std::vector<Server> servers, Mediator &mediator) {
         requestHandler = RequestHandler(request, servers);
         requestHandler.init(*this);
         requestHandler.setInitialized(true);
-        if (method == "POST" && (contentLength != 0 || chunkedRequest == false))
+        if (method == "POST" && (contentLength != 0 || chunkedRequest == true))
             return;
     }
 
@@ -302,7 +302,6 @@ bool Client::readStatusHeaders() {
         return true;
     }
     if (bufC.read.size() >= 8190) {
-        connectionClose = true;
         throw HttpResponseException(494);
     }
     return false;
@@ -456,7 +455,7 @@ void Client::showErrorPage(HttpResponseException &e) {
             return;
         }
     }
-    if ((e.getStatusCode() >= 400 && e.getStatusCode() < 500) ||
+    if ((e.getStatusCode() >= 400 && e.getStatusCode() < 502) ||
         e.getStatusCode() == 307)
         this->setConnectionClose(true);
     this->storeResponse(e.build());
