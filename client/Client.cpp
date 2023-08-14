@@ -163,16 +163,16 @@ bool Client::readContentLengthBody() {
     int len = read(socketFd, bufC.temp.data() + previousSize, contentLength);
     bufC.temp.resize(previousSize + len);
 
+    if (len == -1 || len == 0) {
+        connectionClose = true;
+        return false;
+    }
     contentLength -= len;
     if (contentLength == 0) {
         bufC.body = std::string(bufC.temp.begin(), bufC.temp.end());
         bufC.temp.clear();
         updateTimeout();
         return true;
-    }
-    if (len == -1 || len == 0) {
-        connectionClose = true;
-        return false;
     }
     updateTimeout();
     return false;
