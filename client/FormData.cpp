@@ -67,10 +67,12 @@ void FormData::uploadFile() {
 
     if (!upload_file)
         throw HttpResponseException(403);
-    upload_file.write(to_process.data() + i,
-                             to_process.length() - i - 2);
-    upload_file.close();
-    if (!upload_file)
+    upload_file.write(to_process.data() + i, to_process.length() - i - 2);
+
+    if (!upload_file) {
+        upload_file.close();
         throw HttpResponseException(500);
+    }
+    upload_file.close();
 }
 FormData::~FormData() {}

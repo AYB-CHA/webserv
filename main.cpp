@@ -1,8 +1,8 @@
 #include "main.hpp"
 #include "selector/Multiplexer.hpp"
-
 #include <cstdlib>
 #include <stdexcept>
+#include <unistd.h>
 
 void mem() { system("leaks webserv"); }
 
@@ -32,8 +32,16 @@ int main(int ac, char **av) {
         servers = validator(server_directives);
         server_directives.clear();
         Core core(servers);
-        Multiplexer multiplexer(servers);
-        multiplexer.run();
+        signal(SIGCHLD, SIG_IGN);
+        signal(SIGPIPE, SIG_IGN);
+        while (true)
+            try {
+                Multiplexer multiplexer(servers);
+                multiplexer.run();
+            } catch (const std::bad_alloc &e) {
+                std::cerr << "Out of memory, waiting for resources...\n";
+                usleep(10000);
+            }
     } catch (std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
     }

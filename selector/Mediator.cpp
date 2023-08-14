@@ -88,6 +88,16 @@ void Mediator::filterClients() {
     }
 }
 
+void Mediator::clearAll() {
+    std::vector<int> clientFds;
+    for (std::map<int, Client>::iterator it = fd_clients.begin(); it != fd_clients.end(); ++it)
+        clientFds.push_back(it->first);
+    for (std::vector<int>::iterator it = clientFds.begin(); it != clientFds.end(); ++it) {
+        removeClient(*it);
+        close(*it);
+    }
+}
+
 void Mediator::getBatch(std::vector<Server *> &servers,
                         std::vector<Client *> &rclients,
                         std::vector<Client *> &wclients,
