@@ -28,7 +28,7 @@ public:
     Selector();
     int poll();
     void pushFd(int fd, selectType type);
-    void popFd(int fd);
+    void popFd(int fd, selectType type);
     void    setTimeout(time_t sec, suseconds_t usec);
     int getWriteFd();
     int getReadFd();

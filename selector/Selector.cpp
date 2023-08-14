@@ -17,12 +17,31 @@ void Selector::pushFd(int fd, selectType type) {
     highest_fd = *std::max_element(fds.begin(), fds.end());
 }
 
-void Selector::popFd(int fd) {
+void Selector::popFd(int fd, selectType type) {
     selIter it = std::find(fds.begin(), fds.end(), fd);
     if (it == fds.end()) {
         throw std::runtime_error("Fd is not in the set.");
     }
     fds.erase(it);
+    switch (type) {
+        case SEL_RDONLY: {
+            it = std::find(readonly_fds.begin(), readonly_fds.end(), fd);
+            if (it == readonly_fds.end()) {
+                throw std::runtime_error("Fd is not in the readonly set.");
+            }
+            readonly_fds.erase(it);
+            break;
+        }
+        case SEL_WRONLY: {
+            it = std::find(writeonly_fds.begin(), writeonly_fds.end(), fd);
+            if (it == readonly_fds.end()) {
+                throw std::runtime_error("Fd is not in the writeonly set.");
+            }
+            writeonly_fds.erase(it);
+            break;
+        }
+        default: break;
+    }
     highest_fd = *std::max_element(fds.begin(), fds.end());
 }
 

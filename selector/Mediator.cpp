@@ -31,7 +31,7 @@ void Mediator::removeReadCGI(int fd) {
         throw std::runtime_error("Pipe file descriptor was not found");
     }
     fd_readpipes.erase(it);
-    selector.popFd(fd);
+    selector.popFd(fd, Selector::SEL_RDONLY);
     close(fd);
 }
 
@@ -42,7 +42,7 @@ void Mediator::removeWriteCGI(int fd) {
         throw std::runtime_error("Pipe file descriptor was not found");
     }
     fd_writepipes.erase(it);
-    selector.popFd(fd);
+    selector.popFd(fd, Selector::SEL_WRONLY);
     close(fd);
 }
 
@@ -68,7 +68,7 @@ void Mediator::removeClient(int fd) {
     fd_clients[fd].clear();
     fd_clients.erase(fd);
     try {
-        selector.popFd(fd);
+        selector.popFd(fd, Selector::SEL_RDWR);
     } catch (std::runtime_error &e) {
         // log the error for now
         std::cerr << e.what() << std::endl;
