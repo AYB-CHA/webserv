@@ -33,7 +33,7 @@ class RequestHandler {
     void fileRequested(Client &client, Mediator &mediator);
 
     Server &validServerName(std::string serverName);
-    bool matchLocation(const std::string& endpoint, const Server &serv);
+    bool matchLocation(const std::string &endpoint, const Server &serv);
     // Location matchLocation(std::string endpoint, std::vector<Location>&
     // locations);
   public:
@@ -49,8 +49,7 @@ class RequestHandler {
     std::string getResponse();
     std::string getFileMimeType(const std::string &file_name) const;
     void init(Client &client);
-    void handleGET(Client &client, Mediator &mediator);
-    void handlePOST(Client &client, Mediator &mediator);
+    void handleFileRequest(Client &client, Mediator &mediator);
     void handleDELETE(Client &client);
     const std::string &getCgiPathFromExtension(const std::string &extension);
     void responseFromIndexes(Client &client, Mediator &mediator);
@@ -59,7 +58,7 @@ class RequestHandler {
     //
     bool isDirChecks(Client &clint);
     bool setIndexFile(const std::vector<std::string> &indexes);
-    void DeleteFiles(const std::string& path, std::vector<std::string>& list);
+    void DeleteFiles(const std::string &path, std::vector<std::string> &list);
 };
 
 #define forEach(type, iterable, name)                                          \
