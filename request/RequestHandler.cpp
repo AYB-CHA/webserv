@@ -55,24 +55,16 @@ bool RequestHandler::isDirChecks(Client &client) {
     stat(file.c_str(), &data);
     if (!S_ISDIR(data.st_mode))
         return false;
-    if (this->matchLocState == true) {
-        if (this->targetLoc.getAutoindex() == true) {
-            this->list_dir = true;
-            return true;
-        } else {
-            if (setIndexFile(this->targetLoc.getIndex()))
-                return false;
-            this->file.clear();
-        }
+    AContext *loader = this->matchLocState
+                           ? dynamic_cast<AContext *>(&this->targetLoc)
+                           : dynamic_cast<AContext *>(&client.getServer());
+    if (loader->getAutoindex()) {
+        this->list_dir = true;
+        return true;
     } else {
-        if (client.getServer().getAutoindex()) {
-            this->list_dir = true;
-            return true;
-        } else {
-            if (setIndexFile(client.getServer().getIndex()))
-                return false;
-            this->file.clear();
-        }
+        if (setIndexFile(loader->getIndex()))
+            return false;
+        this->file.clear();
     }
     return false;
 }
@@ -84,7 +76,6 @@ bool RequestHandler::setIndexFile(const std::vector<std::string> &indexes) {
             this->file = holder;
             return true;
         }
-        // std::cout << holder<< std::endl;
     }
     return false;
 }
@@ -98,16 +89,15 @@ void RequestHandler::init(Client &client) {
     srv = validServerName(hostHeader);
     client.setServer(srv);
     client.setMethod(request.getMethod());
-    this->matchLocState = matchLocation(request.getEndpoint(), client.getServer());
-
+    this->matchLocState =
+        matchLocation(request.getEndpoint(), client.getServer());
+    validMethod(client.getMethod(), client);
     if (client.getMethod() == "DELETE")
         return;
 
     checkConfAndAccess(client);
 
-
     if (matchLocState && !this->targetLoc.getRedirect().empty()) {
-        std::cout << "REDIRECTION" << std::endl;
         setInitialized(false);
         throw HttpResponseException(307, targetLoc.getRedirect());
     }
@@ -122,36 +112,21 @@ void RequestHandler::init(Client &client) {
         return;
     }
 
-    // std::cout << "FILE: " << file << std::endl;
-    // std::cout << "isMatched: " << matchLocState << std::endl;
-
     std::string::size_type dot = file.find_last_of('.');
     if (dot != std::string::npos)
         this->extension = file.substr(dot);
 
-    if (request.getHeader("Transfer-Encoding") == "chunked") {
-        client.setChunkedRequest(true);
-    }
+    client.setChunkedRequest(request.isChunked());
 
-    if (checkForExtension(this->extension)) {
+    if (isCGI(this->extension)) {
         return;
     }
 
-    if (request.getHeader("Content-Type") != "") {
-        std::string header_value = this->request.getHeader("Content-Type");
-        std::string::size_type semicolon_pos = header_value.find(';');
-        std::string content_type = header_value.substr(0, semicolon_pos);
-
-        if (content_type == "multipart/form-data") {
-            std::string::size_type boundary_pos = semicolon_pos + 1;
-            if (content_type[boundary_pos] == ' ')
-                boundary_pos++;
-            boundary_pos += 10;
-            std::string boundary = header_value.substr(boundary_pos);
-            client.setFormData(true);
-            client.setFormDataBoundary(boundary);
-        }
+    if (request.isMultipartData()) {
+        client.setFormData(true);
+        client.setFormDataBoundary(request.getMultipartDataBoundary());
     }
+
     if (client.getFormDataStatus() && client.getChunkedRequestStatus()) {
         throw HttpResponseException(501);
     }
@@ -167,15 +142,13 @@ void RequestHandler::fileRequested(Client &client, Mediator &mediator) {
     struct stat data;
     stat(file.c_str(), &data);
 
-    if (checkForExtension(this->extension)) {
+    if (isCGI(this->extension)) {
         CGIResolver cgi(this->getCgiPathFromExtension(this->extension), file,
                         this->request, client);
         client.setCgiReadFd(cgi.getReadEnd());
         client.setCgiWriteFd(cgi.getWriteEnd());
         mediator.addReadCGI(cgi.getReadEnd());
         mediator.addWriteCGI(cgi.getWriteEnd());
-        // std::cout << cgi.getReadEnd() << std::endl;
-        // std::cout << cgi.getWriteEnd() << std::endl;
         return;
     }
 
@@ -193,10 +166,8 @@ void RequestHandler::handleGET(Client &client, Mediator &mediator) {
 
     if (request.getHeader("Connection") == "close")
         client.setConnectionClose(true);
-
-    validMethod("GET", client);
     if (this->list_dir)
-        listDirectory(client, mediator);
+        listDirectory(client);
     else
         fileRequested(client, mediator);
 }
@@ -205,29 +176,30 @@ void RequestHandler::handlePOST(Client &client, Mediator &mediator) {
     if (request.getHeader("Connection") == "close")
         client.setConnectionClose(true);
 
-    validMethod("POST", client);
     if (this->list_dir)
-        listDirectory(client, mediator);
+        listDirectory(client);
     else
         fileRequested(client, mediator);
 }
 
-void RequestHandler::DeleteFiles(const std::string& path, std::vector<std::string>& list) {
+void RequestHandler::DeleteFiles(const std::string &path,
+                                 std::vector<std::string> &list) {
     struct stat buff;
     stat(path.c_str(), &buff);
     if (S_ISDIR(buff.st_mode)) {
         DIR *d = opendir(path.c_str());
-
-        if (d) {
-            for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
-                std::string s(de->d_name, de->d_namlen);
-                if (s != ".." &&s != ".") {
-                    s = std::string(path) + "/" + s;
-                    DeleteFiles(s, list);
-                }
+        for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
+#if __linux__
+            std::string s(de->d_name);
+#elif __APPLE__
+            std::string s(de->d_name, de->d_namlen);
+#endif
+            if (s != ".." && s != ".") {
+                s = std::string(path) + "/" + s;
+                DeleteFiles(s, list);
             }
-            closedir(d);
         }
+        closedir(d);
     }
 
     list.push_back(path);
@@ -236,8 +208,6 @@ void RequestHandler::DeleteFiles(const std::string& path, std::vector<std::strin
 void RequestHandler::handleDELETE(Client &client) {
     if (request.getHeader("Connection") == "close")
         client.setConnectionClose(true);
-
-    validMethod("DELETE", client);
     // DELETE THE FILE
     std::string delete_me = targetLoc.getRoot() + this->request.getEndpoint();
 
@@ -269,30 +239,34 @@ void RequestHandler::checkConfAndAccess(Client &client) {
 }
 
 void RequestHandler::fillContainer(std::string &container) {
-
     DIR *d = opendir(file.c_str());
     if (!d)
         throw HttpResponseException(403);
     for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
         std::string item;
+#if __linux__
+        std::string s(de->d_name);
+#elif __APPLE__
         std::string s(de->d_name, de->d_namlen);
-
-        if (s != ".." && s != ".")
-            item = std::string("<li><a href=\"") + s + "\">" + s +
-                   "</a></li>\n";
-        container += item;
+#endif
+        if (s == "." || s == "..")
+            continue;
+        container += "<li><a href='" + s + "'>" + s + "</a></li>";
     }
     closedir(d);
 }
 
-void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
-    (void)mediator;
-    std::string container = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n\
-        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
-        <title>list Dir</title>\n</head>\n<body>\n<div>\n<h2>List of files: </h2>\n<ul>\n";
+void RequestHandler::listDirectory(Client &client) {
+    std::string container =
+        "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'>\
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>\
+        <title>" +
+        this->request.getEndpoint() +
+        "</title></head><body><div><h2>Index of: " +
+        this->request.getEndpoint() + "</h2><ul>";
 
     fillContainer(container);
-    container += "</ul>\n</div>\n</body>\n</html>\n";
+    container += "</ul></div></body></html>";
 
     response.setStatuscode(200)
         ->setHeader("Content-Type", this->getFileMimeType(".html"))
@@ -301,7 +275,7 @@ void RequestHandler::listDirectory(Client &client, Mediator &mediator) {
     client.setFileFd(this->getFd());
 }
 
-bool RequestHandler::checkForExtension(const std::string &extension) {
+bool RequestHandler::isCGI(const std::string &extension) {
 
     try {
         this->targetLoc.getCgiPath().at(extension);
@@ -318,20 +292,17 @@ RequestHandler::getCgiPathFromExtension(const std::string &extension) {
 
 std::string RequestHandler::getResponse() { return response.build(); }
 
-bool RequestHandler::matchLocation(const std::string& endpoint, const Server &serv) {
-
+bool RequestHandler::matchLocation(const std::string &endpoint,
+                                   const Server &serv) {
     std::vector<Location> locations = serv.getLocation();
     if (locations.empty()) {
         return false;
     }
-
     bool found = false;
     std::string holder = "";
-
     forEach(std::vector<Location>, locations, itr) {
         forEachConst(std::vector<std::string>, itr->getPrefix(), itr1) {
             std::vector<std::string> list = utils::split(endpoint, "/");
-        // std::cout << "i'm here"<< "| size: " << list.size() << "| endpoint: " << endpoint << std::endl;
             for (size_t i = 0; i < list.size(); i++) {
                 std::string tmp = "";
                 for (std::vector<std::string>::iterator itr2 = list.begin();
@@ -340,14 +311,7 @@ bool RequestHandler::matchLocation(const std::string& endpoint, const Server &se
                 }
                 std::string prefix = *itr1;
                 utils::strTrimV2(prefix, "/");
-                // prefix.insert(prefix.begin(), '/');
-
                 prefix = "/" + prefix;
-
-                // std::cout << ">>>>>>tmp: " << tmp << std::endl;
-                // std::cout << ">>>>>>prefix: " << prefix << std::endl;
-
-
                 if (tmp == prefix || prefix == "/") {
                     found = true;
                     holder = prefix;

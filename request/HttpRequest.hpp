@@ -12,7 +12,7 @@ class HttpRequest {
   protected:
     std::string method;
     URL url;
-    // std::string endpoint;
+    std::string multipart_data_boundary;
     std::string queries;
     std::map<std::string, std::string> headers;
     std::string body;
@@ -39,4 +39,8 @@ class HttpRequest {
     void setPathInfo(const std::string& pathinfo);
     void setHeader(std::string &key, std::string &value);
     void pushBody(std::string &content);
+    const std::string &getMultipartDataBoundary();
+  public:
+    bool isMultipartData();
+    bool isChunked();
 };

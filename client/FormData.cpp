@@ -36,6 +36,7 @@ void FormData::processDispositionHeader() {
     if (header_parts.empty() || header_parts[0] != "form-data")
         throw HttpResponseException(400);
     header_parts.erase(header_parts.begin());
+
     forEach(std::vector<std::string>, header_parts, it) {
         std::string::size_type equal_pos = it->find('=');
         if (equal_pos == std::string::npos)
@@ -44,7 +45,7 @@ void FormData::processDispositionHeader() {
         std::string value = it->substr(equal_pos + 1);
         if (value[0] != '"' || value[value.size() - 1] != '"')
             throw HttpResponseException(400);
-        value.erase(value.end() -1);
+        value.erase(value.end() - 1);
         value.erase(value.begin());
         if (key == "filename" && !value.empty()) {
             filename = value;
@@ -62,12 +63,16 @@ void FormData::processBoundary() {
 
 void FormData::uploadFile() {
     std::string file_path = this->upload_path + "/" + filename;
-    std::ofstream upload_file_stream(file_path);
-    if (!upload_file_stream)
+    std::ofstream upload_file(file_path.c_str());
+
+    if (!upload_file)
         throw HttpResponseException(403);
-    upload_file_stream.write(to_process.data() + i,
-                             to_process.length() - i - 2);
-    if (!upload_file_stream)
+    upload_file.write(to_process.data() + i, to_process.length() - i - 2);
+
+    if (!upload_file) {
+        upload_file.close();
         throw HttpResponseException(500);
+    }
+    upload_file.close();
 }
 FormData::~FormData() {}

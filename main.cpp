@@ -1,6 +1,5 @@
 #include "main.hpp"
 #include "selector/Multiplexer.hpp"
-
 #include <cstdlib>
 #include <stdexcept>
 #include <unistd.h>
@@ -39,7 +38,7 @@ int main(int ac, char **av) {
             try {
                 Multiplexer multiplexer(servers);
                 multiplexer.run();
-            } catch (const std::bad_alloc& e) {
+            } catch (const std::bad_alloc &e) {
                 std::cerr << "Out of memory, waiting for resources...\n";
                 usleep(10000);
             }

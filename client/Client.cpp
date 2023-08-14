@@ -27,17 +27,18 @@ Client::Client()
 }
 
 Client::Client(int socketFd, Server server)
-    : socketFd(socketFd), bodyFd(-1), cgiReadFd(-1), cgiWriteFd(-1), method("GET"),
-      file_offset(0), connectionClose(false), clientMaxBodySize(1024), contentLength(0),
-      headersSent(false), chunkedRequest(false), formData(false),
-      chunkIsReady(false), server(server) {
+    : socketFd(socketFd), bodyFd(-1), cgiReadFd(-1), cgiWriteFd(-1),
+      method("GET"), file_offset(0), connectionClose(false),
+      clientMaxBodySize(1024), contentLength(0), headersSent(false),
+      chunkedRequest(false), formData(false), chunkIsReady(false),
+      server(server) {
     gettimeofday(&lastTimeRW, NULL);
 }
 
 Client::Client(const Client &client)
     : requestHandler(client.requestHandler), socketFd(client.socketFd),
-      bodyFd(client.bodyFd), cgiReadFd(client.cgiReadFd), cgiWriteFd(client.cgiWriteFd),
-      bufC(client.bufC), method(client.method),
+      bodyFd(client.bodyFd), cgiReadFd(client.cgiReadFd),
+      cgiWriteFd(client.cgiWriteFd), bufC(client.bufC), method(client.method),
       file_offset(client.file_offset), connectionClose(client.connectionClose),
       clientMaxBodySize(client.clientMaxBodySize),
       contentLength(client.contentLength), lastTimeRW(client.lastTimeRW),
@@ -228,7 +229,7 @@ bool Client::readChunkedHexa() {
         throw HttpResponseException(413);
     }
     if (bufC.hexa.find("\r\n") != std::string::npos) {
-        if (bufC.hexa.find("\r\n") != bufC.hexa.size() -2) {
+        if (bufC.hexa.find("\r\n") != bufC.hexa.size() - 2) {
             bufC.hexa.clear();
             throw HttpResponseException(400);
         }
@@ -254,7 +255,8 @@ bool Client::readChunkedBody() {
     }
     bufC.chunk += std::string(buf.data(), len);
     if (bufC.chunk.length() == chunkedLength + 2) {
-        if (bufC.chunk.find("\r\n") == std::string::npos || bufC.chunk.find("\r\n") != bufC.chunk.size() - 2)
+        if (bufC.chunk.find("\r\n") == std::string::npos ||
+            bufC.chunk.find("\r\n") != bufC.chunk.size() - 2)
             throw HttpResponseException(400);
         chunkIsReady = false;
         if (chunkedLength == 0) {
@@ -317,7 +319,8 @@ bool Client::readCGIHeaders() {
     }
     bufC.headers += std::string(buf, 1);
     if (bufC.headers.find("\r\n\r\n") != std::string::npos) {
-        bufC.write = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" + bufC.headers;
+        bufC.write =
+            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n" + bufC.headers;
         bufC.headers.clear();
         headersSent = true;
     }
@@ -442,7 +445,7 @@ void Client::showErrorPage(HttpResponseException &e) {
                 file_path.substr(file_path.find_last_of('.') + 1);
             struct stat data;
             fstat(fd, &data);
-            builder.setStatuscode(200)
+            builder.setStatuscode(e.getStatusCode())
                 ->setHeader("Content-Type",
                             Mime::getInstance()->getMimeType(extention))
                 ->setHeader("Content-Length",
@@ -453,6 +456,9 @@ void Client::showErrorPage(HttpResponseException &e) {
             return;
         }
     }
+    if ((e.getStatusCode() >= 400 && e.getStatusCode() < 500) ||
+        e.getStatusCode() == 307)
+        this->setConnectionClose(true);
     this->storeResponse(e.build());
 }
 
