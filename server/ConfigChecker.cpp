@@ -101,7 +101,14 @@ bool valid_ip_addr(std::string str) {
 void listen_check(std::vector<std::string> params, AContext &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
-        std::vector<std::string> s = utils::split(*it, ":");
+         std::vector<std::string> s;
+         std::string::size_type colon = it->find(":");
+        if (colon == std::string::npos)
+            s.push_back(*it);
+        else {
+            s.push_back(it->substr(0, colon));
+            s.push_back(it->substr(colon + 1));
+        }
         if (s.size() == 1) {
             int port = utils::toInt(s.front());
             if (port > 65535 || port < 0)
@@ -127,30 +134,24 @@ void server_name_check(std::vector<std::string> params, AContext &base) {
 }
 
 void redirect_check(std::vector<std::string> params, AContext &base) {
-    // for (std::vector<std::string>::iterator it = params.begin();
-    //      it != params.end(); ++it) {
-    //     std::vector<std::string> s = utils::split(*it, ":");
-    //     if (s.size() != 2)
-    //         throw std::runtime_error("Configuration error.");
     (dynamic_cast<Location &>(base)).setRedirection(params[0]);
-    // }
 }
 
 void autoindex_check(std::vector<std::string> params, AContext &base) {
     if (params.size() != 1 || (params[0] != "true" && params[0] != "false"))
         throw std::runtime_error("Configuration error.");
-    if (params[0] == "true")
-        base.setAutoindex(true);
-    else
-        base.setAutoindex(false);
+    base.setAutoindex(params[0] == "true");
 }
 
 void cgi_check(std::vector<std::string> params, AContext &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
-        std::vector<std::string> s = utils::split(*it, ":");
-        if (s.size() != 2)
+        std::string::size_type colon = it->find(":");
+        std::vector<std::string> s;
+        if (colon == std::string::npos || colon == 0 || colon == it->size() - 1)
             throw std::runtime_error("Configuration error.");
+        s.push_back(it->substr(0, colon));
+        s.push_back(it->substr(colon + 1));
         (dynamic_cast<Location &>(base)).setCgiPath(s[0], s[1]);
     }
 }

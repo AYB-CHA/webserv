@@ -114,6 +114,8 @@ Directive  ConfigParser::parseServer() {
 }
 
 void    ConfigParser::parse() {
+    if (tokens.size() == 0)
+        consume(SERVER);
     while (tokens.size() > 0) {
         Directive directive = parseServer();
 
