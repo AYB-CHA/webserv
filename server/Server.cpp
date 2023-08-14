@@ -75,7 +75,7 @@ void Server::setUp() {
 void Server::createSocket() {
     this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (this->socket_fd == -1)
-        throw std::runtime_error("socket init: couldn't create socket for");
+        throw std::runtime_error("socket init: couldn't create socket");
     fcntl(this->socket_fd, F_SETFL, O_NONBLOCK);
 }
 void Server::bindAddress() {
@@ -91,12 +91,12 @@ void Server::bindAddress() {
 
     this->host_add_len = sizeof(this->host_add);
     if (bind(this->socket_fd, (sockaddr *)&this->host_add, this->host_add_len))
-        throw std::runtime_error("socket binding: could't bind the socket");
+        throw std::runtime_error("socket binding: couldn't bind the socket");
 }
 
 void Server::listen() {
     if (::listen(this->socket_fd, SOMAXCONN))
-        throw std::runtime_error("socket init: could't listen to the socket");
+        throw std::runtime_error("socket init: couldn't listen to the socket");
 }
 
 void Server::setReUseAddressOption() {
