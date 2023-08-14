@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <unistd.h>
+#include <csignal>
 
 void mem() { system("leaks webserv"); }
 
