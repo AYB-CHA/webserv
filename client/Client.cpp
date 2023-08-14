@@ -151,7 +151,7 @@ bool Client::writeFromFile() {
         updateTimeout();
     if (bytes_sent == 0) {
         clear();
-        return true;
+        return false;
     }
     return false;
 }
