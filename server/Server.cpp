@@ -2,7 +2,7 @@
 #include "AContext.hpp"
 
 Server::Server() {
-    this->port = 80;
+    this->port = 7878;
     this->host = "127.0.0.1";
 }
 
