@@ -101,7 +101,14 @@ bool valid_ip_addr(std::string str) {
 void listen_check(std::vector<std::string> params, AContext &base) {
     for (std::vector<std::string>::iterator it = params.begin();
          it != params.end(); ++it) {
-        std::vector<std::string> s = utils::split(*it, ":");
+         std::vector<std::string> s;
+         std::string::size_type colon = it->find(":");
+        if (colon == std::string::npos)
+            s.push_back(*it);
+        else {
+            s.push_back(it->substr(0, colon));
+            s.push_back(it->substr(colon + 1));
+        }
         if (s.size() == 1) {
             int port = utils::toInt(s.front());
             if (port > 65535 || port < 0)
