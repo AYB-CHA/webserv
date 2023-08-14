@@ -78,6 +78,7 @@ class Client {
     std::string getRequest();
     Server &getServer();
     RequestHandler &getRequestHandler();
+    off_t getClientMaxBodySize();
     const std::string &getPostBody();
     bool shouldBeClosed() const;
 
@@ -89,6 +90,7 @@ class Client {
     void setMethod(const std::string &method);
     void setContentLength(off_t length);
     void setConnectionClose(bool close);
+    void setClientMaxBodySize(off_t size);
     void setChunkedRequest(bool chunked);
     void setFormData(bool val);
     void setFormDataBoundary(const std::string &boundary);

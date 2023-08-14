@@ -5,7 +5,7 @@ AContext::AContext() {
     this->allowed_methods["POST"] = false;
     this->allowed_methods["DELETE"] = false;
     this->root = "./www";
-    this->client_max_body_size = pow(2, 30);
+    this->client_max_body_size = pow(2, 10);
     this->autoindex = false;
     this->upload_path = "/tmp";
 }

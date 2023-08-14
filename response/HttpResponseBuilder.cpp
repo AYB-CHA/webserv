@@ -40,6 +40,9 @@ HttpResponseBuilder *HttpResponseBuilder::setStatuscode(int status_code) {
     case 400:
         this->status_code_phrase = "Bad Request";
         break;
+    case 413:
+        this->status_code_phrase = "Content Too Large";
+        break;
     case 502:
         this->status_code_phrase = "Bad Gateway";
         break;

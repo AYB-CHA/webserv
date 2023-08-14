@@ -400,6 +400,8 @@ void Client::setContentLength(off_t length) { this->contentLength = length; }
 
 void Client::setConnectionClose(bool close) { this->connectionClose = close; }
 
+void Client::setClientMaxBodySize(off_t size) { this->clientMaxBodySize = size; }
+
 void Client::setChunkedRequest(bool chunked) { this->chunkedRequest = chunked; }
 void Client::setFormData(bool val) { this->formData = val; }
 void Client::setFormDataBoundary(const std::string &boundary) {
@@ -425,6 +427,8 @@ void Client::clear() {
 }
 
 RequestHandler &Client::getRequestHandler() { return this->requestHandler; }
+
+off_t Client::getClientMaxBodySize() { return this->clientMaxBodySize; }
 
 void Client::showErrorPage(HttpResponseException &e) {
     const std::map<int, std::string> &error_pages =
