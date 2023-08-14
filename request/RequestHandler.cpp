@@ -198,8 +198,8 @@ void RequestHandler::DeleteFiles(const std::string &path,
                 s = std::string(path) + "/" + s;
                 DeleteFiles(s, list);
             }
-            closedir(d);
         }
+        closedir(d);
     }
 
     list.push_back(path);
