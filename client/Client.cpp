@@ -339,7 +339,6 @@ bool Client::readCGIBody() {
     bufC.write += append;
     if (len == 0) {
         headersSent = false;
-        bufC.headers.clear();
         return true;
     }
     return false;
