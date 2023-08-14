@@ -19,6 +19,7 @@ public:
     void    addClient(int fd, Server& server);
     void    removeClient(int fd);
     void    filterClients();
+    void    clearAll();
     void    addReadCGI(int fd);
     void    addWriteCGI(int fd);
     void    removeReadCGI(int fd);
