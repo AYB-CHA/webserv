@@ -93,7 +93,6 @@ void RequestHandler::init(Client &client) {
         matchLocation(request.getEndpoint(), client.getServer());
     client.setClientMaxBodySize(this->matchLocState ? this->targetLoc.getClientMaxBodySize() : srv.getClientMaxBodySize());
     validMethod(client.getMethod(), client);
-    std::cout << client.getClientMaxBodySize() << std::endl;
 
     if (utils::toInt(request.getHeader("Content-Length")) > client.getClientMaxBodySize())
         throw HttpResponseException(413);
