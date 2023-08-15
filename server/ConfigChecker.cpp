@@ -329,6 +329,32 @@ void printservs(std::vector<Server> servers) {
     }
 }
 
+bool unreachableServers(const std::vector<Server>& servers) {
+    for (std::vector<Server>::const_iterator outer = servers.begin(); outer != servers.end(); ++outer) {
+        for (std::vector<Server>::const_iterator inside = servers.begin(); inside != servers.end(); ++inside) {
+            if (outer == inside)
+                continue;
+            if (outer->getPort() == inside->getPort()) {
+                if (outer->getServerNames().empty() && inside->getServerNames().empty())
+                    return true;
+                for (std::vector<std::string>::const_iterator o = outer->getServerNames().begin(); o != outer->getServerNames().end(); ++o) {
+                    for (std::vector<std::string>::const_iterator i = inside->getServerNames().begin(); i != inside->getServerNames().end(); ++i) {
+                        if (*o == *i)
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    std::vector<Server>::const_iterator defaultServer = servers.begin();
+    if (!defaultServer->getServerNames().empty()) {
+        for (std::vector<Server>::const_iterator it = servers.begin() + 1; it != servers.end(); ++it) 
+            if (it->getServerNames().empty())
+                return true;
+    }
+    return false;
+}
+
 std::vector<Server> validator(std::vector<Directive> _servers) {
 
     std::vector<Server> servers;
@@ -337,10 +363,10 @@ std::vector<Server> validator(std::vector<Directive> _servers) {
         Server serv;
         visite_directive(it, serv);
         servers.push_back(serv);
-        std::cout
-            << "++++++++++++++++++++++++ server +++++++++++++++++++++++++++"
-            << std::endl;
     }
-    // printservs(servers);
+    if (unreachableServers(servers)) {
+        std::string errMsg = "Configuration error: unreachable Servers";
+        throw std::runtime_error(errMsg);
+    }
     return servers;
 }
