@@ -210,7 +210,7 @@ void RequestHandler::handleDELETE(Client &client) {
     for (size_t i = 0; i < list.size(); i++) {
         if (access(list[i].c_str(), F_OK) != 0)
             throw HttpResponseException(404);
-        if (access(list[i].c_str(), W_OK) != 0)
+        if (access(list[i].c_str(), W_OK | R_OK) != 0)
             throw HttpResponseException(403);
     }
     for (size_t i = 0; i < list.size(); i++)
