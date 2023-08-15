@@ -37,8 +37,6 @@ void HttpRequestParser::parseRequestLine(const std::string &request_line) {
     std::string uri =
         request_line.substr(first_space + 1, second_space - first_space - 1);
     std::string::size_type qm_pos = uri.find('?');
-    // ?: remember to double check for nginx behavior on multiple question mark
-    // ? eg: '/test?????abc=123'
     if (qm_pos != std::string::npos) {
         URL url = parseURI(uri.substr(0, qm_pos));
         this->request.setEndpoint(url.endpoint);
@@ -50,8 +48,6 @@ void HttpRequestParser::parseRequestLine(const std::string &request_line) {
         this->request.setPathInfo(url.pathinfo);
     }
 
-    // std::cout << "queries: " << this->request.getQueries() << std::endl;
-    // std::cout << "endpoint: " << this->request.getEndpoint() << std::endl;
 
     // version...
     std::string http_version = request_line.substr(second_space + 1);

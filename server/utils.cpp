@@ -63,17 +63,3 @@ std::vector<std::string> utils::split(std::string str, std::string delimiter) {
 
     return list;
 }
-
-
-
-
-// int main () {
-// 	std::string s("/www/da/index.html/");
-// 	std::vector<std::string> vec = utils::split(s, "/");
-// 	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it) {
-// 		std::cout << "item: " << *it << std::endl;
-// 	}
-
-// 	// std::cout << utils::toInt("347") << std::endl;
-
-// }
