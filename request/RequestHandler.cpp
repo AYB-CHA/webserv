@@ -85,8 +85,7 @@ void RequestHandler::init(Client &client) {
 
     this->list_dir = false;
 
-    std::string hostHeader = request.getHeader("Host");
-    srv = validServerName(hostHeader);
+    srv = validServerName(client);
     client.setServer(srv);
     client.setMethod(request.getMethod());
     this->matchLocState =
@@ -181,18 +180,20 @@ void RequestHandler::DeleteFiles(const std::string &path,
     stat(path.c_str(), &buff);
     if (S_ISDIR(buff.st_mode)) {
         DIR *d = opendir(path.c_str());
-        for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
-#if __linux__
-            std::string s(de->d_name);
-#elif __APPLE__
-            std::string s(de->d_name, de->d_namlen);
-#endif
-            if (s != ".." && s != ".") {
-                s = std::string(path) + "/" + s;
-                DeleteFiles(s, list);
+        if (d) {
+            for (dirent *de = readdir(d); de != NULL; de = readdir(d)) {
+    #if __linux__
+                std::string s(de->d_name);
+    #elif __APPLE__
+                std::string s(de->d_name, de->d_namlen);
+    #endif
+                if (s != ".." && s != ".") {
+                    s = std::string(path) + "/" + s;
+                    DeleteFiles(s, list);
+                }
             }
+            closedir(d);
         }
-        closedir(d);
     }
 
     list.push_back(path);
@@ -321,17 +322,27 @@ bool RequestHandler::matchLocation(const std::string &endpoint,
     return found;
 }
 
-Server &RequestHandler::validServerName(std::string serverName) {
+Server &RequestHandler::validServerName(Client &client) {
+    std::string serverName = request.getHeader("Host");
+    int port = client.getServer().getPort();
     for (std::vector<Server>::iterator itr = servers.begin();
          itr != servers.end(); itr++) {
         std::vector<std::string> server_names = itr->getServerNames();
         for (std::vector<std::string>::iterator itr1 = server_names.begin();
              itr1 != server_names.end(); itr1++) {
-            if (serverName == *itr1) {
+            if (itr->getPort() == port && serverName == *itr1) {
                 return *itr;
             }
         }
     }
+
+    for (std::vector<Server>::iterator itr = servers.begin();
+         itr != servers.end(); itr++) {
+        if (itr->getPort() == port) {
+            return *itr;
+        }
+    }
+
     return *(servers.begin());
 }
 

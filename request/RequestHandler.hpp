@@ -32,7 +32,7 @@ class RequestHandler {
     bool isCGI(const std::string &extension);
     void fileRequested(Client &client, Mediator &mediator);
 
-    Server &validServerName(std::string serverName);
+    Server &validServerName(Client &client);
     bool matchLocation(const std::string &endpoint, const Server &serv);
     // Location matchLocation(std::string endpoint, std::vector<Location>&
     // locations);
