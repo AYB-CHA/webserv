@@ -6,8 +6,9 @@
     // echo "Hello, World!";
 ?>
 
-<form action="/index.html" method="POST" enctype="multipart/form-data" >
-    <input type="file" name="name">
+<form action="/" method="POST" enctype="multipart/form-data" >
+    <input type="text" name="name">
+    <input type="file" name="filename">
     <br>
     <button>SEND</button>
 </form>
