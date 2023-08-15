@@ -269,7 +269,6 @@ void RequestHandler::listDirectory(Client &client) {
 }
 
 bool RequestHandler::isCGI(const std::string &extension) {
-
     try {
         this->targetLoc.getCgiPath().at(extension);
         return true;
@@ -305,11 +304,11 @@ bool RequestHandler::matchLocation(const std::string &endpoint,
                 std::string prefix = *itr1;
                 utils::strTrimV2(prefix, "/");
                 prefix = "/" + prefix;
-                if (tmp == prefix || prefix == "/") {
+                if ((tmp == prefix || prefix == "/") && holder.size() < tmp.size()) {
                     found = true;
                     holder = prefix;
                     this->targetLoc = *itr;
-                    return true;
+                    // return true;
                 }
             }
             if (list.empty() && *itr1 == "/") {
