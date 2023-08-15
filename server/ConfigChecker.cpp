@@ -329,6 +329,21 @@ void printservs(std::vector<Server> servers) {
     }
 }
 
+bool unreachableServers(const std::vector<Server>& servers) {
+    for (std::vector<Server>::const_iterator outer = servers.begin(); outer != servers.end(); ++outer) {
+        for (std::vector<Server>::const_iterator inside = servers.begin(); inside != servers.end(); ++inside) {
+            if (outer == inside)
+                continue;
+            if (outer->getPort() == inside->getPort()) {
+                if (outer->getServerNames().empty() && inside->getServerNames().empty())
+                    return true;
+                // for (std::string::iterator o = outer->getServerNames().begin(); )
+            }
+        }
+    }
+    return false;
+}
+
 std::vector<Server> validator(std::vector<Directive> _servers) {
 
     std::vector<Server> servers;
@@ -340,6 +355,10 @@ std::vector<Server> validator(std::vector<Directive> _servers) {
         std::cout
             << "++++++++++++++++++++++++ server +++++++++++++++++++++++++++"
             << std::endl;
+    }
+    if (unreachableServers(servers)) {
+        std::string errMsg = "Configuration error: unreachable Servers (Similar ports and server names)";
+        throw std::runtime_error(errMsg);
     }
     // printservs(servers);
     return servers;
