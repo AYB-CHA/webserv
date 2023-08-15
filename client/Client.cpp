@@ -208,6 +208,7 @@ bool Client::readFormData() {
         bufC.formData.erase(0, 2 + this->formDataBoundary.length() +
                                    to_process.length());
     }
+    updateTimeout();
     return contentLength == 0;
 }
 
@@ -220,6 +221,7 @@ bool Client::readChunkedHexa() {
         return false;
     }
 
+    updateTimeout();
     bufC.hexa += std::string(buf, len);
     if (bufC.hexa.size() > static_cast<size_t>(clientMaxBodySize)) {
         bufC.hexa.clear();
@@ -249,6 +251,7 @@ bool Client::readChunkedBody() {
         connectionClose = true;
         return false;
     }
+    updateTimeout();
     bufC.chunk += std::string(buf.data(), len);
     if (bufC.chunk.length() == chunkedLength + 2) {
         if (bufC.chunk.find("\r\n") == std::string::npos ||
