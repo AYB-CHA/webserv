@@ -324,6 +324,8 @@ bool RequestHandler::matchLocation(const std::string &endpoint,
 
 Server &RequestHandler::validServerName(Client &client) {
     std::string serverName = request.getHeader("Host");
+    if (serverName.find(":") != std::string::npos)
+        serverName = serverName.substr(0, serverName.find(":"));
     int port = client.getServer().getPort();
     for (std::vector<Server>::iterator itr = servers.begin();
          itr != servers.end(); itr++) {

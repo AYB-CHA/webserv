@@ -229,7 +229,7 @@ bool unreachableServers(const std::vector<Server>& servers) {
             if (outer == inside)
                 continue;
             if (outer->getPort() == inside->getPort()) {
-                if (outer->getServerNames().empty() && inside->getServerNames().empty())
+                if (outer->getServerNames().empty() || inside->getServerNames().empty())
                     return true;
                 for (std::vector<std::string>::const_iterator o = outer->getServerNames().begin(); o != outer->getServerNames().end(); ++o) {
                     for (std::vector<std::string>::const_iterator i = inside->getServerNames().begin(); i != inside->getServerNames().end(); ++i) {
@@ -239,12 +239,6 @@ bool unreachableServers(const std::vector<Server>& servers) {
                 }
             }
         }
-    }
-    std::vector<Server>::const_iterator defaultServer = servers.begin();
-    if (!defaultServer->getServerNames().empty()) {
-        for (std::vector<Server>::const_iterator it = servers.begin() + 1; it != servers.end(); ++it) 
-            if (it->getServerNames().empty())
-                return true;
     }
     return false;
 }

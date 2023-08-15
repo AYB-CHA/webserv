@@ -5,10 +5,7 @@
 #include <unistd.h>
 #include <csignal>
 
-void mem() { system("leaks webserv"); }
-
 int main(int ac, char **av) {
-    atexit(mem);
     if (ac > 2) {
         std::cerr << "Usage: " << av[0] << " [config-file]" << std::endl;
         return 1;

@@ -3,7 +3,6 @@
 Mime *Mime::self = NULL;
 
 Mime::Mime() {
-    // todo: add more...
     this->types["mp4"] = "video/mp4";
     this->types["html"] = "text/html";
     this->types["htm"] = "text/html";
