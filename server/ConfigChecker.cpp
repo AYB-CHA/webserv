@@ -334,10 +334,15 @@ bool unreachableServers(const std::vector<Server>& servers) {
         for (std::vector<Server>::const_iterator inside = servers.begin(); inside != servers.end(); ++inside) {
             if (outer == inside)
                 continue;
-            if (outer->getPort() == inside->getPort()) {
+            if (outer->getPort() == inside->getPort()) /*Maybe also addresses?? meaning if one server is local and the other public etc*/ {
                 if (outer->getServerNames().empty() && inside->getServerNames().empty())
                     return true;
-                // for (std::string::iterator o = outer->getServerNames().begin(); )
+                for (std::vector<std::string>::const_iterator o = outer->getServerNames().begin(); o != outer->getServerNames().end(); ++o) {
+                    for (std::vector<std::string>::const_iterator i = inside->getServerNames().begin(); i != inside->getServerNames().end(); ++i) {
+                        if (*o == *i)
+                            return true;
+                    }
+                }
             }
         }
     }
