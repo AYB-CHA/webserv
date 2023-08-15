@@ -329,6 +329,10 @@ void printservs(std::vector<Server> servers) {
     }
 }
 
+// if default server has a name, and one of the rest of the servers has no name, check for that as well
+// since if the default has a name the rest of the servers that have no name won't be reachable no matter what
+// but if the default has no name while the rest do, it's fine because you can just reach the default when you dont
+// specify a host header
 bool unreachableServers(const std::vector<Server>& servers) {
     for (std::vector<Server>::const_iterator outer = servers.begin(); outer != servers.end(); ++outer) {
         for (std::vector<Server>::const_iterator inside = servers.begin(); inside != servers.end(); ++inside) {
