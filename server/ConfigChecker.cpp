@@ -363,14 +363,10 @@ std::vector<Server> validator(std::vector<Directive> _servers) {
         Server serv;
         visite_directive(it, serv);
         servers.push_back(serv);
-        std::cout
-            << "++++++++++++++++++++++++ server +++++++++++++++++++++++++++"
-            << std::endl;
     }
     if (unreachableServers(servers)) {
         std::string errMsg = "Configuration error: unreachable Servers";
         throw std::runtime_error(errMsg);
     }
-    // printservs(servers);
     return servers;
 }
