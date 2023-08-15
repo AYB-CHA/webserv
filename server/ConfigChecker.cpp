@@ -329,16 +329,12 @@ void printservs(std::vector<Server> servers) {
     }
 }
 
-// if default server has a name, and one of the rest of the servers has no name, check for that as well
-// since if the default has a name the rest of the servers that have no name won't be reachable no matter what
-// but if the default has no name while the rest do, it's fine because you can just reach the default when you dont
-// specify a host header
 bool unreachableServers(const std::vector<Server>& servers) {
     for (std::vector<Server>::const_iterator outer = servers.begin(); outer != servers.end(); ++outer) {
         for (std::vector<Server>::const_iterator inside = servers.begin(); inside != servers.end(); ++inside) {
             if (outer == inside)
                 continue;
-            if (outer->getPort() == inside->getPort()) /*Maybe also addresses?? meaning if one server is local and the other public etc*/ {
+            if (outer->getPort() == inside->getPort()) {
                 if (outer->getServerNames().empty() && inside->getServerNames().empty())
                     return true;
                 for (std::vector<std::string>::const_iterator o = outer->getServerNames().begin(); o != outer->getServerNames().end(); ++o) {
@@ -349,6 +345,12 @@ bool unreachableServers(const std::vector<Server>& servers) {
                 }
             }
         }
+    }
+    std::vector<Server>::const_iterator defaultServer = servers.begin();
+    if (!defaultServer->getServerNames().empty()) {
+        for (std::vector<Server>::const_iterator it = servers.begin() + 1; it != servers.end(); ++it) 
+            if (it->getServerNames().empty())
+                return true;
     }
     return false;
 }
@@ -366,7 +368,7 @@ std::vector<Server> validator(std::vector<Directive> _servers) {
             << std::endl;
     }
     if (unreachableServers(servers)) {
-        std::string errMsg = "Configuration error: unreachable Servers (Similar ports and server names)";
+        std::string errMsg = "Configuration error: unreachable Servers";
         throw std::runtime_error(errMsg);
     }
     // printservs(servers);
