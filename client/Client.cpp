@@ -86,7 +86,7 @@ bool Client::writeChunk() {
 
 bool Client::readRequest() {
     if (method == "POST") {
-        return (readBody());
+        return readBody();
     }
     return readStatusHeaders();
 }
@@ -233,7 +233,6 @@ bool Client::readChunkedHexa() {
         utils::strTrimV2(bufC.hexa, "\r\n");
         chunkedLength = utils::string::toIntHex(bufC.hexa);
         bufC.hexa.clear();
-        // bufC.temp.resize(bufC.temp.size() + chunkedLength); // wtf?
         chunkIsReady = true;
     }
     return false;
@@ -273,7 +272,6 @@ bool Client::readChunkedBody() {
 }
 
 bool Client::readBody() {
-    // std::cout << formData << std::endl;
     if (chunkedRequest == true)
         return readChunkedBody();
     else if (formData == true) {
